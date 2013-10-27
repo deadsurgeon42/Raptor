@@ -70,8 +70,7 @@ namespace Raptor
 		/// <param name="position">The position.</param>
 		/// <param name="color">The color.</param>
 		/// <param name="font">The font.</param>
-		/// <param name="flash">Whether to have the color "flash."</param>
-		public static void DrawGuiText(this SpriteBatch sb, string str, Vector2 position, Color color, SpriteFont font, bool flash = true)
+		public static void DrawGuiText(this SpriteBatch sb, string str, Vector2 position, Color color, SpriteFont font)
 		{
 			SpriteFont drawFont = font ?? Main.fontMouseText;
 
@@ -79,17 +78,7 @@ namespace Raptor
 			sb.DrawString(drawFont, str, position + new Vector2(-1.5f, 0), Color.Black);
 			sb.DrawString(drawFont, str, position + new Vector2(0, 1.5f), Color.Black);
 			sb.DrawString(drawFont, str, position + new Vector2(0, -1.5f), Color.Black);
-
-			if (flash)
-			{
-				float f = Main.mouseTextColor / 255f;
-				Color drawColor = new Color((int)(f * color.R), (int)(f * color.G), (int)(f * color.B));
-				sb.DrawString(drawFont, str, position, drawColor);
-			}
-			else
-			{
-				sb.DrawString(drawFont, str, position, color);
-			}
+			sb.DrawString(drawFont, str, position, color);
 		}
 		/// <summary>
 		/// Draws a line.

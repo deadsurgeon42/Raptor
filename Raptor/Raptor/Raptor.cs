@@ -111,6 +111,12 @@ namespace Raptor
 		}
 		internal static void Initialized()
 		{
+			string version = "Raptor v" + ClientApi.ApiVersion;
+			ClientApi.Main.Window.Title = version;
+			Main.chTitle = false;
+			Main.versionNumber = "Terraria " + Main.versionNumber + "\n" + version;
+			Main.versionNumber2 = "Terraria " + Main.versionNumber2 + "\n" + version;
+
 			Commands.Init();
 
 			#region Config
@@ -189,9 +195,13 @@ namespace Raptor
 					Input.TypedString = Input.TypedString.Replace("/", "");
 				}
 			}
-			else if (Input.IsKeyTapped(Keys.Enter) && Main.chatMode && Main.chatText != "")
+			else if (Input.IsKeyTapped(Keys.Enter) && Main.chatMode)
 			{
-				if (commandMode)
+				if (Main.chatText == "")
+				{
+					Main.chatMode = false;
+				}
+				else if (commandMode)
 				{
 					typedCommands.Add(Main.chatText);
 					if (typedCommands.Count > 1000)

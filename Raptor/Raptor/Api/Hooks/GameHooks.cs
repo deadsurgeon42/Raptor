@@ -33,6 +33,10 @@ namespace Raptor.Api.Hooks
 		{
 			switch (type)
 			{
+				case "Pre":
+					Main.mouseTextColor = 255;
+					Main.mouseTextColorChange = 0;
+					break;
 				case "PrePlayerChat":
 					Raptor.DrawPrePlayerChat(spriteBatch);
 					return true;
@@ -56,12 +60,6 @@ namespace Raptor.Api.Hooks
 		internal static void InvokeInitialized()
 		{
 			Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
-			string version = "Raptor v" + ClientApi.ApiVersion;
-			ClientApi.Main.Window.Title = version;
-			Main.chTitle = false;
-			Main.versionNumber += "\n" + version;
-			Main.versionNumber2 += "\n" + version;
-
 			Raptor.Initialized();
 
 			if (Initialized != null)
@@ -131,7 +129,7 @@ namespace Raptor.Api.Hooks
 		/// The event that runs after new text is printed.
 		/// </summary>
 		public static event EventHandler<NewTextEventArgs> NewText;
-		internal static bool InvokeNewText(string text, byte r, byte g, byte b)
+		internal static void InvokeNewText(string text, byte r, byte g, byte b)
 		{
 			Raptor.NewText(text, r, g, b);
 
@@ -147,9 +145,7 @@ namespace Raptor.Api.Hooks
 					args.Color = Color.White;
 
 				NewText(null, args);
-				return args.Handled;
 			}
-			return false;
 		}
 		#endregion
 

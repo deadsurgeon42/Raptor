@@ -184,7 +184,6 @@ namespace Raptor
 				Instruction.Create(OpCodes.Ldarg_2),
 				Instruction.Create(OpCodes.Ldarg_3),
 				Instruction.Create(OpCodes.Call, module.Import(typeof(GameHooks).GetMethod("InvokeNewText", allFlags))),
-				Instruction.Create(OpCodes.Brfalse_S, mainNewText.Body.Instructions[0]),
 				Instruction.Create(OpCodes.Ret));
 
 			var mainUpdate = assembly.GetMethod("Main", "Update");

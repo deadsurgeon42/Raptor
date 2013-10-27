@@ -45,6 +45,7 @@ namespace Raptor.Api.Commands
 				switch (Path.GetExtension(path))
 				{
 					case ".lua":
+						Raptor.Lua["args"] = new CommandEventArgs(e.Eol(0));
 						ThreadPool.QueueUserWorkItem(ExecLuaCallback, File.ReadAllText(path));
 						return;
 				}
@@ -70,7 +71,7 @@ namespace Raptor.Api.Commands
 				Utils.NewSuccessText("< Raptor commands: ");
 				var commandNames = from c in ChatCommands
 								   select c.Name;
-				Utils.NewInfoText("< {0}", String.Join(" ", commandNames));
+				Utils.NewInfoText("< {0}", String.Join(", ", commandNames));
 				return;
 			}
 
