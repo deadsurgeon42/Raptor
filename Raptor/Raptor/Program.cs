@@ -137,8 +137,7 @@ namespace Raptor
 			// if (GameHooks.InvokeFilterMessage(m)) return;
 			keyinPreFilterMessage.InsertStart(
 				Instruction.Create(OpCodes.Ldarg_1),
-				Instruction.Create(OpCodes.Call, module.Import(typeof(GameHooks).GetMethod("InvokeFilterMessage", allFlags))),
-				Instruction.Create(OpCodes.Brfalse_S, keyinPreFilterMessage.Body.Instructions[0]),
+				Instruction.Create(OpCodes.Call, module.Import(typeof(Input).GetMethod("FilterMessage", allFlags))),
 				Instruction.Create(OpCodes.Ldc_I4_0),
 				Instruction.Create(OpCodes.Ret));
 

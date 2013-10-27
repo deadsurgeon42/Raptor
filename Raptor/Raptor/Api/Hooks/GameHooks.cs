@@ -48,31 +48,6 @@ namespace Raptor.Api.Hooks
 		}
 		#endregion
 
-		#region FilterMessage
-		/// <summary>
-		/// The event that runs after the game filters a windows message.
-		/// </summary>
-		public static event EventHandler<FilterMessageEventArgs> FilterMessage;
-		internal static bool InvokeFilterMessage(ref Message message)
-		{
-			Input.FilterMessage(message);
-
-			if (FilterMessage != null)
-			{
-				var args = new FilterMessageEventArgs
-				{
-					Message = message
-				};
-
-				FilterMessage(null, args);
-
-				message = args.Message;
-				return args.Handled;
-			}
-			return false;
-		}
-		#endregion
-
 		#region Initialized
 		/// <summary>
 		/// The event that runs after the game is initialized.
