@@ -192,7 +192,12 @@ namespace Raptor
 			Mouse = Microsoft.Xna.Framework.Input.Mouse.GetState();
 
 			ActiveSpecialKeys = 0;
-			TypedString = String.Join("", keyCodes.Where(c => c >= 32 && c != 127));
+			TypedString = "";
+			for (int i = 0; i < keys; i++)
+			{
+				if (keyCodes[i] >= 32 && keyCodes[i] != 127)
+					TypedString += keyCodes[i];
+			}
 			for (int i = 0; i < specialKeys; i++)
 			{
 				switch (specialKeyCodes[i])
