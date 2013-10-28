@@ -134,7 +134,7 @@ namespace Raptor
 				Instruction.Create(OpCodes.Call, module.Import(typeof(ItemHooks).GetMethod("InvokeSetDefaults", allFlags))));
 
 			var keyinPreFilterMessage = assembly.GetType("keyBoardInput").NestedTypes[0].Methods[0];
-			// if (GameHooks.InvokeFilterMessage(m)) return;
+			// GameHooks.InvokeFilterMessage(m); return;
 			keyinPreFilterMessage.InsertStart(
 				Instruction.Create(OpCodes.Ldarg_1),
 				Instruction.Create(OpCodes.Call, module.Import(typeof(Input).GetMethod("FilterMessage", allFlags))),
@@ -242,11 +242,10 @@ namespace Raptor
 
 			// Delete local Terraria.exe copy, if it exists, forcing AssemblyResolve event later on
 			File.Delete("Terraria.exe");
-			Directory.CreateDirectory("Plugins");
 			Directory.CreateDirectory("Logs");
+			Directory.CreateDirectory("Plugins");
+			Directory.CreateDirectory("Scripts");
 			ClientApi.Initialize();
-
-			Directory.SetCurrentDirectory(path);
 
 			// Separate method so that JIT compiler doesn't get angry at us for referencing Terraria here
 			Run(path);
@@ -257,6 +256,7 @@ namespace Raptor
 			using (ClientApi.Main = new Main())
 			{
 				ClientApi.Main.Content.RootDirectory = Path.Combine(path, "Content");
+				Directory.SetCurrentDirectory(path);
 				try
 				{
 					ClientApi.Main.Run();

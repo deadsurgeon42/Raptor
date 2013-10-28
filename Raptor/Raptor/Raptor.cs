@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -36,7 +37,9 @@ namespace Raptor
 		static int chatViewOffset;
 		static bool commandMode;
 		static List<Chat> rawChat = new List<Chat>();
-		
+
+		internal static List<Task> scriptTasks = new List<Task>();
+
 		/// <summary>
 		/// Gets the configuration file.
 		/// </summary>
@@ -52,6 +55,36 @@ namespace Raptor
 		{
 			get;
 			private set;
+		}
+
+		internal static void Initialize()
+		{
+			string version = "Raptor v" + ClientApi.ApiVersion;
+			ClientApi.Main.Window.Title = version;
+			Main.chTitle = false;
+			Main.versionNumber = "Terraria " + Main.versionNumber + "\n" + version;
+			Main.versionNumber2 = "Terraria " + Main.versionNumber2 + "\n" + version;
+
+			Commands.Init();
+
+			#region Config
+			string configPath = Path.Combine("Raptor", "config.json");
+			if (!File.Exists(configPath))
+			{
+				Config = new Config();
+				File.WriteAllText(configPath, JsonConvert.SerializeObject(Config, Formatting.Indented));
+			}
+			else
+				Config = JsonConvert.DeserializeObject<Config>(File.ReadAllText(configPath));
+
+			Main.mouseTextColorChange = 0;
+			Main.showSplash = Config.ShowSplashScreen;
+			#endregion
+
+			Lua = new Lua();
+			Lua.LoadCLRPackage();
+
+			ClientApi.Main.Window.ClientSizeChanged += Window_ClientSizeChanged;
 		}
 
 		internal static void DrawPrePlayerChat(SpriteBatch sb)
@@ -108,37 +141,6 @@ namespace Raptor
 						Main.cursorColor);
 				}
 			}
-		}
-		internal static void Initialized()
-		{
-			string version = "Raptor v" + ClientApi.ApiVersion;
-			ClientApi.Main.Window.Title = version;
-			Main.chTitle = false;
-			Main.versionNumber = "Terraria " + Main.versionNumber + "\n" + version;
-			Main.versionNumber2 = "Terraria " + Main.versionNumber2 + "\n" + version;
-
-			Commands.Init();
-
-			#region Config
-			string configPath = Path.Combine("Raptor", "raptor.config");
-			if (!File.Exists(configPath))
-			{
-				Config = new Config();
-				File.WriteAllText(configPath, JsonConvert.SerializeObject(Config, Formatting.Indented));
-			}
-			else
-				Config = JsonConvert.DeserializeObject<Config>(File.ReadAllText(configPath));
-
-			Main.mouseTextColorChange = 0;
-			Main.showSplash = Config.ShowSplashScreen;
-			#endregion
-			#region Scripts
-			Directory.CreateDirectory(Path.Combine("Raptor", "Scripts"));
-			Lua = new Lua();
-			Lua.LoadCLRPackage();
-			#endregion
-
-			ClientApi.Main.Window.ClientSizeChanged += Window_ClientSizeChanged;
 		}
 		internal static void NewText(string text, byte r, byte g, byte b)
 		{

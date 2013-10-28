@@ -60,7 +60,7 @@ namespace Raptor.Api.Hooks
 		internal static void InvokeInitialized()
 		{
 			Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
-			Raptor.Initialized();
+			Raptor.Initialize();
 
 			if (Initialized != null)
 			{
