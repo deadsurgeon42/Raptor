@@ -106,7 +106,7 @@ namespace Raptor.Api.Hooks
 
 		internal static void InvokeLoadedContent(ContentManager content)
 		{
-			string contentDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Raptor", "Content");
+			string contentDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Content", "Raptor");
 
 			Main.fontItemStack = Main.fontMouseText = content.Load<SpriteFont>(Path.Combine(contentDirectory, "Font"));
 			Main.fontDeathText = content.Load<SpriteFont>(Path.Combine(contentDirectory, "TitleFont"));
