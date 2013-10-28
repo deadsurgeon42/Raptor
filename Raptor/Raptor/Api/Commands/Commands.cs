@@ -2,11 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using NLua;
-using Terraria;
+using Microsoft.Xna.Framework.Input;
 
 namespace Raptor.Api.Commands
 {
@@ -19,7 +16,27 @@ namespace Raptor.Api.Commands
 		/// The list of chat commands.
 		/// </summary>
 		public static List<Command> ChatCommands = new List<Command>();
-		
+
+		/// <summary>
+		/// Executes the string as a command.
+		/// </summary>
+		/// <param name="text">The command text.</param>
+		public static void Execute(string text)
+		{
+			var args = new CommandEventArgs(text);
+			bool found = false;
+			foreach (Command c in Commands.ChatCommands)
+			{
+				if (c.Names.Contains(args[-1].ToLower()))
+				{
+					found = true;
+					c.Invoke(args);
+					break;
+				}
+			}
+			if (!found)
+				Utils.NewErrorText("< Invalid command.");
+		}
 		internal static void Init()
 		{
 			ChatCommands.Add(new Command(Execute, "execute", "exec", "x")
@@ -29,6 +46,10 @@ namespace Raptor.Api.Commands
 			ChatCommands.Add(new Command(Help, "help", "?")
 			{
 				HelpText = "Prints a list of commands or help about a specific command."
+			});
+			ChatCommands.Add(new Command(Keybind, "keybind", "kb")
+			{
+				HelpText = "Manages command key bindings."
 			});
 		}
 
@@ -40,7 +61,7 @@ namespace Raptor.Api.Commands
 				return;
 			}
 
-			foreach (string path in Directory.EnumerateFiles(Path.Combine("Raptor", "Scripts"), e.Eol(0) + ".*"))
+			foreach (string path in Directory.EnumerateFiles("Scripts", e.Eol(0) + ".*"))
 			{
 				switch (Path.GetExtension(path))
 				{
@@ -86,6 +107,80 @@ namespace Raptor.Api.Commands
 				}
 			}
 			Utils.NewErrorText("< Invalid command: \"/{0}\".", commandName);
+		}
+		static void Keybind(object o, CommandEventArgs e)
+		{
+			if (e.Length == 0)
+			{
+				Utils.NewErrorText("< Syntax: /{0} <add | clr | del | list> [arguments...]", e[-1]);
+				return;
+			}
+
+			switch (e[0].ToLower())
+			{
+				case "add":
+					{
+						if (e.Length < 3)
+						{
+							Utils.NewErrorText("< Syntax: /{0} add <key> <command>", e[-1]);
+							return;
+						}
+
+						Keys key;
+						if (!Enum.TryParse<Keys>(e[1], true, out key))
+						{
+							Utils.NewErrorText("< Invalid key '{0}'.", e[1]);
+							return;
+						}
+
+						if (Raptor.Config.KeyBindings.ContainsKey(key))
+						{
+							Utils.NewErrorText("< The key '{0}' is already bound.", key);
+							return;
+						}
+
+						Raptor.Config.KeyBindings.Add(key, e.Eol(2));
+						Utils.NewSuccessText("< Bound the key '{0}' to '{1}'.", key, e.Eol(2));
+					}
+					return;
+				case "clr":
+					Raptor.Config.KeyBindings.Clear();
+					Utils.NewSuccessText("< Cleared all key bindings.");
+					return;
+				case "del":
+					{
+						if (e.Length == 1)
+						{
+							Utils.NewErrorText("< Syntax: /{0} del <key>", e[0]);
+							return;
+						}
+
+						Keys key;
+						if (!Enum.TryParse<Keys>(e[1], true, out key))
+						{
+							Utils.NewErrorText("< Invalid key '{0}'.", e[1]);
+							return;
+						}
+						if (!Raptor.Config.KeyBindings.ContainsKey(key))
+						{
+							Utils.NewErrorText("< The key '{0}' is not bound.", key);
+							return;
+						}
+						Raptor.Config.KeyBindings.Remove(key);
+						Utils.NewSuccessText("< Unbound the key '{0}'.", key);
+					}
+					return;
+				case "list":
+					Utils.NewSuccessText("< Raptor Keybinds:");
+					foreach (KeyValuePair<Keys, string> kv in Raptor.Config.KeyBindings)
+					{
+						Utils.NewInfoText("< Key '{0}': {1}", kv.Key, kv.Value);
+					}
+					return;
+				default:
+					Utils.NewErrorText("< Syntax: /{0} <add | clr | del | list> [arguments...]");
+					return;
+			}
 		}
 	}
 }

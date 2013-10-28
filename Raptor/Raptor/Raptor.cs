@@ -57,6 +57,11 @@ namespace Raptor
 			private set;
 		}
 
+		internal static void DeInitialize()
+		{
+			string configPath = Path.Combine("Raptor", "config.json");
+			File.WriteAllText(configPath, JsonConvert.SerializeObject(Config, Formatting.Indented));
+		}
 		internal static void Initialize()
 		{
 			string version = "Raptor v" + ClientApi.ApiVersion;
@@ -211,20 +216,7 @@ namespace Raptor
 						typedCommands.RemoveAt(0);
 					}
 					typedCommandOffset = typedCommands.Count;
-
-					var args = new CommandEventArgs(Main.chatText);
-					bool found = false;
-					foreach (Command c in Commands.ChatCommands)
-					{
-						if (c.Names.Contains(args[-1].ToLower()))
-						{
-							found = true;
-							c.Invoke(args);
-							break;
-						}
-					}
-					if (!found)
-						Utils.NewErrorText("< Invalid command.");
+					Commands.Execute(Main.chatText);
 				}
 				else if (Main.netMode == 0)
 				{
@@ -345,6 +337,18 @@ namespace Raptor
 			{
 				if (rawChat[i].timeOut > 0)
 					rawChat[i].timeOut = 0;
+			}
+			#endregion
+			#region Keybinds
+			if (!Main.chatMode && !Main.editSign)
+			{
+				foreach (KeyValuePair<Keys, string> kvp in Config.KeyBindings)
+				{
+					if (Input.IsKeyTapped(kvp.Key))
+					{
+						Commands.Execute(kvp.Value);
+					}
+				}
 			}
 			#endregion
 		}

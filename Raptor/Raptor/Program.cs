@@ -249,6 +249,8 @@ namespace Raptor
 
 			// Separate method so that JIT compiler doesn't get angry at us for referencing Terraria here
 			Run(path);
+
+			Raptor.DeInitialize();
 			ClientApi.DeInitialize();
 		}
 		static void Run(string path)
