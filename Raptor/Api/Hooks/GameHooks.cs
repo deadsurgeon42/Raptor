@@ -63,9 +63,7 @@ namespace Raptor.Api.Hooks
 			Raptor.Initialize();
 
 			if (Initialized != null)
-			{
 				Initialized(null, EventArgs.Empty);
-			}
 		}
 		#endregion
 
@@ -118,9 +116,7 @@ namespace Raptor.Api.Hooks
 				typeof(Main).GetField("inventoryBack" + i + "Texture").SetValue(null, chatBack);
 
 			if (LoadedContent != null)
-			{
 				LoadedContent(null, new LoadContentEventArgs { Content = content });
-			}
 		}
 		#endregion
 
@@ -131,7 +127,8 @@ namespace Raptor.Api.Hooks
 		public static event EventHandler<NewTextEventArgs> NewText;
 		internal static void InvokeNewText(string text, byte r, byte g, byte b)
 		{
-			Raptor.NewText(text, r, g, b);
+			if ((r | g | b) == 0)
+				r = g = b = 255;
 
 			if (NewText != null)
 			{
@@ -141,11 +138,13 @@ namespace Raptor.Api.Hooks
 					Text = text
 				};
 
-				if (r == 0 && g == 0 && b == 0)
-					args.Color = Color.White;
-
 				NewText(null, args);
+
+				if (!args.Handled)
+					Raptor.NewText(text, r, g, b);
 			}
+			else
+				Raptor.NewText(text, r, g, b);
 		}
 		#endregion
 
@@ -157,9 +156,7 @@ namespace Raptor.Api.Hooks
 		internal static void InvokePostUpdate()
 		{
 			if (PostUpdate != null)
-			{
 				PostUpdate(null, EventArgs.Empty);
-			}
 		}
 		#endregion
 
@@ -174,9 +171,7 @@ namespace Raptor.Api.Hooks
 			Raptor.PreUpdate();
 
 			if (PreUpdate != null)
-			{
 				PreUpdate(null, EventArgs.Empty);
-			}
 		}
 		#endregion
 	}

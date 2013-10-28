@@ -28,9 +28,17 @@ namespace Raptor.Api.Commands
 			get { return callback; }
 		}
 		/// <summary>
+		/// Gets or sets the command's description.
+		/// </summary>
+		public string Description
+		{
+			get;
+			set;
+		}
+		/// <summary>
 		/// Gets or sets the command's help text.
 		/// </summary>
-		public string HelpText
+		public string[] HelpText
 		{
 			get;
 			set;
@@ -67,7 +75,7 @@ namespace Raptor.Api.Commands
 			}
 
 			this.callback = callback;
-			this.HelpText = "No help is available.";
+			this.HelpText = new[] { "Sorry, no help is available." };
 			this.names = names;
 		}
 

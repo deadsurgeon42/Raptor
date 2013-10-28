@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Raptor", "Raptor\Raptor\Raptor.csproj", "{4D85946C-70D2-4237-95E8-40B7FFC93A4A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Raptor", "Raptor\Raptor.csproj", "{4D85946C-70D2-4237-95E8-40B7FFC93A4A}"
 EndProject
-Project("{96E2B04D-8817-42C6-938A-82C39BA4D311}") = "RaptorContent", "Raptor\RaptorContent\RaptorContent.contentproj", "{9E3F2A9A-C7C6-4FA9-8E06-AA1D9896ECAC}"
+Project("{96E2B04D-8817-42C6-938A-82C39BA4D311}") = "RaptorContent", "RaptorContent\RaptorContent.contentproj", "{9E3F2A9A-C7C6-4FA9-8E06-AA1D9896ECAC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

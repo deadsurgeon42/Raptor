@@ -67,8 +67,7 @@ namespace Raptor
 			string version = "Raptor v" + ClientApi.ApiVersion;
 			ClientApi.Main.Window.Title = version;
 			Main.chTitle = false;
-			Main.versionNumber = "Terraria " + Main.versionNumber + "\n" + version;
-			Main.versionNumber2 = "Terraria " + Main.versionNumber2 + "\n" + version;
+			Main.versionNumber = Main.versionNumber2 = "Terraria " + Main.versionNumber + "\n" + version;
 
 			Commands.Init();
 
@@ -339,15 +338,13 @@ namespace Raptor
 					rawChat[i].timeOut = 0;
 			}
 			#endregion
-			#region Keybinds
-			if (!Main.chatMode && !Main.editSign)
+			#region Key bindings
+			if (!Main.chatMode && !Main.editSign && !Main.gameMenu)
 			{
 				foreach (KeyValuePair<Keys, string> kvp in Config.KeyBindings)
 				{
 					if (Input.IsKeyTapped(kvp.Key))
-					{
 						Commands.Execute(kvp.Value);
-					}
 				}
 			}
 			#endregion
