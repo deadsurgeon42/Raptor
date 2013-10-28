@@ -244,6 +244,7 @@ namespace Raptor
 			File.Delete("Terraria.exe");
 			Directory.CreateDirectory("Logs");
 			Directory.CreateDirectory("Plugins");
+			Directory.CreateDirectory("Raptor");
 			Directory.CreateDirectory("Scripts");
 			ClientApi.Initialize();
 
