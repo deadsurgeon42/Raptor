@@ -33,12 +33,10 @@ namespace Raptor
 		static int typedCommandOffset;
 		
 		static List<Chat> chat = new List<Chat>();
-		static uint chatBlinkTimer;
+		static int chatBlinkTimer;
 		static int chatViewOffset;
 		static bool commandMode;
 		static List<Chat> rawChat = new List<Chat>();
-
-		internal static List<Task> scriptTasks = new List<Task>();
 
 		/// <summary>
 		/// Gets the configuration file.
@@ -46,7 +44,7 @@ namespace Raptor
 		public static Config Config
 		{
 			get;
-			private set;
+			internal set;
 		}
 		/// <summary>
 		/// Gets the lua instance.
@@ -54,7 +52,7 @@ namespace Raptor
 		public static Lua Lua
 		{
 			get;
-			private set;
+			internal set;
 		}
 
 		internal static void DeInitialize()
@@ -67,7 +65,7 @@ namespace Raptor
 			string version = "Raptor v" + ClientApi.ApiVersion;
 			ClientApi.Main.Window.Title = version;
 			Main.chTitle = false;
-			Main.versionNumber = Main.versionNumber2 = "Terraria " + Main.versionNumber + "\n" + version;
+			Main.versionNumber = "Terraria " + Main.versionNumber + "\n" + version;
 
 			Commands.Init();
 
@@ -351,9 +349,9 @@ namespace Raptor
 		}
 		internal static void Window_ClientSizeChanged(object sender, EventArgs e)
 		{
-			int width = ClientApi.Main.Window.ClientBounds.Width;
+			int newWidth = ClientApi.Main.Window.ClientBounds.Width;
 
-			if (width != Main.screenWidth)
+			if (newWidth != Main.screenWidth)
 			{
 				chat.Clear();
 				float length = 0f;
@@ -368,7 +366,7 @@ namespace Raptor
 						length = Main.fontMouseText.MeasureString(word).X + spaceLength;
 						lineLength += length;
 
-						if (lineLength > Main.screenWidth - 338f)
+						if (lineLength > newWidth - 338f)
 						{
 							chat.Add(new Chat { color = rawChat[i].color, text = lineBuilder.ToString(), timeOut = rawChat[i].timeOut });
 							lineLength = 4 * spaceLength + length;

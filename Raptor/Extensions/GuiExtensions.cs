@@ -70,10 +70,9 @@ namespace Raptor
 		/// <param name="position">The position.</param>
 		/// <param name="color">The color.</param>
 		/// <param name="font">The font.</param>
-		public static void DrawGuiText(this SpriteBatch sb, string str, Vector2 position, Color color, SpriteFont font)
+		public static void DrawGuiText(this SpriteBatch sb, string str, Vector2 position, Color color, SpriteFont font = null)
 		{
 			SpriteFont drawFont = font ?? Main.fontMouseText;
-
 			sb.DrawString(drawFont, str, position + new Vector2(1.5f, 0), Color.Black);
 			sb.DrawString(drawFont, str, position + new Vector2(-1.5f, 0), Color.Black);
 			sb.DrawString(drawFont, str, position + new Vector2(0, 1.5f), Color.Black);

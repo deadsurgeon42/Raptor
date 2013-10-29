@@ -23,14 +23,12 @@ namespace Raptor
 			{ "DrawPlayerChat", "PlayerChat" },
 		};
 		static Assembly terraria;
-		const string terrariaPath32 = @"HKEY_LOCAL_MACHINE\SOFTWARE\Re-Logic\Terraria";
-		const string terrariaPath64 = @"HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Re-Logic\Terraria";
-
+		const string registry = @"SOFTWARE\Re-Logic\Terraria";
+		
 		[STAThread]
 		static void Main()
 		{
-			string path = (string)(Registry.GetValue(terrariaPath32, "Install_Path", null) ??
-				Registry.GetValue(terrariaPath64, "Install_Path", null));
+			string path = (string)Registry.LocalMachine.OpenSubKey(registry).GetValue("Install_Path", null);
 
 			#region Piracy checks
 			if (path == null || !File.Exists(Path.Combine(path, "Terraria.exe")))
@@ -101,33 +99,12 @@ namespace Raptor
 			catch
 			{
 				// Exception here means piracy
-
 				MessageBox.Show("Sorry, you do not appear to have a legitimate copy of Terraria.", "Error",
 					MessageBoxButtons.OK, MessageBoxIcon.Error);
 				return;
 			}
 			#endregion
 			#region IL injection
-			AppDomain.CurrentDomain.AssemblyResolve += (o, args) =>
-			{
-				string name = args.Name.Split(',')[0];
-				if (name == "Terraria")
-					return terraria;
-
-				foreach (string dll in Directory.EnumerateFiles("Plugins", "*.dll"))
-				{
-					try
-					{
-						if (AssemblyName.GetAssemblyName(dll).FullName == args.Name)
-							return Assembly.LoadFrom(dll);
-					}
-					catch (BadImageFormatException)
-					{
-					}
-				}
-				return null;
-			};
-
 			// ItemHooks.InvokeSetDefaults(this);
 			assembly.GetMethod("Item", "SetDefaults", new[] { "Int32", "Boolean" }).InsertEnd(
 				Instruction.Create(OpCodes.Ldarg_0),
@@ -240,26 +217,45 @@ namespace Raptor
 			assembly.Write(ms);
 			terraria = Assembly.Load(ms.GetBuffer());
 
+			AppDomain.CurrentDomain.AssemblyResolve += (o, args) =>
+			{
+				string name = args.Name.Split(',')[0];
+				if (name == "Terraria")
+					return terraria;
+
+				foreach (string dll in Directory.EnumerateFiles("Plugins", "*.dll"))
+				{
+					try
+					{
+						if (AssemblyName.GetAssemblyName(dll).FullName == args.Name)
+							return Assembly.LoadFrom(dll);
+					}
+					catch (BadImageFormatException)
+					{
+					}
+				}
+				return null;
+			};
+
 			// Delete local Terraria.exe copy, if it exists, forcing AssemblyResolve event later on
 			File.Delete("Terraria.exe");
 			Directory.CreateDirectory("Logs");
 			Directory.CreateDirectory("Plugins");
 			Directory.CreateDirectory("Raptor");
 			Directory.CreateDirectory("Scripts");
-			ClientApi.Initialize();
 
 			// Separate method so that JIT compiler doesn't get angry at us for referencing Terraria here
 			Run(path);
-
-			Raptor.DeInitialize();
-			ClientApi.DeInitialize();
 		}
 		static void Run(string path)
 		{
 			using (ClientApi.Main = new Main())
 			{
+				ClientApi.Initialize();
+
 				ClientApi.Main.Content.RootDirectory = Path.Combine(path, "Content");
 				Directory.SetCurrentDirectory(path);
+
 				try
 				{
 					ClientApi.Main.Run();
@@ -268,6 +264,8 @@ namespace Raptor
 				{
 					MessageBox.Show("An unhandled exception occurred: " + e, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 				}
+
+				ClientApi.DeInitialize();
 			}
 		}
 	}

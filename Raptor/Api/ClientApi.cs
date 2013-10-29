@@ -17,7 +17,6 @@ namespace Raptor.Api
 		/// The Raptor version.
 		/// </summary>
 		public static readonly Version ApiVersion = new Version(1, 0);
-		internal static Dictionary<string, Assembly> loadedAssemblies = new Dictionary<string, Assembly>();
 		/// <summary>
 		/// Gets the Terraria.Main instance.
 		/// </summary>
@@ -38,8 +37,10 @@ namespace Raptor.Api
 
 		internal static void DeInitialize()
 		{
+			Raptor.DeInitialize();
 			Log.LogNotice("Raptor v{0} stopped.\n", ApiVersion);
 
+			#region Dispose plugins
 			foreach (TerrariaPlugin plugin in plugins)
 			{
 				try
@@ -52,23 +53,24 @@ namespace Raptor.Api
 					Log.LogError(ex.ToString());
 				}
 			}
+			#endregion
 		}
 		internal static void Initialize()
 		{
 			Log.LogNotice("Raptor v{0} started.", ApiVersion);
 
-			var fileInfos = new DirectoryInfo("Plugins").GetFiles("*.dll").ToList();
-			
-			foreach (FileInfo fileInfo in fileInfos)
+			#region Load plugins
+			var loadedAssemblies = new Dictionary<string, Assembly>();
+			foreach (string path in Directory.EnumerateFiles("Plugins", "*.dll"))
 			{
-				string fileName = Path.GetFileNameWithoutExtension(fileInfo.Name);
+				string fileName = Path.GetFileNameWithoutExtension(path);
 
 				try
 				{
 					Assembly assembly;
 					if (!loadedAssemblies.TryGetValue(fileName, out assembly))
 					{
-						assembly = Assembly.Load(File.ReadAllBytes(fileInfo.FullName));
+						assembly = Assembly.Load(File.ReadAllBytes(path));
 						loadedAssemblies.Add(fileName, assembly);
 					}
 
@@ -76,6 +78,7 @@ namespace Raptor.Api
 					{
 						if (!type.IsSubclassOf(typeof(TerrariaPlugin)) || !type.IsPublic || type.IsAbstract)
 							continue;
+
 						object[] customAttributes = type.GetCustomAttributes(typeof(ApiVersionAttribute), false);
 						if (customAttributes.Length == 0)
 						{
@@ -102,16 +105,14 @@ namespace Raptor.Api
 						}
 					}
 				}
-				catch (BadImageFormatException)
-				{
-				}
 				catch (Exception ex)
 				{
-					Log.LogError("Failed to load assembly \"{0}\":", fileInfo.Name);
+					Log.LogError("Failed to load assembly \"{0}\":", fileName);
 					Log.LogError(ex.ToString());
 				}
 			}
-
+			#endregion
+			#region Initialize plugins
 			var orderedPluginSelector =
 				from p in Plugins
 				orderby p.Order, p.Name
@@ -122,16 +123,15 @@ namespace Raptor.Api
 				try
 				{
 					plugin.Initialize();
+					Log.LogNotice("Plugin \"{0}\" v{1} (by {2}) initiated.", plugin.Name, plugin.Version, plugin.Author);
 				}
 				catch (Exception ex)
 				{
 					Log.LogError("Plugin \"{0}\" failed to initialize:", plugin.Name);
 					Log.LogError(ex.ToString());
-					continue;
 				}
-
-				Log.LogNotice("Plugin \"{0}\" v{1} (by {2}) initiated.", plugin.Name, plugin.Version, plugin.Author);
 			}
+			#endregion
 		}
 	}
 }

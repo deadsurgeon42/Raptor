@@ -84,10 +84,9 @@ namespace Raptor.Api.Hooks
 				else
 					newText = newText.Substring(0, newText.Length - 1);
 			}
-			else if (Input.Control && Input.ActiveSpecialKeys.HasFlag(Input.SpecialKeys.V))
+			else if (Input.Control && Input.ActiveSpecialKeys.HasFlag(Input.SpecialKeys.V) && Clipboard.ContainsText())
 			{
-				if (Clipboard.ContainsText())
-					newText += Clipboard.GetText();
+				newText += Clipboard.GetText();
 			}
 			else
 				newText += Input.TypedString;
@@ -122,7 +121,7 @@ namespace Raptor.Api.Hooks
 
 		#region NewText
 		/// <summary>
-		/// The event that runs after new text is printed.
+		/// The event that runs before new text is printed.
 		/// </summary>
 		public static event EventHandler<NewTextEventArgs> NewText;
 		internal static void InvokeNewText(string text, byte r, byte g, byte b)

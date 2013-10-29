@@ -66,15 +66,12 @@ namespace Raptor.Api.Commands
 		public Command(CommandD callback, params string[] names)
 		{
 			if (callback == null)
-			{
 				throw new ArgumentNullException("callback");
-			}
 			if (names == null || names.Length == 0)
-			{
 				throw new ArgumentException("\"names\" cannot be null or have no names.");
-			}
 
 			this.callback = callback;
+			this.Description = "Sorry, no description is available.";
 			this.HelpText = new[] { "Sorry, no help is available." };
 			this.names = names;
 		}
