@@ -62,7 +62,8 @@
     <DocumentationFile>..\bin\Raptor.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="KeraLua">
+    <Reference Include="KeraLua, Version=1.0.0.0, Culture=neutral, PublicKeyToken=04d04586786c6f34, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>References\KeraLua.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Xna.Framework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
@@ -95,7 +96,8 @@
     <Reference Include="Newtonsoft.Json">
       <HintPath>References\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="NLua">
+    <Reference Include="NLua, Version=1.1.0.0, Culture=neutral, PublicKeyToken=8df2ab518030ea95, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>References\NLua.dll</HintPath>
     </Reference>
     <Reference Include="System">
@@ -153,6 +155,9 @@
   <ItemGroup>
     <Content Include="Game.ico" />
     <Content Include="lua52.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="msvcr110.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

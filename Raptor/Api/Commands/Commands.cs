@@ -88,31 +88,28 @@ namespace Raptor.Api.Commands
 		{
 			foreach (string path in Directory.EnumerateFiles(Path.Combine("Scripts"), "*.lua"))
 			{
-				var command = new Command(LuaCommand, Path.GetFileNameWithoutExtension(path));
 				List<string> lines = File.ReadAllLines(path).ToList();
+				List<string> names = new List<string> { Path.GetFileNameWithoutExtension(path) };
 
-				string description = lines.First(s => s.StartsWith("-- Description: "));
+				var aliases = from s in lines
+							  where s.StartsWith("-- Aliases: ")
+							  select s.Substring(12);
+				if (aliases.Any())
+					names.AddRange(aliases.ElementAt(0).Split(','));
+
+				var command = new Command(LuaCommand, names.ToArray());
+
+				var description = from s in lines
+								  where s.StartsWith("-- Description: ")
+								  select s.Substring(16);
 				if (description != null)
-					command.Description = description.Substring(16);
+					command.Description = description.ElementAt(0);
 
-				List<string> helpText = new List<string>();
-				int i = lines.IndexOf(lines.First(s => s.StartsWith("--[[ HelpText: ")));
-				if (i >= 0)
-				{
-					helpText.Add(lines[i].Substring(15));
-					while (i++ < lines.Count)
-					{
-						if (lines[i].EndsWith("]]"))
-						{
-							helpText.Add(lines[i].Substring(0, lines[i].Length - 2));
-							break;
-						}
-						else
-							helpText.Add(lines[i]);
-					}
-
-					command.HelpText = helpText.ToArray();
-				}
+				var helpTexts = from s in lines
+								where s.StartsWith("-- HelpText: ")
+								select s.Substring(13);
+				if (helpTexts.Any())
+					command.HelpText = helpTexts.ToArray();
 
 				LuaCommands.Add(command);
 			}

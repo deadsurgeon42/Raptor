@@ -82,7 +82,6 @@ namespace Raptor
 			Main.mouseTextColorChange = 0;
 			Main.showSplash = Config.ShowSplashScreen;
 			#endregion
-
 			Lua = new Lua();
 			Lua.LoadCLRPackage();
 
