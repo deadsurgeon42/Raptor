@@ -124,15 +124,7 @@
   <ItemGroup>
     <Compile Include="Api\ApiVersionAttribute.cs" />
     <Compile Include="Api\ClientApi.cs" />
-    <Compile Include="Api\RaptorPacketTypes.cs" />
-    <Compile Include="Api\Hooks\DrawEventArgs.cs" />
-    <Compile Include="Api\Hooks\GetDataEventArgs.cs" />
-    <Compile Include="Api\Hooks\ILEventArgs.cs" />
-    <Compile Include="Api\Hooks\ItemEventArgs.cs" />
-    <Compile Include="Api\Hooks\LoadContentEventArgs.cs" />
-    <Compile Include="Api\Hooks\NewTextEventArgs.cs" />
-    <Compile Include="Api\Hooks\NpcEventArgs.cs" />
-    <Compile Include="Api\Hooks\SendDataEventArgs.cs" />
+    <Compile Include="Api\TShock\RaptorPacketTypes.cs" />
     <Compile Include="Api\Hooks\GameHooks.cs" />
     <Compile Include="Api\Hooks\ItemHooks.cs" />
     <Compile Include="Api\Hooks\NetHooks.cs" />

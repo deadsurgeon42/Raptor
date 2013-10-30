@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Raptor.Api
+namespace Raptor.Api.TShock
 {
 	/// <summary>
 	/// Custom packet types for use with TShock.

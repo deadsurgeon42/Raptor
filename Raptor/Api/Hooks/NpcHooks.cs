@@ -4,6 +4,21 @@ using Terraria;
 namespace Raptor.Api.Hooks
 {
 	/// <summary>
+	/// Event arguments for NPC hooks.
+	/// </summary>
+	public class NpcEventArgs : EventArgs
+	{
+		/// <summary>
+		/// Gets the NPC instance.
+		/// </summary>
+		public NPC Npc
+		{
+			get;
+			internal set;
+		}
+	}
+
+	/// <summary>
 	/// The API's NPC hooks.
 	/// </summary>
 	public static class NpcHooks
@@ -12,14 +27,12 @@ namespace Raptor.Api.Hooks
 		/// <summary>
 		/// The event that runs when an NPC's AI is processed.
 		/// </summary>
-		public static event EventHandler<NpcEventArgs> AI;
+		public static event EventHandler<NpcEventArgs> ProcessAI;
 
-		internal static void InvokeAI(object npc)
+		internal static void InvokeProcessAI(object npc)
 		{
-			if (AI != null)
-			{
-				AI(null, new NpcEventArgs { Npc = (NPC)npc });
-			}
+			if (ProcessAI != null)
+				ProcessAI(null, new NpcEventArgs { Npc = (NPC)npc });
 		}
 		#endregion
 
@@ -32,9 +45,7 @@ namespace Raptor.Api.Hooks
 		internal static void InvokeSetDefaults(object npc)
 		{
 			if (SetDefaults != null)
-			{
 				SetDefaults(null, new NpcEventArgs { Npc = (NPC)npc });
-			}
 		}
 		#endregion
 	}

@@ -45,23 +45,17 @@ namespace Raptor
 					if (target > i)
 					{
 						for (int j = i + 1; j < target; j++)
-						{
 							offset += md.Body.Instructions[j].GetSize();
-						}
 					}
 					else
 					{
 						for (int j = i; j >= target; j--)
-						{
 							offset -= md.Body.Instructions[j].GetSize();
-						}
 					}
 
 					// Short branches can only go 127 positive and 128 negative.
 					if (offset < -128 || offset > 127)
-					{
 						instr.OpCode = shortToLong[instr.OpCode];
-					}
 				}
 			}
 		}
@@ -133,9 +127,7 @@ namespace Raptor
 					var ilp = md.Body.GetILProcessor();
 					ilp.InsertAfter(instr, Instruction.Create(OpCodes.Ret));
 					for (int j = instructions.Length - 1; j >= 0; j--)
-					{
 						ilp.InsertAfter(instr, instructions[j]);
-					}
 					instr.OpCode = OpCodes.Nop;
 				}
 			}

@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Newtonsoft.Json;
 using NLua;
 using Raptor.Api;
 using Raptor.Api.Commands;
+using Raptor.Api.TShock;
 using Terraria;
 
 namespace Raptor
@@ -38,6 +39,8 @@ namespace Raptor
 		static bool commandMode;
 		static List<Chat> rawChat = new List<Chat>();
 
+		static List<Region> regions = new List<Region>();
+
 		/// <summary>
 		/// Gets the configuration file.
 		/// </summary>
@@ -54,13 +57,16 @@ namespace Raptor
 			get;
 			internal set;
 		}
+		private static List<string> permissions = new List<string>();
 		/// <summary>
-		/// Gets the player's list of permissions.
+		/// Gets the list of TShock permissions.
 		/// </summary>
-		public static List<string> Permissions
+		public static ReadOnlyCollection<string> Permissions
 		{
-			get;
-			internal set;
+			get
+			{
+				return new ReadOnlyCollection<string>(permissions);
+			}
 		}
 
 		internal static void DeInitialize()
@@ -70,8 +76,8 @@ namespace Raptor
 		}
 		internal static void Initialize()
 		{
-			Permissions = new List<string>();
-
+			Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
+			
 			string version = "Raptor v" + ClientApi.ApiVersion;
 			ClientApi.Main.Window.Title = version;
 			Main.chTitle = false;
@@ -99,7 +105,12 @@ namespace Raptor
 			ClientApi.Main.Window.ClientSizeChanged += Window_ClientSizeChanged;
 		}
 
-		internal static void DrawPrePlayerChat(SpriteBatch sb)
+		internal static void Draw(SpriteBatch sb)
+		{
+			Main.mouseTextColor = 255;
+			Main.mouseTextColorChange = 0;
+		}
+		internal static void DrawPlayerChat(SpriteBatch sb)
 		{
 			var chatRectangle = new Rectangle(92, Main.screenHeight - 51 - Config.ChatShow * 21, Main.screenWidth - 312, Config.ChatShow * 21 + 12);
 			if (Main.chatMode)
@@ -154,16 +165,18 @@ namespace Raptor
 				}
 			}
 		}
-		internal static bool SentData(int msgId, string text, int n1, float n2, float n3, float n4, int n5)
+		internal static void LoadedContent(ContentManager content)
 		{
-			switch ((PacketTypes)msgId)
-			{
-				case PacketTypes.ConnectRequest:
-					Utils.SendCustomData(RaptorPacketTypes.Acknowledge);
-					return false;
-				default:
-					return false;
-			}
+			string contentDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Content", "Raptor");
+
+			Main.fontItemStack = Main.fontMouseText = content.Load<SpriteFont>(Path.Combine(contentDirectory, "Font"));
+			Main.fontDeathText = content.Load<SpriteFont>(Path.Combine(contentDirectory, "TitleFont"));
+			Texture2D chatBack = content.Load<Texture2D>(Path.Combine(contentDirectory, "ChatBack"));
+
+			Main.chatBackTexture = content.Load<Texture2D>(Path.Combine(contentDirectory, "NpcChatBack"));
+			Main.inventoryBackTexture = chatBack;
+			for (int i = 2; i <= 12; i++)
+				typeof(Main).GetField("inventoryBack" + i + "Texture").SetValue(null, chatBack);
 		}
 		internal static void NewText(string text, byte r, byte g, byte b)
 		{
@@ -201,8 +214,9 @@ namespace Raptor
 
 			chatViewOffset += linesAdded;
 		}
-		internal static void PreUpdate()
+		internal static void Update()
 		{
+			Input.Update();
 			#region Chat handling
 			if (((Input.IsKeyTapped(Keys.Enter) && Main.netMode == 0 && !Input.Alt) ||
 				Input.IsKeyTapped(Keys.OemQuestion) && !Input.Shift)
@@ -368,6 +382,19 @@ namespace Raptor
 			}
 			#endregion
 		}
+
+		internal static bool SentData(int msgId, string text, int n1, float n2, float n3, float n4, int n5)
+		{
+			switch ((PacketTypes)msgId)
+			{
+				case PacketTypes.ConnectRequest:
+					Utils.SendCustomData(RaptorPacketTypes.Acknowledge);
+					return false;
+				default:
+					return false;
+			}
+		}
+
 		internal static void Window_ClientSizeChanged(object sender, EventArgs e)
 		{
 			int newWidth = ClientApi.Main.Window.ClientBounds.Width;

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Raptor.Api;
+using Raptor.Api.TShock;
 using Terraria;
 
 namespace Raptor

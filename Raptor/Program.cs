@@ -18,7 +18,6 @@ namespace Raptor
 		const BindingFlags allFlags = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static;
 		static Dictionary<string, string> drawHooks = new Dictionary<string, string>
 		{
-			{ "Draw", "" },
 			{ "DrawChat", "NPCChat" },
 			{ "DrawPlayerChat", "PlayerChat" },
 		};
@@ -111,12 +110,30 @@ namespace Raptor
 				Instruction.Create(OpCodes.Call, mod.Import(typeof(ItemHooks).GetMethod("InvokeSetDefaults", allFlags))));
 
 			var keyinPreFilterMessage = asm.GetType("keyBoardInput").NestedTypes[0].Methods[0];
-			// GameHooks.InvokeFilterMessage(m); return;
+			// Input.FilterMessage(m); return false;
 			keyinPreFilterMessage.InsertStart(
 				Instruction.Create(OpCodes.Ldarg_1),
 				Instruction.Create(OpCodes.Call, mod.Import(typeof(Input).GetMethod("FilterMessage", allFlags))),
 				Instruction.Create(OpCodes.Ldc_I4_0),
 				Instruction.Create(OpCodes.Ret));
+
+			var mainDraw = asm.GetMethod("Main", "Draw");
+			// if (GameHooks.InvokeDraw(this.spriteBatch, "")) { base.Draw(gameTime); return; }
+			mainDraw.InsertStart(
+				Instruction.Create(OpCodes.Ldarg_0),
+				Instruction.Create(OpCodes.Ldfld, asm.GetField("Main", "spriteBatch")),
+				Instruction.Create(OpCodes.Ldstr, ""),
+				Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeDraw", allFlags))),
+				Instruction.Create(OpCodes.Brfalse_S, mainDraw.Body.Instructions[0]),
+				Instruction.Create(OpCodes.Ldarg_0),
+				Instruction.Create(OpCodes.Ldarg_1),
+				Instruction.Create(OpCodes.Call, mod.Import(typeof(Game).GetMethod("Draw", allFlags))),
+				Instruction.Create(OpCodes.Ret));
+			mainDraw.InsertEnd(
+				Instruction.Create(OpCodes.Ldarg_0),
+				Instruction.Create(OpCodes.Ldfld, asm.GetField("Main", "spriteBatch")),
+				Instruction.Create(OpCodes.Ldstr, ""),
+				Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeDrawn", allFlags))));
 
 			foreach (KeyValuePair<string, string> kvp in drawHooks)
 			{
@@ -124,16 +141,15 @@ namespace Raptor
 				draw.InsertStart(
 					Instruction.Create(OpCodes.Ldarg_0),
 					Instruction.Create(OpCodes.Ldfld, asm.GetField("Main", "spriteBatch")),
-					Instruction.Create(OpCodes.Ldstr, "Pre" + kvp.Value),
+					Instruction.Create(OpCodes.Ldstr, kvp.Value),
 					Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeDraw", allFlags))),
 					Instruction.Create(OpCodes.Brfalse_S, draw.Body.Instructions[0]),
 					Instruction.Create(OpCodes.Ret));
 				draw.InsertEnd(
 					Instruction.Create(OpCodes.Ldarg_0),
 					Instruction.Create(OpCodes.Ldfld, asm.GetField("Main", "spriteBatch")),
-					Instruction.Create(OpCodes.Ldstr, "Post" + kvp.Value),
-					Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeDraw", allFlags))),
-					Instruction.Create(OpCodes.Pop));
+					Instruction.Create(OpCodes.Ldstr, kvp.Value),
+					Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeDrawn", allFlags))));
 			}
 
 			// GameHooks.InvokeInitialized();
@@ -154,7 +170,7 @@ namespace Raptor
 				Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeLoadedContent", allFlags))));
 
 			var mainNewText = asm.GetMethod("Main", "NewText");
-			// if (GameHooks.InvokeNewText(text, r, g, b)) return;
+			// GameHooks.InvokeNewText(text, r, g, b); return;
 			mainNewText.InsertStart(
 				Instruction.Create(OpCodes.Ldarg_0),
 				Instruction.Create(OpCodes.Ldarg_1),
@@ -164,12 +180,19 @@ namespace Raptor
 				Instruction.Create(OpCodes.Ret));
 
 			var mainUpdate = asm.GetMethod("Main", "Update");
-			// GameHooks.InvokePreUpdate();
+			// GameHooks.InvokeUpdate();
 			mainUpdate.InsertStart(
-				Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokePreUpdate", allFlags))));
-			// GameHooks.InvokePostUpdate();
+				Instruction.Create(OpCodes.Ldarg_1),
+				Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeUpdate", allFlags))),
+				Instruction.Create(OpCodes.Brfalse_S, mainUpdate.Body.Instructions[0]),
+				Instruction.Create(OpCodes.Ldarg_0),
+				Instruction.Create(OpCodes.Ldarg_1),
+				Instruction.Create(OpCodes.Call, mod.Import(typeof(Game).GetMethod("Update", allFlags))),
+				Instruction.Create(OpCodes.Ret));
+			// GameHooks.InvokeUpdated();
 			mainUpdate.InsertEnd(
-				Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokePostUpdate", allFlags))));
+				Instruction.Create(OpCodes.Ldarg_1),
+				Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeUpdated", allFlags))));
 
 			var messageBufferGetData = asm.GetMethod("messageBuffer", "GetData");
 			// if (NetHooks.InvokeGetData(start, length)) return;
@@ -211,10 +234,10 @@ namespace Raptor
 				Instruction.Create(OpCodes.Ldarg_S, netMessageSendData.Parameters[8]),
 				Instruction.Create(OpCodes.Call, mod.Import(typeof(NetHooks).GetMethod("InvokeSentData", allFlags))));
 
-			// NpcHooks.InvokeAI(this);
+			// NpcHooks.InvokeProcessAI(this);
 			asm.GetMethod("NPC", "AI").InsertStart(
 				Instruction.Create(OpCodes.Ldarg_0),
-				Instruction.Create(OpCodes.Call, mod.Import(typeof(NpcHooks).GetMethod("InvokeAI", allFlags))));
+				Instruction.Create(OpCodes.Call, mod.Import(typeof(NpcHooks).GetMethod("InvokeProcessAI", allFlags))));
 
 			// NpcHooks.InvokeSetDefaults(this);
 			asm.GetMethod("NPC", "SetDefaults", new[] { "Int32", "Single" }).InsertEnd(
@@ -234,6 +257,7 @@ namespace Raptor
 
 			var ms = new MemoryStream();
 			asm.Write(ms);
+			asm.Write("debug.exe");
 			terraria = Assembly.Load(ms.GetBuffer());
 
 			AppDomain.CurrentDomain.AssemblyResolve += (o, args) =>
@@ -262,28 +286,24 @@ namespace Raptor
 			Directory.CreateDirectory("Plugins");
 			Directory.CreateDirectory("Raptor").CreateSubdirectory("Scripts");
 
-			// Separate method so that JIT compiler doesn't get angry at us for referencing Terraria here
+			ClientApi.Initialize();
 			Run(path);
+			ClientApi.DeInitialize();
 		}
 		static void Run(string path)
 		{
 			using (ClientApi.Main = new Main())
 			{
-				ClientApi.Initialize();
-
-				ClientApi.Main.Content.RootDirectory = Path.Combine(path, "Content");
-				Directory.SetCurrentDirectory(path);
-
 				try
 				{
+					ClientApi.Main.Content.RootDirectory = Path.Combine(path, "Content");
+					Directory.SetCurrentDirectory(path);
 					ClientApi.Main.Run();
 				}
 				catch (Exception e)
 				{
 					MessageBox.Show("An unhandled exception occurred: " + e, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 				}
-
-				ClientApi.DeInitialize();
 			}
 		}
 	}
