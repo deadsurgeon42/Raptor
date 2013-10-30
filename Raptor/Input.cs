@@ -2,6 +2,9 @@
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.Xna.Framework.Input;
+using Terraria;
+
+using Clipboard = System.Windows.Forms.Clipboard;
 
 namespace Raptor
 {
@@ -160,6 +163,31 @@ namespace Raptor
 				if (keys < 10)
 					keyCodes[keys++] = (char)m.WParam;
 			}
+		}
+		internal static string GetInputText(string text)
+		{
+			if (!Main.hasFocus)
+				return text;
+
+			string newText = text;
+			if (ActiveSpecialKeys.HasFlag(Input.SpecialKeys.Backspace) && newText.Length != 0)
+			{
+				if (Control)
+				{
+					string[] words = newText.Split(' ');
+					newText = String.Join(" ", words, 0, words.Length - 1);
+				}
+				else
+					newText = newText.Substring(0, newText.Length - 1);
+			}
+			else if (Control && ActiveSpecialKeys.HasFlag(Input.SpecialKeys.V) && Clipboard.ContainsText())
+			{
+				newText += Clipboard.GetText();
+			}
+			else
+				newText += TypedString;
+
+			return newText;
 		}
 		/// <summary>
 		/// Gets if a key is down.

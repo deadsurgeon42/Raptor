@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Raptor.Api;
 using Terraria;
 
 namespace Raptor
@@ -37,6 +38,24 @@ namespace Raptor
 		public static void NewSuccessText(string msg, params object[] args)
 		{
 			Main.NewText(String.Format(msg, args), 0, 128, 0);
+		}
+		/// <summary>
+		/// Sends custom packet data.
+		/// </summary>
+		/// <param name="msg">The custom packet type.</param>
+		/// <param name="text">The text to send.</param>
+		public static void SendCustomData(CustomPacketTypes msg, string text = "")
+		{
+			ClientSock cs = Netplay.clientSock;
+			switch (msg)
+			{
+				case CustomPacketTypes.Acknowledge:
+					{
+						byte[] data = new byte[] { 2, 0, 0, 0, (byte)PacketTypes.Placeholder, (byte)msg };
+						cs.networkStream.BeginWrite(data, 0, 6, cs.ClientWriteCallBack, cs.networkStream);
+					}
+					break;
+			}
 		}
 	}
 }

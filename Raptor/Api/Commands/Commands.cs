@@ -86,7 +86,7 @@ namespace Raptor.Api.Commands
 		}
 		static void LoadLuaCommands()
 		{
-			foreach (string path in Directory.EnumerateFiles(Path.Combine("Scripts"), "*.lua"))
+			foreach (string path in Directory.EnumerateFiles(Path.Combine("Raptor", "Scripts"), "*.lua"))
 			{
 				List<string> lines = File.ReadAllLines(path).ToList();
 				List<string> names = new List<string> { Path.GetFileNameWithoutExtension(path) };
@@ -228,7 +228,7 @@ namespace Raptor.Api.Commands
 				{
 					try
 					{
-						Raptor.Lua.DoString(File.ReadAllText(scriptPath));
+						Raptor.Lua.DoFile(scriptPath);
 					}
 					catch (Exception ex)
 					{
@@ -247,7 +247,7 @@ namespace Raptor.Api.Commands
 			{
 				try
 				{
-					Raptor.Lua.DoString(File.ReadAllText(Path.Combine("Scripts", ((Command)o).Name + ".lua")));
+					Raptor.Lua.DoFile(Path.Combine("Raptor", "Scripts", ((Command)o).Name + ".lua"));
 				}
 				catch (Exception ex)
 				{

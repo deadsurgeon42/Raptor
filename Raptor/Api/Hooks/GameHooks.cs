@@ -67,31 +67,15 @@ namespace Raptor.Api.Hooks
 		}
 		#endregion
 
-		#region InputText
-		internal static string InvokeInputText(string text)
+		#region ILModified
+		/// <summary>
+		/// The event that runs after the game's IL is modified.
+		/// </summary>
+		public static event EventHandler<ILEventArgs> ILModified;
+		internal static void InvokeILModified(AssemblyDefinition asm)
 		{
-			if (!Main.hasFocus)
-				return text;
-
-			string newText = text;
-			if (Input.ActiveSpecialKeys.HasFlag(Input.SpecialKeys.Backspace) && newText.Length != 0)
-			{
-				if (Input.Control)
-				{
-					string[] words = newText.Split(' ');
-					newText = String.Join(" ", words, 0, words.Length - 1);
-				}
-				else
-					newText = newText.Substring(0, newText.Length - 1);
-			}
-			else if (Input.Control && Input.ActiveSpecialKeys.HasFlag(Input.SpecialKeys.V) && Clipboard.ContainsText())
-			{
-				newText += Clipboard.GetText();
-			}
-			else
-				newText += Input.TypedString;
-
-			return newText;
+			if (ILModified != null)
+				ILModified(null, new ILEventArgs { Assembly = asm });
 		}
 		#endregion
 

@@ -82,6 +82,7 @@ namespace Raptor
 			Main.mouseTextColorChange = 0;
 			Main.showSplash = Config.ShowSplashScreen;
 			#endregion
+
 			Lua = new Lua();
 			Lua.LoadCLRPackage();
 
@@ -141,6 +142,17 @@ namespace Raptor
 						new Rectangle(Input.MouseX, Input.MouseY, (int)(Main.cursorScale * 14.0f), (int)(Main.cursorScale * 14.0f)),
 						Main.cursorColor);
 				}
+			}
+		}
+		internal static bool SendData(int msgId, string text, int n1, float n2, float n3, float n4, int n5)
+		{
+			switch ((PacketTypes)msgId)
+			{
+				case PacketTypes.ConnectRequest:
+					Utils.SendCustomData(CustomPacketTypes.Acknowledge);
+					return false;
+				default:
+					return false;
 			}
 		}
 		internal static void NewText(string text, byte r, byte g, byte b)

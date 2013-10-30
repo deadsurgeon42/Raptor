@@ -124,8 +124,10 @@
   <ItemGroup>
     <Compile Include="Api\ApiVersionAttribute.cs" />
     <Compile Include="Api\ClientApi.cs" />
+    <Compile Include="Api\CustomPacketTypes.cs" />
     <Compile Include="Api\Hooks\DrawEventArgs.cs" />
     <Compile Include="Api\Hooks\GetDataEventArgs.cs" />
+    <Compile Include="Api\Hooks\ILEventArgs.cs" />
     <Compile Include="Api\Hooks\ItemEventArgs.cs" />
     <Compile Include="Api\Hooks\LoadContentEventArgs.cs" />
     <Compile Include="Api\Hooks\NewTextEventArgs.cs" />

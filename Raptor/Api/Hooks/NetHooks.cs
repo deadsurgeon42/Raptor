@@ -40,33 +40,27 @@ namespace Raptor.Api.Hooks
 		/// </summary>
 		public static event EventHandler<SendDataEventArgs> SendData;
 
-		internal static bool InvokeSendData(ref int msgId, ref string text, ref int number, ref float number2, ref float number3, ref float number4, ref int number5)
+		internal static bool InvokeSendData(int msgId, string text, int n1, float n2, float n3, float n4, int n5)
 		{
+			if (Raptor.SendData(msgId, text, n1, n2, n3, n4, n5))
+				return true;
+
 			if (SendData == null)
-			{
 				return false;
-			}
 
 			SendDataEventArgs args = new SendDataEventArgs
 			{
 				MsgId = (PacketTypes)msgId,
 				Text = text,
-				Number = number,
-				Number2 = number2,
-				Number3 = number3,
-				Number4 = number4,
-				Number5 = number5
+				Number = n1,
+				Number2 = n2,
+				Number3 = n3,
+				Number4 = n4,
+				Number5 = n5
 			};
 
 			SendData(null, args);
 
-			msgId = (int)args.MsgId;
-			text = args.Text;
-			number = args.Number;
-			number2 = args.Number2;
-			number3 = args.Number3;
-			number4 = args.Number4;
-			number5 = args.Number5;
 			return args.Handled;
 		}
 		#endregion
