@@ -134,6 +134,10 @@
 		/// </summary>
 		SetChestItem,
 		/// <summary>
+		/// The set current chest packet.
+		/// </summary>
+		SetCurrentChest,
+		/// <summary>
 		/// The remove chest packet.
 		/// </summary>
 		RemoveChest,
@@ -258,9 +262,9 @@
 		/// </summary>
 		PaintWall,
 		/// <summary>
-		/// The teleport player packet.
+		/// The teleport packet.
 		/// </summary>
-		TeleportPlayer,
+		Teleport,
 		/// <summary>
 		/// The heal player packet.
 		/// </summary>

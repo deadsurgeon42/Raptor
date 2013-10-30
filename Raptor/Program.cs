@@ -180,6 +180,12 @@ namespace Raptor
 				Instruction.Create(OpCodes.Brfalse_S, messageBufferGetData.Body.Instructions[0]),
 				Instruction.Create(OpCodes.Ret));
 
+			// NetHooks.InvokeGotData(start, length);
+			messageBufferGetData.InsertEnd(
+				Instruction.Create(OpCodes.Ldarg_1),
+				Instruction.Create(OpCodes.Ldarg_2),
+				Instruction.Create(OpCodes.Call, mod.Import(typeof(NetHooks).GetMethod("InvokeGotData", allFlags))));
+
 			var netMessageSendData = asm.GetMethod("NetMessage", "SendData");
 			// if (NetHooks.InvokeSendData(msgType, text, number, number2, number3, number4, number5)) return;
 			netMessageSendData.InsertStart(
@@ -193,6 +199,17 @@ namespace Raptor
 				Instruction.Create(OpCodes.Call, mod.Import(typeof(NetHooks).GetMethod("InvokeSendData", allFlags))),
 				Instruction.Create(OpCodes.Brfalse_S, netMessageSendData.Body.Instructions[0]),
 				Instruction.Create(OpCodes.Ret));
+
+			// NetHooks.InvokeSentData(msgType, text, number, number2, number3, number4, number5));
+			netMessageSendData.InsertEnd(
+				Instruction.Create(OpCodes.Ldarg_0),
+				Instruction.Create(OpCodes.Ldarg_3),
+				Instruction.Create(OpCodes.Ldarg_S, netMessageSendData.Parameters[4]),
+				Instruction.Create(OpCodes.Ldarg_S, netMessageSendData.Parameters[5]),
+				Instruction.Create(OpCodes.Ldarg_S, netMessageSendData.Parameters[6]),
+				Instruction.Create(OpCodes.Ldarg_S, netMessageSendData.Parameters[7]),
+				Instruction.Create(OpCodes.Ldarg_S, netMessageSendData.Parameters[8]),
+				Instruction.Create(OpCodes.Call, mod.Import(typeof(NetHooks).GetMethod("InvokeSentData", allFlags))));
 
 			// NpcHooks.InvokeAI(this);
 			asm.GetMethod("NPC", "AI").InsertStart(

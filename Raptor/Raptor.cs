@@ -54,6 +54,14 @@ namespace Raptor
 			get;
 			internal set;
 		}
+		/// <summary>
+		/// Gets the player's list of permissions.
+		/// </summary>
+		public static List<string> Permissions
+		{
+			get;
+			internal set;
+		}
 
 		internal static void DeInitialize()
 		{
@@ -62,6 +70,8 @@ namespace Raptor
 		}
 		internal static void Initialize()
 		{
+			Permissions = new List<string>();
+
 			string version = "Raptor v" + ClientApi.ApiVersion;
 			ClientApi.Main.Window.Title = version;
 			Main.chTitle = false;
@@ -144,12 +154,12 @@ namespace Raptor
 				}
 			}
 		}
-		internal static bool SendData(int msgId, string text, int n1, float n2, float n3, float n4, int n5)
+		internal static bool SentData(int msgId, string text, int n1, float n2, float n3, float n4, int n5)
 		{
 			switch ((PacketTypes)msgId)
 			{
 				case PacketTypes.ConnectRequest:
-					Utils.SendCustomData(CustomPacketTypes.Acknowledge);
+					Utils.SendCustomData(RaptorPacketTypes.Acknowledge);
 					return false;
 				default:
 					return false;

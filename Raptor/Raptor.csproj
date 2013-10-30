@@ -124,7 +124,7 @@
   <ItemGroup>
     <Compile Include="Api\ApiVersionAttribute.cs" />
     <Compile Include="Api\ClientApi.cs" />
-    <Compile Include="Api\CustomPacketTypes.cs" />
+    <Compile Include="Api\RaptorPacketTypes.cs" />
     <Compile Include="Api\Hooks\DrawEventArgs.cs" />
     <Compile Include="Api\Hooks\GetDataEventArgs.cs" />
     <Compile Include="Api\Hooks\ILEventArgs.cs" />
@@ -140,6 +140,7 @@
     <Compile Include="Api\PacketTypes.cs" />
     <Compile Include="Api\TerrariaPlugin.cs" />
     <Compile Include="Api\TileTypes.cs" />
+    <Compile Include="Api\TShock\Region.cs" />
     <Compile Include="Api\WallTypes.cs" />
     <Compile Include="Api\Commands\Command.cs" />
     <Compile Include="Api\Commands\CommandEventArgs.cs" />
