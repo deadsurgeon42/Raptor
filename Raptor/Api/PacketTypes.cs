@@ -270,9 +270,9 @@
 		/// </summary>
 		HealPlayer,
 		/// <summary>
-		/// The placeholder packet.
+		/// The raptor packet (formerly the placeholder packet).
 		/// </summary>
-		Placeholder,
+		Raptor,
 		/// <summary>
 		/// The uuid packet.
 		/// </summary>

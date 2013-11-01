@@ -16,6 +16,34 @@ namespace Raptor
 		internal static Texture2D solidTexture;
 
 		/// <summary>
+		/// Draws outlined text at the mouse.
+		/// </summary>
+		/// <param name="sb">The spritebatch.</param>
+		/// <param name="str">The text.</param>
+		/// <param name="color">The color.</param>
+		/// <param name="font">The font.</param>
+		public static void DrawGuiMouseText(this SpriteBatch sb, string str, Color color, SpriteFont font = null)
+		{
+			float xLength = Main.fontMouseText.MeasureString(str).X;
+			float yLength = Main.fontMouseText.MeasureString(str).Y;
+
+			float x = Input.MouseX + 10;
+			float y = Input.MouseY + 10;
+			if (x + xLength + 4f > Main.screenWidth)
+				x = Main.screenWidth - xLength - 4;
+			if (y + yLength + 4f > Main.screenHeight)
+				y = Main.screenHeight - yLength - 4;
+
+			Vector2 position = new Vector2(x, y);
+
+			SpriteFont drawFont = font ?? Main.fontMouseText;
+			sb.DrawString(drawFont, str, position + new Vector2(1.5f, 0), Color.Black);
+			sb.DrawString(drawFont, str, position + new Vector2(-1.5f, 0), Color.Black);
+			sb.DrawString(drawFont, str, position + new Vector2(0, 1.5f), Color.Black);
+			sb.DrawString(drawFont, str, position + new Vector2(0, -1.5f), Color.Black);
+			sb.DrawString(drawFont, str, position, color);
+		}
+		/// <summary>
 		/// Draws a Terraria GUI rectangle.
 		/// </summary>
 		/// <param name="sb">The spritebatch.</param>

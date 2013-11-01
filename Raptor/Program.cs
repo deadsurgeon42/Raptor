@@ -20,6 +20,7 @@ namespace Raptor
 		{
 			{ "DrawChat", "NPCChat" },
 			{ "DrawPlayerChat", "PlayerChat" },
+			{ "DrawInterface", "Interface" }
 		};
 		static Assembly terraria;
 		const string registry = @"SOFTWARE\Re-Logic\Terraria";
@@ -104,10 +105,12 @@ namespace Raptor
 			}
 			#endregion
 			#region IL injection
+			var itemSetDefaults = asm.GetMethod("Item", "SetDefaults", new[] { "Int32", "Boolean" });
 			// ItemHooks.InvokeSetDefaults(this);
-			asm.GetMethod("Item", "SetDefaults", new[] { "Int32", "Boolean" }).InsertEnd(
+			itemSetDefaults.InsertEnd(
 				Instruction.Create(OpCodes.Ldarg_0),
 				Instruction.Create(OpCodes.Call, mod.Import(typeof(ItemHooks).GetMethod("InvokeSetDefaults", allFlags))));
+			itemSetDefaults.FixShortBranches();
 
 			var keyinPreFilterMessage = asm.GetType("keyBoardInput").NestedTypes[0].Methods[0];
 			// Input.FilterMessage(m); return false;
@@ -134,6 +137,7 @@ namespace Raptor
 				Instruction.Create(OpCodes.Ldfld, asm.GetField("Main", "spriteBatch")),
 				Instruction.Create(OpCodes.Ldstr, ""),
 				Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeDrawn", allFlags))));
+			mainDraw.FixShortBranches();
 
 			foreach (KeyValuePair<string, string> kvp in drawHooks)
 			{
@@ -150,11 +154,14 @@ namespace Raptor
 					Instruction.Create(OpCodes.Ldfld, asm.GetField("Main", "spriteBatch")),
 					Instruction.Create(OpCodes.Ldstr, kvp.Value),
 					Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeDrawn", allFlags))));
+				draw.FixShortBranches();
 			}
 
+			var mainInitialize = asm.GetMethod("Main", "Initialize");
 			// GameHooks.InvokeInitialized();
-			asm.GetMethod("Main", "Initialize").InsertEnd(
+			mainInitialize.InsertEnd(
 				Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeInitialized", allFlags))));
+			mainInitialize.FixShortBranches();
 
 			var mainInputText = asm.GetMethod("Main", "GetInputText");
 			// return GameHooks.InvokeInputText(oldString);
@@ -163,11 +170,13 @@ namespace Raptor
 				Instruction.Create(OpCodes.Call, mod.Import(typeof(Input).GetMethod("GetInputText", allFlags))),
 				Instruction.Create(OpCodes.Ret));
 
+			var mainLoadContent = asm.GetMethod("Main", "LoadContent");
 			// GameHooks.InvokeLoadedContent(this.Content);
-			asm.GetMethod("Main", "LoadContent").InsertEnd(
+			mainLoadContent.InsertEnd(
 				Instruction.Create(OpCodes.Ldarg_0),
 				Instruction.Create(OpCodes.Callvirt, mod.Import(typeof(Game).GetMethod("get_Content"))),
 				Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeLoadedContent", allFlags))));
+			mainLoadContent.FixShortBranches();
 
 			var mainNewText = asm.GetMethod("Main", "NewText");
 			// GameHooks.InvokeNewText(text, r, g, b); return;
@@ -189,10 +198,32 @@ namespace Raptor
 				Instruction.Create(OpCodes.Ldarg_1),
 				Instruction.Create(OpCodes.Call, mod.Import(typeof(Game).GetMethod("Update", allFlags))),
 				Instruction.Create(OpCodes.Ret));
+
+			var disabledKeyboard = mod.Import(typeof(Input).GetField("DisabledKeyboard"));
+			var disabledMouse = mod.Import(typeof(Input).GetField("DisabledMouse"));
+
+			for (int i = mainUpdate.Body.Instructions.Count - 1; i >= 0; i--)
+			{
+				var instr = mainUpdate.Body.Instructions[i];
+				if (instr.OpCode == OpCodes.Call && ((MethodReference)instr.Operand).ReturnType.Name == "MouseState")
+				{
+					mainUpdate.InsertBefore(instr,
+						Instruction.Create(OpCodes.Ldsfld, disabledMouse),
+						Instruction.Create(OpCodes.Brtrue_S, instr.Next.Next));
+				}
+				else if (instr.OpCode == OpCodes.Call && ((MethodReference)instr.Operand).ReturnType.Name == "KeyboardState")
+				{
+					mainUpdate.InsertBefore(instr,
+						Instruction.Create(OpCodes.Ldsfld, disabledKeyboard),
+						Instruction.Create(OpCodes.Brtrue_S, instr.Next.Next));
+				}
+			}
+
 			// GameHooks.InvokeUpdated();
 			mainUpdate.InsertEnd(
 				Instruction.Create(OpCodes.Ldarg_1),
 				Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeUpdated", allFlags))));
+			mainUpdate.FixShortBranches();
 
 			var messageBufferGetData = asm.GetMethod("messageBuffer", "GetData");
 			// if (NetHooks.InvokeGetData(start, length)) return;
@@ -208,6 +239,7 @@ namespace Raptor
 				Instruction.Create(OpCodes.Ldarg_1),
 				Instruction.Create(OpCodes.Ldarg_2),
 				Instruction.Create(OpCodes.Call, mod.Import(typeof(NetHooks).GetMethod("InvokeGotData", allFlags))));
+			messageBufferGetData.FixShortBranches();
 
 			var netMessageSendData = asm.GetMethod("NetMessage", "SendData");
 			// if (NetHooks.InvokeSendData(msgType, text, number, number2, number3, number4, number5)) return;
@@ -233,24 +265,33 @@ namespace Raptor
 				Instruction.Create(OpCodes.Ldarg_S, netMessageSendData.Parameters[7]),
 				Instruction.Create(OpCodes.Ldarg_S, netMessageSendData.Parameters[8]),
 				Instruction.Create(OpCodes.Call, mod.Import(typeof(NetHooks).GetMethod("InvokeSentData", allFlags))));
+			netMessageSendData.FixShortBranches();
 
 			// NpcHooks.InvokeProcessAI(this);
 			asm.GetMethod("NPC", "AI").InsertStart(
 				Instruction.Create(OpCodes.Ldarg_0),
 				Instruction.Create(OpCodes.Call, mod.Import(typeof(NpcHooks).GetMethod("InvokeProcessAI", allFlags))));
 
+			var npcSetDefaults = asm.GetMethod("NPC", "SetDefaults", new[] { "Int32", "Single" });
 			// NpcHooks.InvokeSetDefaults(this);
-			asm.GetMethod("NPC", "SetDefaults", new[] { "Int32", "Single" }).InsertEnd(
+			npcSetDefaults.InsertEnd(
 				Instruction.Create(OpCodes.Ldarg_0),
 				Instruction.Create(OpCodes.Call, mod.Import(typeof(NpcHooks).GetMethod("InvokeSetDefaults", allFlags))));
+			npcSetDefaults.FixShortBranches();
 
 			// return;
 			asm.GetMethod("Steam", "Kill").InsertStart(
 				Instruction.Create(OpCodes.Ret));
 
-			// Force internal types public
-			asm.GetType("Lang").IsPublic = true;
-			asm.GetType("WorldGen").IsPublic = true;
+			// Force everything public
+			foreach (var type in mod.Types)
+			{
+				type.IsPublic = true;
+				foreach (var field in type.Fields)
+					field.IsPublic = true;
+				foreach (var method in type.Methods)
+					method.IsPublic = true;
+			}
 
 			GameHooks.InvokeILModified(asm);
 			#endregion

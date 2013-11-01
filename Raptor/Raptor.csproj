@@ -133,6 +133,7 @@
     <Compile Include="Api\TerrariaPlugin.cs" />
     <Compile Include="Api\TileTypes.cs" />
     <Compile Include="Api\TShock\Region.cs" />
+    <Compile Include="Api\TShock\Warp.cs" />
     <Compile Include="Api\WallTypes.cs" />
     <Compile Include="Api\Commands\Command.cs" />
     <Compile Include="Api\Commands\CommandEventArgs.cs" />

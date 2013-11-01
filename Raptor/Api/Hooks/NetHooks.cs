@@ -226,6 +226,9 @@ namespace Raptor.Api.Hooks
 
 		internal static bool InvokeGetData(int index, int length)
 		{
+			if (Raptor.GetData(index, length))
+				return true;
+
 			if (GetData != null)
 			{
 				GetDataEventArgs args = new GetDataEventArgs

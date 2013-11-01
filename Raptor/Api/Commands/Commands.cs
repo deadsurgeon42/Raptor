@@ -42,6 +42,26 @@ namespace Raptor.Api.Commands
 		}
 		internal static void Init()
 		{
+			ChatCommands.Add(new Command(EditRegions, "editregions", "er")
+			{
+				Description = "Provides an interface for editing TShock regions.",
+				HelpText = new[]
+				{
+					"Syntax: /editregions",
+					"Allows you to edit regions with a simple WYISWYG editor.",
+					"You can add regions, resize them, and move them."
+				}
+			});
+			ChatCommands.Add(new Command(EditWarps, "editwarps", "ew")
+			{
+				Description = "Provides an interface for editing TShock warps.",
+				HelpText = new[]
+				{
+					"Syntax: /editwarps",
+					"Allows you to edit warps with a simple WYISWYG editor.",
+					"You can add warps and move them."
+				}
+			});
 			ChatCommands.Add(new Command(Help, "help", "?")
 			{
 				Description = "Provides help on commands.",
@@ -115,6 +135,28 @@ namespace Raptor.Api.Commands
 			}
 		}
 
+		static void EditRegions(object o, CommandEventArgs e)
+		{
+			if (!Utils.HasTShockPermission("tshock.admin.region"))
+			{
+				Utils.NewErrorText("You do not have permission to edit regions or you are not connected to a TShock server.");
+				return;
+			}
+
+			Raptor.isEditingRegions = !Raptor.isEditingRegions;
+			Utils.NewSuccessText("You are now {0}editing regions.", Raptor.isEditingRegions ? "" : "no longer ");
+		}
+		static void EditWarps(object o, CommandEventArgs e)
+		{
+			if (!Utils.HasTShockPermission("tshock.admin.warp"))
+			{
+				Utils.NewErrorText("You do not have permission to edit warps or you are not connected to a TShock server.");
+				return;
+			}
+
+			Raptor.isEditingWarps = !Raptor.isEditingWarps;
+			Utils.NewSuccessText("You are now {0}editing warps.", Raptor.isEditingWarps ? "" : "no longer ");
+		}
 		static void Help(object o, CommandEventArgs e)
 		{
 			if (e.Length == 0)

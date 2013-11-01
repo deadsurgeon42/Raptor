@@ -54,6 +54,21 @@ namespace Raptor
 			get { return Keyboard.IsKeyDown(Keys.LeftControl) || Keyboard.IsKeyDown(Keys.RightControl); }
 		}
 		/// <summary>
+		/// Whether or not the keyboard for Terraria should be disabled.
+		/// </summary>
+		public static bool DisabledKeyboard;
+		/// <summary>
+		/// Whether or not the mouse for Terraria should be disabled.
+		/// </summary>
+		public static bool DisabledMouse;
+		/// <summary>
+		/// Gets the mouse delta scroll wheel value.
+		/// </summary>
+		public static int MouseDScroll
+		{
+			get { return Mouse.ScrollWheelValue - LastMouse.ScrollWheelValue; }
+		}
+		/// <summary>
 		/// Gets the mouse delta X position.
 		/// </summary>
 		public static int MouseDX
@@ -114,7 +129,7 @@ namespace Raptor
 		/// </summary>
 		public static int MouseScroll
 		{
-			get { return Mouse.ScrollWheelValue - LastMouse.ScrollWheelValue; }
+			get { return Mouse.ScrollWheelValue; }
 		}
 		/// <summary>
 		/// Gets the mouse X position.

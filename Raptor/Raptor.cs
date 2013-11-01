@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
@@ -21,6 +22,8 @@ namespace Raptor
 	/// </summary>
 	public static class Raptor
 	{
+		static string mouseText = "";
+
 		class Chat
 		{
 			public Color color;
@@ -34,12 +37,24 @@ namespace Raptor
 		static int typedCommandOffset;
 		
 		static List<Chat> chat = new List<Chat>();
-		static int chatBlinkTimer;
+		static int textBlinkTimer;
 		static int chatViewOffset;
-		static bool commandMode;
+		static bool isCommand;
 		static List<Chat> rawChat = new List<Chat>();
 
+		static bool isCreatingRegion;
+		internal static bool isEditingRegions;
+		static bool isNamingRegion;
+		static Point regionClickPt;
+		static string regionName = "";
+		static Point regionPt1;
+		static Point regionPt2;
 		static List<Region> regions = new List<Region>();
+		static List<Region> regionsToDraw = new List<Region>();
+		static Region selectedRegion = null;
+
+		internal static bool isEditingWarps;
+		static List<Warp> warps = new List<Warp>();
 
 		/// <summary>
 		/// Gets the configuration file.
@@ -56,6 +71,17 @@ namespace Raptor
 		{
 			get;
 			internal set;
+		}
+		private static List<string> negatedPermissions = new List<string>();
+		/// <summary>
+		/// Gets the list of negated TShock permissions.
+		/// </summary>
+		public static ReadOnlyCollection<string> NegatedPermissions
+		{
+			get
+			{
+				return new ReadOnlyCollection<string>(negatedPermissions);
+			}
 		}
 		private static List<string> permissions = new List<string>();
 		/// <summary>
@@ -110,17 +136,38 @@ namespace Raptor
 			Main.mouseTextColor = 255;
 			Main.mouseTextColorChange = 0;
 		}
+		internal static void DrawInterface(SpriteBatch sb)
+		{
+			if (isEditingRegions)
+			{
+				foreach (Region r in regionsToDraw)
+				{
+					Rectangle region = new Rectangle(
+						r.Area.X * 16 - (int)Main.screenPosition.X, r.Area.Y * 16 - (int)Main.screenPosition.Y,
+						r.Area.Width * 16, r.Area.Height * 16);
+					sb.DrawGuiRectangle(region, r != selectedRegion ? new Color(100, 100, 100, 200) : new Color(0, 0, 200, 200));
+				}
+				if (isCreatingRegion || isNamingRegion)
+				{
+					Rectangle selection = new Rectangle(
+						regionPt1.X * 16 - (int)Main.screenPosition.X, regionPt1.Y * 16 - (int)Main.screenPosition.Y,
+						(regionPt2.X - regionPt1.X + 1) * 16, (regionPt2.Y - regionPt1.Y + 1) * 16);
+					sb.DrawGuiRectangle(selection, new Color(200, 0, 0, 200));
+				}
+			}
+
+			sb.DrawGuiMouseText(mouseText, Color.White);
+			mouseText = "";
+		}
 		internal static void DrawPlayerChat(SpriteBatch sb)
 		{
 			var chatRectangle = new Rectangle(92, Main.screenHeight - 51 - Config.ChatShow * 21, Main.screenWidth - 312, Config.ChatShow * 21 + 12);
 			if (Main.chatMode)
 			{
-				string text = Main.chatText;
-				if ((chatBlinkTimer++) % 40 > 10)
-					text += "|";
+				string text = Main.chatText + (textBlinkTimer % 40 > 10 ? "|" : "");
 
-				sb.DrawGuiRectangle(new Rectangle(92, Main.screenHeight - 33, Main.screenWidth - 312, 28), new Color(200, 200, 200, 220));
-				if (commandMode)
+				sb.DrawGuiRectangle(new Rectangle(92, Main.screenHeight - 33, Main.screenWidth - 312, 28), new Color(100, 100, 100, 200));
+				if (isCommand)
 				{
 					sb.DrawGuiText("Cmd:", new Vector2(46, Main.screenHeight - 30), Color.Orange, Main.fontMouseText);
 					sb.DrawGuiText("/" + text, new Vector2(98, Main.screenHeight - 30), Color.Orange, Main.fontMouseText);
@@ -131,7 +178,7 @@ namespace Raptor
 					sb.DrawGuiText(text, new Vector2(98, Main.screenHeight - 30), Color.White, Main.fontMouseText);
 				}
 
-				sb.DrawGuiRectangle(chatRectangle, new Color(200, 200, 200, 220));
+				sb.DrawGuiRectangle(chatRectangle, new Color(100, 100, 100, 200));
 			}
 
 			int linesShown = 0;
@@ -151,18 +198,21 @@ namespace Raptor
 					int scrollbarSize = (int)(Config.ChatShow * (Config.ChatShow * 21d - 4d) / chat.Count);
 					int scrollbarOffset = (int)((chatViewOffset - Config.ChatShow) * (Config.ChatShow * 21d - 4d) / chat.Count);
 
-					var scrollbar = new Rectangle(Main.screenWidth - 232, chatRectangle.Y + scrollbarOffset + 6, 6, scrollbarSize);
-					sb.Draw(Main.inventoryBackTexture, scrollbar, new Rectangle(8, 8, 36, 36), new Color(20, 20, 20, 200));
+					sb.Draw(Main.inventoryBackTexture,
+						new Rectangle(Main.screenWidth - 232, chatRectangle.Y + scrollbarOffset + 6, 6, scrollbarSize),
+						new Rectangle(8, 8, 36, 36),
+						new Color(20, 20, 20, 200));
 				}
-				if (chatRectangle.Contains(Input.MouseX, Input.MouseY))
-				{
-					sb.Draw(Main.cursorTexture,
-						new Rectangle(Input.MouseX + 1, Input.MouseY + 1, (int)(Main.cursorScale * 15.4f), (int)(Main.cursorScale * 15.4f)),
-						new Color((int)(Main.cursorColor.R * 0.2f), (int)(Main.cursorColor.G * 0.2f), (int)(Main.cursorColor.B * 0.2f), (int)(Main.cursorColor.A * 0.5f)));
-					sb.Draw(Main.cursorTexture,
-						new Rectangle(Input.MouseX, Input.MouseY, (int)(Main.cursorScale * 14.0f), (int)(Main.cursorScale * 14.0f)),
-						Main.cursorColor);
-				}
+			}
+
+			if (Input.DisabledMouse)
+			{
+				sb.Draw(Main.cursorTexture,
+					new Rectangle(Input.MouseX + 1, Input.MouseY + 1, (int)(Main.cursorScale * 15.4f), (int)(Main.cursorScale * 15.4f)),
+					new Color((int)(Main.cursorColor.R * 0.2f), (int)(Main.cursorColor.G * 0.2f), (int)(Main.cursorColor.B * 0.2f), (int)(Main.cursorColor.A * 0.5f)));
+				sb.Draw(Main.cursorTexture,
+					new Rectangle(Input.MouseX, Input.MouseY, (int)(Main.cursorScale * 14.0f), (int)(Main.cursorScale * 14.0f)),
+					Main.cursorColor);
 			}
 		}
 		internal static void LoadedContent(ContentManager content)
@@ -216,11 +266,19 @@ namespace Raptor
 		}
 		internal static void Update()
 		{
+			Input.DisabledMouse = false;
+			Input.DisabledKeyboard = false;
 			Input.Update();
+			// Do not allow Terraria's chat code to run b/c we handle it ourselves
+			Main.chatRelease = false;
+			textBlinkTimer++;
+
+			if (isEditingRegions)
+				EditRegions();
+			
 			#region Chat handling
-			if (((Input.IsKeyTapped(Keys.Enter) && Main.netMode == 0 && !Input.Alt) ||
-				Input.IsKeyTapped(Keys.OemQuestion) && !Input.Shift)
-				&& !Main.chatMode && !Main.editSign && !Main.gameMenu)
+			if (((Input.IsKeyTapped(Keys.Enter) && !Input.Alt) || (Input.IsKeyTapped(Keys.OemQuestion) && !Input.Shift))
+				&& !Main.chatMode && !Main.editSign && !Main.gameMenu && !Input.DisabledKeyboard)
 			{
 				Main.chatMode = true;
 				Main.chatRelease = false;
@@ -228,19 +286,15 @@ namespace Raptor
 				Main.keyCount = 0;
 				Main.PlaySound(10);
 
-				commandMode = Input.IsKeyTapped(Keys.OemQuestion);
-				if (commandMode)
-				{
+				isCommand = Input.IsKeyTapped(Keys.OemQuestion);
+				if (isCommand)
 					Input.TypedString = Input.TypedString.Replace("/", "");
-				}
 			}
 			else if (Input.IsKeyTapped(Keys.Enter) && Main.chatMode)
 			{
 				if (Main.chatText == "")
-				{
 					Main.chatMode = false;
-				}
-				else if (commandMode)
+				else if (isCommand)
 				{
 					typedCommands.Add(Main.chatText);
 					if (typedCommands.Count > 1000)
@@ -272,6 +326,11 @@ namespace Raptor
 				Main.PlaySound(11);
 				chatViewOffset = chat.Count;
 			}
+			else if (Input.IsKeyTapped(Keys.Escape) && Main.chatMode)
+			{
+				Main.chatMode = false;
+				Main.PlaySound(11);
+			}
 			#endregion
 			#region Chat update
 			if (Main.chatMode)
@@ -279,14 +338,10 @@ namespace Raptor
 				var chatRectangle = new Rectangle(96, Main.screenHeight - 49 - Config.ChatShow * 21, Main.screenWidth - 312, Config.ChatShow * 21 + 12);
 				if (chatRectangle.Contains(Input.MouseX, Input.MouseY))
 				{
-					// Disable the mouse in Terraria.
-					Main.gamePad = true;
-					Main.mouseX = Main.mouseY = -100;
-
-					Main.mouseState = Main.oldMouseState = Mouse.GetState();
+					Input.DisabledMouse = true;
 					if (chat.Count > Config.ChatShow)
 					{
-						chatViewOffset += Math.Sign(Input.MouseScroll) * -Config.ChatScrollSpeed;
+						chatViewOffset += Math.Sign(Input.MouseDScroll) * -Config.ChatScrollSpeed;
 						chatViewOffset = (chatViewOffset < Config.ChatShow) ? Config.ChatShow : chatViewOffset;
 						chatViewOffset = (chatViewOffset > chat.Count) ? chat.Count : chatViewOffset;
 					}
@@ -294,7 +349,7 @@ namespace Raptor
 
 				if (Input.ActiveSpecialKeys.HasFlag(Input.SpecialKeys.Up))
 				{
-					if (commandMode && typedCommands.Count != 0)
+					if (isCommand && typedCommands.Count != 0)
 					{
 						int prev = typedCommandOffset;
 
@@ -305,7 +360,7 @@ namespace Raptor
 						if (prev != typedCommandOffset)
 							Main.PlaySound(12);
 					}
-					else if (!commandMode && typedChat.Count != 0)
+					else if (!isCommand && typedChat.Count != 0)
 					{
 						int prev = typedChatOffset;
 
@@ -319,7 +374,7 @@ namespace Raptor
 				}
 				else if (Input.ActiveSpecialKeys.HasFlag(Input.SpecialKeys.Down))
 				{
-					if (commandMode && typedCommands.Count != 0)
+					if (isCommand && typedCommands.Count != 0)
 					{
 						int prev = typedCommandOffset;
 
@@ -335,7 +390,7 @@ namespace Raptor
 						if (prev != typedCommandOffset)
 							Main.PlaySound(12);
 					}
-					else if (!commandMode && typedChat.Count != 0)
+					else if (!isCommand && typedChat.Count != 0)
 					{
 						int prev = typedChatOffset;
 
@@ -357,8 +412,7 @@ namespace Raptor
 			{
 				typedChatOffset = typedChat.Count;
 				typedCommandOffset = typedCommands.Count;
-				commandMode = false;
-				Main.gamePad = false;
+				isCommand = false;
 			}
 			for (int i = 0; i < chat.Count; i++)
 			{
@@ -372,7 +426,7 @@ namespace Raptor
 			}
 			#endregion
 			#region Key bindings
-			if (!Main.chatMode && !Main.editSign && !Main.gameMenu)
+			if (!Main.chatMode && !Main.editSign && !Main.gameMenu && !isNamingRegion)
 			{
 				foreach (KeyValuePair<Keys, string> kvp in Config.KeyBindings)
 				{
@@ -381,23 +435,216 @@ namespace Raptor
 				}
 			}
 			#endregion
+
+			if (Input.DisabledMouse)
+			{
+				Main.mouseState = Main.oldMouseState = new MouseState(-100, -100, Input.MouseScroll, 0, 0, 0, 0, 0);
+			}
+			if (Input.DisabledKeyboard)
+			{
+				Main.keyState = Main.inputText = Main.oldInputText = new KeyboardState(null);
+			}
 		}
 
+		static void EditRegions()
+		{
+			if (Main.netMode != 1)
+			{
+				regions.Clear();
+				regionsToDraw.Clear();
+				isEditingRegions = false;
+				return;
+			}
+
+			regionsToDraw.Clear();
+
+			if (Input.MouseLeftClick)
+				selectedRegion = null;
+
+			for (int i = 0; i < regions.Count; i++)
+			{
+				Rectangle region = new Rectangle(
+					regions[i].Area.X * 16 - (int)Main.screenPosition.X, regions[i].Area.Y * 16 - (int)Main.screenPosition.Y,
+					regions[i].Area.Width * 16, regions[i].Area.Height * 16);
+				Rectangle screen = new Rectangle(
+					0, 0, Main.screenWidth, Main.screenHeight);
+
+				if (region.Intersects(screen))
+				{
+					regionsToDraw.Add(regions[i]);
+					if (region.Contains(Input.MouseX, Input.MouseY))
+					{
+						mouseText = "Region name: " + regions[i].Name;
+						Input.DisabledMouse = true;
+
+						if (Input.MouseLeftClick)
+						{
+							selectedRegion = regions[i];
+							Main.PlaySound(12);
+						}
+					}
+				}
+			}
+
+			if (Input.MouseRightClick && regionClickPt == Point.Zero)
+			{
+				isCreatingRegion = true;
+				regionClickPt.X = (int)(Main.screenPosition.X + Input.MouseX) / 16;
+				regionClickPt.Y = (int)(Main.screenPosition.Y + Input.MouseY) / 16;
+				selectedRegion = null;
+			}
+
+			if (isCreatingRegion)
+			{
+				if (Input.MouseRightDown && regionClickPt != Point.Zero)
+				{
+					int X = (int)(Main.screenPosition.X + Input.MouseX) / 16;
+					int Y = (int)(Main.screenPosition.Y + Input.MouseY) / 16;
+
+					if (X < regionClickPt.X)
+					{
+						regionPt1.X = X;
+						regionPt2.X = regionClickPt.X;
+					}
+					else
+					{
+						regionPt1.X = regionClickPt.X;
+						regionPt2.X = X;
+					}
+					if (Y < regionClickPt.Y)
+					{
+						regionPt1.Y = Y;
+						regionPt2.Y = regionClickPt.Y;
+					}
+					else
+					{
+						regionPt1.Y = regionClickPt.Y;
+						regionPt2.Y = Y;
+					}
+				}
+				if (Input.MouseRightRelease)
+				{
+					isCreatingRegion = false;
+					isNamingRegion = true;
+					regionName = "";
+				}
+			}
+			else if (isNamingRegion)
+			{
+				Rectangle selection = new Rectangle(
+					regionPt1.X * 16 - (int)Main.screenPosition.X,
+					regionPt1.Y * 16 - (int)Main.screenPosition.Y,
+					(regionPt2.X - regionPt1.X + 1) * 16,
+					(regionPt2.Y - regionPt1.Y + 1) * 16);
+				if (selection.Contains(Input.MouseX, Input.MouseY))
+				{
+					Input.DisabledKeyboard = true;
+					regionName = Input.GetInputText(regionName);
+					if (regionName == "")
+						mouseText = "(Enter new region name)";
+					else
+						mouseText = "Region name: " + regionName + (textBlinkTimer % 40 > 10 ? "|" : "");
+				}
+				if (Input.IsKeyTapped(Keys.Enter) && regionName != "")
+				{
+					Region region = new Region();
+					region.Area = new Rectangle(regionPt1.X, regionPt1.Y, regionPt2.X - regionPt1.X + 1, regionPt2.Y - regionPt1.Y + 1);
+					region.Name = regionName;
+					regions.Add(region);
+					regionsToDraw.Add(region);
+					Utils.SendRegion(region);
+
+					isNamingRegion = false;
+					regionClickPt = regionPt1 = regionPt2 = Point.Zero;
+					Main.PlaySound(11);
+				}
+				else if (Input.IsKeyTapped(Keys.Escape))
+				{
+					regionClickPt = regionPt1 = regionPt2 = Point.Zero;
+					isNamingRegion = false;
+					Main.PlaySound(11);
+				}
+			}
+
+			if (selectedRegion != null)
+			{
+				if (Input.IsKeyTapped(Keys.Delete))
+				{
+					Utils.SendRegionDelete(selectedRegion);
+					regions.Remove(selectedRegion);
+					regionsToDraw.Remove(selectedRegion);
+					Main.PlaySound(11);
+				}
+				else if (Input.IsKeyTapped(Keys.Escape))
+				{
+					selectedRegion = null;
+					Main.PlaySound(12);
+				}
+			}
+		}
+
+		internal static bool GetData(int index, int length)
+		{
+			if (NetMessage.buffer[256].readBuffer[index] != (byte)PacketTypes.Raptor)
+				return false;
+
+			using (var ms = new MemoryStream(NetMessage.buffer[256].readBuffer, index + 1, length - 1))
+			{
+				using (var reader = new BinaryReader(ms))
+				{
+					switch ((RaptorPacketTypes)reader.ReadByte())
+					{
+						case RaptorPacketTypes.Permissions:
+							negatedPermissions.Clear();
+							permissions.Clear();
+
+							foreach (string p in reader.ReadString().Split(','))
+							{
+								if (p.StartsWith("!"))
+									negatedPermissions.Add(p.Substring(1));
+								else
+									permissions.Add(p);
+							}
+							return true;
+						case RaptorPacketTypes.Region:
+							Rectangle area = new Rectangle(reader.ReadInt32(), reader.ReadInt32(),
+								reader.ReadInt32(), reader.ReadInt32());
+							regions.Add(new Region { Area = area, Name = reader.ReadString() });
+							return true;
+						case RaptorPacketTypes.RegionDelete:
+							string regionName = reader.ReadString();
+							regions.RemoveAll(r => r.Name == regionName);
+							return true;
+						case RaptorPacketTypes.Warp:
+							Vector2 location = new Vector2(reader.ReadSingle(), reader.ReadSingle());
+							warps.Add(new Warp { Position = location, Name = reader.ReadString(), IsPrivate = reader.ReadBoolean() });
+							return true;
+						case RaptorPacketTypes.WarpDelete:
+							string warpName = reader.ReadString();
+							warps.RemoveAll(r => r.Name == warpName);
+							return true;
+						default:
+							return true;
+					}
+				}
+			}
+		}
 		internal static bool SentData(int msgId, string text, int n1, float n2, float n3, float n4, int n5)
 		{
 			switch ((PacketTypes)msgId)
 			{
 				case PacketTypes.ConnectRequest:
-					Utils.SendCustomData(RaptorPacketTypes.Acknowledge);
-					return false;
-				default:
+					Utils.SendAcknowledge();
 					return false;
 			}
+			return false;
 		}
 
 		internal static void Window_ClientSizeChanged(object sender, EventArgs e)
 		{
 			int newWidth = ClientApi.Main.Window.ClientBounds.Width;
+			if (newWidth < 800)
+				newWidth = 800;
 
 			if (newWidth != Main.screenWidth)
 			{

@@ -11,6 +11,56 @@ namespace Raptor
 	/// </summary>
 	public static class ILExtensions
 	{
+		/// <summary>
+		/// Creates a shallow copy of an instruction.
+		/// </summary>
+		/// <param name="instr">The instruction.</param>
+		public static Instruction Copy(this Instruction instr)
+		{
+			switch (instr.OpCode.OperandType)
+			{
+				case OperandType.InlineArg:
+				case OperandType.ShortInlineArg:
+					return Instruction.Create(instr.OpCode, (ParameterDefinition)instr.Operand);
+				case OperandType.InlineBrTarget:
+				case OperandType.ShortInlineBrTarget:
+					return Instruction.Create(instr.OpCode, (Instruction)instr.Operand);
+				case OperandType.InlineField:
+					return Instruction.Create(instr.OpCode, (FieldReference)instr.Operand);
+				case OperandType.InlineI:
+					return Instruction.Create(instr.OpCode, (int)instr.Operand);
+				case OperandType.InlineI8:
+					return Instruction.Create(instr.OpCode, (long)instr.Operand);
+				case OperandType.InlineMethod:
+					return Instruction.Create(instr.OpCode, (MethodReference)instr.Operand);
+				case OperandType.InlineNone:
+					return Instruction.Create(instr.OpCode);
+				case OperandType.InlineR:
+					return Instruction.Create(instr.OpCode, (double)instr.Operand);
+				case OperandType.InlineString:
+					return Instruction.Create(instr.OpCode, (string)instr.Operand);
+				case OperandType.InlineSwitch:
+					return Instruction.Create(instr.OpCode, (Instruction[])instr.Operand);
+				case OperandType.InlineType:
+					return Instruction.Create(instr.OpCode, (TypeDefinition)instr.Operand);
+				case OperandType.InlineVar:
+				case OperandType.ShortInlineVar:
+					return Instruction.Create(instr.OpCode, (VariableDefinition)instr.Operand);
+
+				case OperandType.ShortInlineI:
+					return Instruction.Create(instr.OpCode, (sbyte)instr.Operand);
+				case OperandType.ShortInlineR:
+					return Instruction.Create(instr.OpCode, (float)instr.Operand);
+
+				case OperandType.InlineTok:
+					if (instr.Operand is FieldDefinition)
+						return Instruction.Create(instr.OpCode, (FieldReference)instr.Operand);
+					if (instr.Operand is MethodDefinition)
+						return Instruction.Create(instr.OpCode, (MethodReference)instr.Operand);
+					return Instruction.Create(instr.OpCode, (TypeReference)instr.Operand);
+			}
+			return null;
+		}
 		static Dictionary<OpCode, OpCode> shortToLong = new Dictionary<OpCode,OpCode>
 		{
 			{ OpCodes.Beq_S, OpCodes.Beq },
@@ -111,14 +161,40 @@ namespace Raptor
 			return true;
 		}
 		/// <summary>
+		/// Inserts instructions after a target in a method.
+		/// </summary>
+		/// <param name="md">The method.</param>
+		/// <param name="target">The instruction target.</param>
+		/// <param name="instructions">The instructions.</param>
+		public static void InsertAfter(this MethodDefinition md, Instruction target, params Instruction[] instructions)
+		{
+			var ilp = md.Body.GetILProcessor();
+			for (int j = instructions.Length - 1; j >= 0; j--)
+				ilp.InsertAfter(target, instructions[j]);
+		}
+		/// <summary>
+		/// Inserts instructions before a target in a method.
+		/// </summary>
+		/// <param name="md">The method.</param>
+		/// <param name="target">The instruction target.</param>
+		/// <param name="instructions">The instructions.</param>
+		public static void InsertBefore(this MethodDefinition md, Instruction target, params Instruction[] instructions)
+		{
+			var ilp = md.Body.GetILProcessor();
+
+			ilp.InsertAfter(target, target.Copy());
+			target.OpCode = OpCodes.Nop;
+
+			for (int i = instructions.Length - 1; i >= 0; i--)
+				ilp.InsertAfter(target, instructions[i]);
+		}
+		/// <summary>
 		/// Inserts instructions at the end(s) of a method.
 		/// </summary>
 		/// <param name="md">The method.</param>
 		/// <param name="instructions">The instructions.</param>
 		public static void InsertEnd(this MethodDefinition md, params Instruction[] instructions)
 		{
-			var ret = Instruction.Create(OpCodes.Ret);
-
 			for (int i = md.Body.Instructions.Count - 1; i >= 0; i--)
 			{
 				var instr = md.Body.Instructions[i];
@@ -131,8 +207,6 @@ namespace Raptor
 					instr.OpCode = OpCodes.Nop;
 				}
 			}
-
-			md.FixShortBranches();
 		}
 		/// <summary>
 		/// Inserts instructions at the start of a method.
@@ -142,10 +216,9 @@ namespace Raptor
 		public static void InsertStart(this MethodDefinition md, params Instruction[] instructions)
 		{
 			Instruction instr = md.Body.Instructions[0];
+			var ilp = md.Body.GetILProcessor();
 			foreach (Instruction i in instructions)
-			{
-				md.Body.GetILProcessor().InsertBefore(instr, i);
-			}
+				ilp.InsertBefore(instr, i);
 		}
 	}
 }

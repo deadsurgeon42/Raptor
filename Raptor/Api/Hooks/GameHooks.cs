@@ -148,6 +148,7 @@ namespace Raptor.Api.Hooks
 		public static Dictionary<string, EventHandler<DrawEventArgs>> Draw = new Dictionary<string, EventHandler<DrawEventArgs>>
 		{
 			{ "", null },
+			{ "Interface", null },
 			{ "NPCChat", null },
 			{ "PlayerChat", null },
 		};
@@ -158,6 +159,9 @@ namespace Raptor.Api.Hooks
 			{
 				case "":
 					Raptor.Draw(spriteBatch);
+					break;
+				case "Interface":
+					Raptor.DrawInterface(spriteBatch);
 					break;
 				case "PlayerChat":
 					Raptor.DrawPlayerChat(spriteBatch);
@@ -180,6 +184,7 @@ namespace Raptor.Api.Hooks
 		public static Dictionary<string, EventHandler<DrawnEventArgs>> Drawn = new Dictionary<string, EventHandler<DrawnEventArgs>>
 		{
 			{ "", null },
+			{ "Interface", null },
 			{ "NPCChat", null },
 			{ "PlayerChat", null },
 		};

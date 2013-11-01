@@ -19,12 +19,20 @@ namespace Raptor.Api.TShock
 		/// </summary>
 		Permissions,
 		/// <summary>
-		/// The packet sent to the client which gives region info.
+		/// The packet sent which sets region info.
 		/// </summary>
-		RegionInfo,
+		Region,
 		/// <summary>
-		/// The packet sent to modify a region.
+		/// The packet sent to delete a region.
 		/// </summary>
-		RegionModify,
+		RegionDelete,
+		/// <summary>
+		/// The packet sent which sets warp info.
+		/// </summary>
+		Warp,
+		/// <summary>
+		/// The packet sent to delete a warp.
+		/// </summary>
+		WarpDelete
 	}
 }
