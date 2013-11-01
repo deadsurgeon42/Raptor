@@ -23,6 +23,7 @@ namespace Raptor
 	public static class Raptor
 	{
 		static string mouseText = "";
+		internal static Texture2D rectBackTexture;
 
 		class Chat
 		{
@@ -39,7 +40,7 @@ namespace Raptor
 		static List<Chat> chat = new List<Chat>();
 		static int textBlinkTimer;
 		static int chatViewOffset;
-		static bool isCommand;
+		static int chatMode;
 		static List<Chat> rawChat = new List<Chat>();
 
 		static bool isCreatingRegion;
@@ -145,14 +146,14 @@ namespace Raptor
 					Rectangle region = new Rectangle(
 						r.Area.X * 16 - (int)Main.screenPosition.X, r.Area.Y * 16 - (int)Main.screenPosition.Y,
 						r.Area.Width * 16, r.Area.Height * 16);
-					sb.DrawGuiRectangle(region, r != selectedRegion ? new Color(100, 100, 100, 200) : new Color(0, 0, 200, 200));
+					sb.DrawGuiRectangle(region, r != selectedRegion ? new Color(25, 25, 25, 175) : new Color(25, 25, 200, 175));
 				}
 				if (isCreatingRegion || isNamingRegion)
 				{
 					Rectangle selection = new Rectangle(
 						regionPt1.X * 16 - (int)Main.screenPosition.X, regionPt1.Y * 16 - (int)Main.screenPosition.Y,
 						(regionPt2.X - regionPt1.X + 1) * 16, (regionPt2.Y - regionPt1.Y + 1) * 16);
-					sb.DrawGuiRectangle(selection, new Color(200, 0, 0, 200));
+					sb.DrawGuiRectangle(selection, new Color(200, 25, 25, 175));
 				}
 			}
 
@@ -162,28 +163,28 @@ namespace Raptor
 		internal static void DrawPlayerChat(SpriteBatch sb)
 		{
 			var chatRectangle = new Rectangle(92, Main.screenHeight - 51 - Config.ChatShow * 21, Main.screenWidth - 312, Config.ChatShow * 21 + 12);
-			if (Main.chatMode)
+			if (chatMode > 0)
 			{
 				string text = Main.chatText + (textBlinkTimer % 40 > 10 ? "|" : "");
 
-				sb.DrawGuiRectangle(new Rectangle(92, Main.screenHeight - 33, Main.screenWidth - 312, 28), new Color(100, 100, 100, 200));
-				if (isCommand)
-				{
-					sb.DrawGuiText("Cmd:", new Vector2(46, Main.screenHeight - 30), Color.Orange, Main.fontMouseText);
-					sb.DrawGuiText("/" + text, new Vector2(98, Main.screenHeight - 30), Color.Orange, Main.fontMouseText);
-				}
-				else
+				sb.DrawGuiRectangle(new Rectangle(92, Main.screenHeight - 33, Main.screenWidth - 312, 28), new Color(25, 25, 25, 200));
+				if (chatMode == 1)
 				{
 					sb.DrawGuiText("Chat:", new Vector2(46, Main.screenHeight - 30), Color.White, Main.fontMouseText);
 					sb.DrawGuiText(text, new Vector2(98, Main.screenHeight - 30), Color.White, Main.fontMouseText);
 				}
+				else
+				{
+					sb.DrawGuiText("Cmd:", new Vector2(46, Main.screenHeight - 30), Color.Orange, Main.fontMouseText);
+					sb.DrawGuiText("/" + text, new Vector2(98, Main.screenHeight - 30), Color.Orange, Main.fontMouseText);
+				}
 
-				sb.DrawGuiRectangle(chatRectangle, new Color(100, 100, 100, 200));
+				sb.DrawGuiRectangle(chatRectangle, new Color(25, 25, 25, 200));
 			}
 
 			int linesShown = 0;
 			for (int i = -1; i + chatViewOffset >= 0 && linesShown < Config.ChatShow &&
-				(Main.chatMode || chat[i + chatViewOffset].timeOut > 0); i--)
+				(chatMode > 0 || chat[i + chatViewOffset].timeOut > 0); i--)
 			{
 				sb.DrawGuiText(chat[i + chatViewOffset].text,
 					new Vector2(98, Main.screenHeight - 64 - linesShown++ * 21),
@@ -191,7 +192,7 @@ namespace Raptor
 					Main.fontMouseText);
 			}
 
-			if (Main.chatMode)
+			if (chatMode > 0)
 			{
 				if (chat.Count > Config.ChatShow)
 				{
@@ -221,12 +222,15 @@ namespace Raptor
 
 			Main.fontItemStack = Main.fontMouseText = content.Load<SpriteFont>(Path.Combine(contentDirectory, "Font"));
 			Main.fontDeathText = content.Load<SpriteFont>(Path.Combine(contentDirectory, "TitleFont"));
-			Texture2D chatBack = content.Load<Texture2D>(Path.Combine(contentDirectory, "ChatBack"));
+
+			Texture2D invBack = content.Load<Texture2D>(Path.Combine(contentDirectory, "InvBack"));
+			Main.inventoryBackTexture = invBack;
+			for (int i = 2; i <= 12; i++)
+				typeof(Main).GetField("inventoryBack" + i + "Texture").SetValue(null, invBack);
 
 			Main.chatBackTexture = content.Load<Texture2D>(Path.Combine(contentDirectory, "NpcChatBack"));
-			Main.inventoryBackTexture = chatBack;
-			for (int i = 2; i <= 12; i++)
-				typeof(Main).GetField("inventoryBack" + i + "Texture").SetValue(null, chatBack);
+
+			rectBackTexture = content.Load<Texture2D>(Path.Combine(contentDirectory, "RectBack"));
 		}
 		internal static void NewText(string text, byte r, byte g, byte b)
 		{
@@ -266,6 +270,9 @@ namespace Raptor
 		}
 		internal static void Update()
 		{
+			if (!Main.hasFocus)
+				return;
+
 			Input.DisabledMouse = false;
 			Input.DisabledKeyboard = false;
 			Input.Update();
@@ -273,67 +280,162 @@ namespace Raptor
 			Main.chatRelease = false;
 			textBlinkTimer++;
 
+			if (Main.netMode == 0 && Main.gameMenu)
+			{
+				chatMode = 0;
+				isEditingRegions = false;
+				isEditingWarps = false;
+				permissions.Clear();
+				negatedPermissions.Clear();
+				regions.Clear();
+				regionsToDraw.Clear();
+				return;
+			}
+
+			#region Region editing
 			if (isEditingRegions)
-				EditRegions();
-			
-			#region Chat handling
-			if (((Input.IsKeyTapped(Keys.Enter) && !Input.Alt) || (Input.IsKeyTapped(Keys.OemQuestion) && !Input.Shift))
-				&& !Main.chatMode && !Main.editSign && !Main.gameMenu && !Input.DisabledKeyboard)
 			{
-				Main.chatMode = true;
-				Main.chatRelease = false;
-				Main.chatText = "";
-				Main.keyCount = 0;
-				Main.PlaySound(10);
+				regionsToDraw.Clear();
 
-				isCommand = Input.IsKeyTapped(Keys.OemQuestion);
-				if (isCommand)
-					Input.TypedString = Input.TypedString.Replace("/", "");
-			}
-			else if (Input.IsKeyTapped(Keys.Enter) && Main.chatMode)
-			{
-				if (Main.chatText == "")
-					Main.chatMode = false;
-				else if (isCommand)
+				if (Input.MouseLeftClick)
+					selectedRegion = null;
+
+				for (int i = 0; i < regions.Count; i++)
 				{
-					typedCommands.Add(Main.chatText);
-					if (typedCommands.Count > 1000)
+					Rectangle region = new Rectangle(
+						regions[i].Area.X * 16 - (int)Main.screenPosition.X, regions[i].Area.Y * 16 - (int)Main.screenPosition.Y,
+						regions[i].Area.Width * 16, regions[i].Area.Height * 16);
+					Rectangle screen = new Rectangle(
+						0, 0, Main.screenWidth, Main.screenHeight);
+
+					if (region.Intersects(screen))
 					{
-						typedCommands.RemoveAt(0);
+						regionsToDraw.Add(regions[i]);
+						if (region.Contains(Input.MouseX, Input.MouseY))
+						{
+							mouseText = "Region name: " + regions[i].Name;
+							Input.DisabledMouse = true;
+
+							if (Input.MouseLeftClick && regionClickPt == Point.Zero)
+							{
+								selectedRegion = regions[i];
+								Main.PlaySound(12);
+							}
+						}
 					}
-					typedCommandOffset = typedCommands.Count;
-					Commands.Execute(Main.chatText);
-				}
-				else if (Main.netMode == 0)
-				{
-					typedChat.Add(Main.chatText);
-					if (typedChat.Count > 1000)
-						typedChat.RemoveAt(0);
-					typedChatOffset = typedChat.Count;
-					Main.NewText(String.Format("<{0}> {1}", Main.player[Main.myPlayer].name, Main.chatText));
-				}
-				else if (Main.netMode == 1)
-				{
-					typedChat.Add(Main.chatText);
-					if (typedChat.Count > 1000)
-						typedChat.RemoveAt(0);
-					typedChatOffset = typedChat.Count;
-					NetMessage.SendData(25, -1, -1, Main.chatText, Main.myPlayer);
 				}
 
-				Main.chatRelease = false;
-				Main.chatText = "";
-				Main.PlaySound(11);
-				chatViewOffset = chat.Count;
-			}
-			else if (Input.IsKeyTapped(Keys.Escape) && Main.chatMode)
-			{
-				Main.chatMode = false;
-				Main.PlaySound(11);
+				if (Input.MouseRightClick && regionClickPt == Point.Zero)
+				{
+					isCreatingRegion = true;
+					regionClickPt.X = (int)(Main.screenPosition.X + Input.MouseX) / 16;
+					regionClickPt.Y = (int)(Main.screenPosition.Y + Input.MouseY) / 16;
+					selectedRegion = null;
+				}
+
+				if (isCreatingRegion)
+				{
+					if (Input.MouseRightDown && regionClickPt != Point.Zero)
+					{
+						int X = (int)(Main.screenPosition.X + Input.MouseX) / 16;
+						int Y = (int)(Main.screenPosition.Y + Input.MouseY) / 16;
+						if (X < regionClickPt.X)
+						{
+							regionPt1.X = X;
+							regionPt2.X = regionClickPt.X;
+						}
+						else
+						{
+							regionPt1.X = regionClickPt.X;
+							regionPt2.X = X;
+						}
+						if (Y < regionClickPt.Y)
+						{
+							regionPt1.Y = Y;
+							regionPt2.Y = regionClickPt.Y;
+						}
+						else
+						{
+							regionPt1.Y = regionClickPt.Y;
+							regionPt2.Y = Y;
+						}
+					}
+					if (Input.MouseRightRelease)
+					{
+						isCreatingRegion = false;
+						isNamingRegion = true;
+						regionName = "";
+						Main.PlaySound(10);
+					}
+				}
+				else if (isNamingRegion)
+				{
+					Rectangle selection = new Rectangle(
+						regionPt1.X * 16 - (int)Main.screenPosition.X,
+						regionPt1.Y * 16 - (int)Main.screenPosition.Y,
+						(regionPt2.X - regionPt1.X + 1) * 16,
+						(regionPt2.Y - regionPt1.Y + 1) * 16);
+					if (selection.Contains(Input.MouseX, Input.MouseY))
+					{
+						Input.DisabledKeyboard = true;
+						Input.DisabledMouse = true;
+
+						regionName = Input.GetInputText(regionName);
+						mouseText = "Region name: " + regionName + (textBlinkTimer % 40 > 10 ? "|" : "");
+					}
+					if (Input.IsKeyTapped(Keys.Enter) && regionName != "")
+					{
+						if (regions.Any(r => String.Equals(r.Name, regionName, StringComparison.OrdinalIgnoreCase)))
+							Utils.NewErrorText("Invalid region name.");
+						else
+						{
+							Region region = new Region();
+							region.Area = new Rectangle(regionPt1.X, regionPt1.Y, regionPt2.X - regionPt1.X + 1, regionPt2.Y - regionPt1.Y + 1);
+							region.Name = regionName;
+							regions.Add(region);
+							regionsToDraw.Add(region);
+							Utils.SendRegion(region);
+
+							isNamingRegion = false;
+							regionClickPt = regionPt1 = regionPt2 = Point.Zero;
+						}
+
+						Main.PlaySound(11);
+					}
+					else if (Input.IsKeyTapped(Keys.Escape))
+					{
+						isNamingRegion = false;
+						regionClickPt = regionPt1 = regionPt2 = Point.Zero;
+						Main.PlaySound(11);
+					}
+				}
+
+				if (selectedRegion != null)
+				{
+					if (Input.IsKeyTapped(Keys.Delete))
+					{
+						Utils.SendRegionDelete(selectedRegion);
+						regions.Remove(selectedRegion);
+						regionsToDraw.Remove(selectedRegion);
+						Main.PlaySound(11);
+					}
+					else if (Input.IsKeyTapped(Keys.Escape))
+					{
+						selectedRegion = null;
+						Main.PlaySound(12);
+					}
+				}
 			}
 			#endregion
-			#region Chat update
-			if (Main.chatMode)
+
+			#region Chat handling
+			if (((Input.IsKeyTapped(Keys.Enter) && !Input.Alt) || (Input.IsKeyTapped(Keys.OemQuestion) && !Input.Shift))
+				&& chatMode == 0 && !Main.editSign && !Main.gameMenu && !Input.DisabledKeyboard)
+			{
+				chatMode = Input.IsKeyTapped(Keys.OemQuestion) ? 2 : 1;
+				Main.PlaySound(10);
+			}
+			else if (chatMode > 0)
 			{
 				var chatRectangle = new Rectangle(96, Main.screenHeight - 49 - Config.ChatShow * 21, Main.screenWidth - 312, Config.ChatShow * 21 + 12);
 				if (chatRectangle.Contains(Input.MouseX, Input.MouseY))
@@ -349,52 +451,34 @@ namespace Raptor
 
 				if (Input.ActiveSpecialKeys.HasFlag(Input.SpecialKeys.Up))
 				{
-					if (isCommand && typedCommands.Count != 0)
+					if (chatMode == 1 && typedChat.Count != 0)
 					{
-						int prev = typedCommandOffset;
-
-						typedCommandOffset--;
-						typedCommandOffset = (typedCommandOffset < 0) ? 0 : typedCommandOffset;
-						Main.chatText = typedCommands[typedCommandOffset];
-
-						if (prev != typedCommandOffset)
-							Main.PlaySound(12);
-					}
-					else if (!isCommand && typedChat.Count != 0)
-					{
-						int prev = typedChatOffset;
-
 						typedChatOffset--;
-						typedChatOffset = (typedChatOffset < 0) ? 0 : typedChatOffset;
-						Main.chatText = typedChat[typedChatOffset];
-
-						if (prev != typedChatOffset)
+						if (typedChatOffset < 0)
+							typedChatOffset = 0;
+						else
 							Main.PlaySound(12);
+						Main.chatText = typedChat[typedChatOffset];
+					}
+					else if (chatMode == 2 && typedCommands.Count != 0)
+					{
+						typedCommandOffset--;
+						if (typedCommandOffset < 0)
+							typedCommandOffset = 0;
+						else
+							Main.PlaySound(12);
+						Main.chatText = typedCommands[typedCommandOffset];
 					}
 				}
 				else if (Input.ActiveSpecialKeys.HasFlag(Input.SpecialKeys.Down))
 				{
-					if (isCommand && typedCommands.Count != 0)
+					if (chatMode == 1 && typedChat.Count != 0)
 					{
-						int prev = typedCommandOffset;
-
-						typedCommandOffset++;
-						if (typedCommandOffset >= typedCommands.Count)
-						{
-							typedCommandOffset = typedCommands.Count;
-							Main.chatText = "";
-						}
-						else
-							Main.chatText = typedCommands[typedCommandOffset];
-
-						if (prev != typedCommandOffset)
-							Main.PlaySound(12);
-					}
-					else if (!isCommand && typedChat.Count != 0)
-					{
-						int prev = typedChatOffset;
-
 						typedChatOffset++;
+
+						if (typedChatOffset <= typedChat.Count)
+							Main.PlaySound(12);
+
 						if (typedChatOffset >= typedChat.Count)
 						{
 							typedChatOffset = typedChat.Count;
@@ -402,17 +486,62 @@ namespace Raptor
 						}
 						else
 							Main.chatText = typedChat[typedChatOffset];
+					}
+					else if (chatMode == 2 && typedCommands.Count != 0)
+					{
+						typedCommandOffset++;
 
-						if (prev != typedChatOffset)
+						if (typedCommandOffset <= typedCommands.Count)
 							Main.PlaySound(12);
+
+						if (typedCommandOffset >= typedCommands.Count)
+						{
+							typedCommandOffset = typedCommands.Count;
+							Main.chatText = "";
+						}
+						else
+							Main.chatText = typedCommands[typedCommandOffset];
 					}
 				}
-			}
-			else
-			{
-				typedChatOffset = typedChat.Count;
-				typedCommandOffset = typedCommands.Count;
-				isCommand = false;
+
+				Input.DisabledKeyboard = true;
+				Main.chatText = Main.GetInputText(Main.chatText);
+
+				if (Input.IsKeyTapped(Keys.Escape))
+				{
+					Main.chatText = "";
+					Main.PlaySound(11);
+
+					chatMode = 0;
+					typedChatOffset = typedChat.Count;
+					typedCommandOffset = typedCommands.Count;
+				}
+				else if (Input.IsKeyTapped(Keys.Enter) && Main.chatText != "")
+				{
+					if (chatMode == 1)
+					{
+						typedChat.Add(Main.chatText);
+						if (typedChat.Count > 1000)
+							typedChat.RemoveAt(0);
+						typedChatOffset = typedChat.Count;
+						if (Main.netMode == 1)
+							NetMessage.SendData(25, -1, -1, Main.chatText, Main.myPlayer);
+						else
+							Main.NewText(String.Format("<{0}> {1}", Main.player[Main.myPlayer].name, Main.chatText));
+					}
+					else
+					{
+						typedCommands.Add(Main.chatText);
+						if (typedCommands.Count > 1000)
+							typedCommands.RemoveAt(0);
+						typedCommandOffset = typedCommands.Count;
+						Commands.Execute(Main.chatText);
+					}
+
+					Main.chatText = "";
+					Main.PlaySound(11);
+					chatViewOffset = chat.Count;
+				}
 			}
 			for (int i = 0; i < chat.Count; i++)
 			{
@@ -426,7 +555,7 @@ namespace Raptor
 			}
 			#endregion
 			#region Key bindings
-			if (!Main.chatMode && !Main.editSign && !Main.gameMenu && !isNamingRegion)
+			if (chatMode == 0 && !Main.editSign && !Main.gameMenu && !Input.DisabledKeyboard)
 			{
 				foreach (KeyValuePair<Keys, string> kvp in Config.KeyBindings)
 				{
@@ -443,143 +572,6 @@ namespace Raptor
 			if (Input.DisabledKeyboard)
 			{
 				Main.keyState = Main.inputText = Main.oldInputText = new KeyboardState(null);
-			}
-		}
-
-		static void EditRegions()
-		{
-			if (Main.netMode != 1)
-			{
-				regions.Clear();
-				regionsToDraw.Clear();
-				isEditingRegions = false;
-				return;
-			}
-
-			regionsToDraw.Clear();
-
-			if (Input.MouseLeftClick)
-				selectedRegion = null;
-
-			for (int i = 0; i < regions.Count; i++)
-			{
-				Rectangle region = new Rectangle(
-					regions[i].Area.X * 16 - (int)Main.screenPosition.X, regions[i].Area.Y * 16 - (int)Main.screenPosition.Y,
-					regions[i].Area.Width * 16, regions[i].Area.Height * 16);
-				Rectangle screen = new Rectangle(
-					0, 0, Main.screenWidth, Main.screenHeight);
-
-				if (region.Intersects(screen))
-				{
-					regionsToDraw.Add(regions[i]);
-					if (region.Contains(Input.MouseX, Input.MouseY))
-					{
-						mouseText = "Region name: " + regions[i].Name;
-						Input.DisabledMouse = true;
-
-						if (Input.MouseLeftClick)
-						{
-							selectedRegion = regions[i];
-							Main.PlaySound(12);
-						}
-					}
-				}
-			}
-
-			if (Input.MouseRightClick && regionClickPt == Point.Zero)
-			{
-				isCreatingRegion = true;
-				regionClickPt.X = (int)(Main.screenPosition.X + Input.MouseX) / 16;
-				regionClickPt.Y = (int)(Main.screenPosition.Y + Input.MouseY) / 16;
-				selectedRegion = null;
-			}
-
-			if (isCreatingRegion)
-			{
-				if (Input.MouseRightDown && regionClickPt != Point.Zero)
-				{
-					int X = (int)(Main.screenPosition.X + Input.MouseX) / 16;
-					int Y = (int)(Main.screenPosition.Y + Input.MouseY) / 16;
-
-					if (X < regionClickPt.X)
-					{
-						regionPt1.X = X;
-						regionPt2.X = regionClickPt.X;
-					}
-					else
-					{
-						regionPt1.X = regionClickPt.X;
-						regionPt2.X = X;
-					}
-					if (Y < regionClickPt.Y)
-					{
-						regionPt1.Y = Y;
-						regionPt2.Y = regionClickPt.Y;
-					}
-					else
-					{
-						regionPt1.Y = regionClickPt.Y;
-						regionPt2.Y = Y;
-					}
-				}
-				if (Input.MouseRightRelease)
-				{
-					isCreatingRegion = false;
-					isNamingRegion = true;
-					regionName = "";
-				}
-			}
-			else if (isNamingRegion)
-			{
-				Rectangle selection = new Rectangle(
-					regionPt1.X * 16 - (int)Main.screenPosition.X,
-					regionPt1.Y * 16 - (int)Main.screenPosition.Y,
-					(regionPt2.X - regionPt1.X + 1) * 16,
-					(regionPt2.Y - regionPt1.Y + 1) * 16);
-				if (selection.Contains(Input.MouseX, Input.MouseY))
-				{
-					Input.DisabledKeyboard = true;
-					regionName = Input.GetInputText(regionName);
-					if (regionName == "")
-						mouseText = "(Enter new region name)";
-					else
-						mouseText = "Region name: " + regionName + (textBlinkTimer % 40 > 10 ? "|" : "");
-				}
-				if (Input.IsKeyTapped(Keys.Enter) && regionName != "")
-				{
-					Region region = new Region();
-					region.Area = new Rectangle(regionPt1.X, regionPt1.Y, regionPt2.X - regionPt1.X + 1, regionPt2.Y - regionPt1.Y + 1);
-					region.Name = regionName;
-					regions.Add(region);
-					regionsToDraw.Add(region);
-					Utils.SendRegion(region);
-
-					isNamingRegion = false;
-					regionClickPt = regionPt1 = regionPt2 = Point.Zero;
-					Main.PlaySound(11);
-				}
-				else if (Input.IsKeyTapped(Keys.Escape))
-				{
-					regionClickPt = regionPt1 = regionPt2 = Point.Zero;
-					isNamingRegion = false;
-					Main.PlaySound(11);
-				}
-			}
-
-			if (selectedRegion != null)
-			{
-				if (Input.IsKeyTapped(Keys.Delete))
-				{
-					Utils.SendRegionDelete(selectedRegion);
-					regions.Remove(selectedRegion);
-					regionsToDraw.Remove(selectedRegion);
-					Main.PlaySound(11);
-				}
-				else if (Input.IsKeyTapped(Keys.Escape))
-				{
-					selectedRegion = null;
-					Main.PlaySound(12);
-				}
 			}
 		}
 

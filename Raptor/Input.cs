@@ -158,7 +158,7 @@ namespace Raptor
 		public static string TypedString
 		{
 			get;
-			internal set;
+			private set;
 		}
 
 		internal static void FilterMessage(ref System.Windows.Forms.Message m)

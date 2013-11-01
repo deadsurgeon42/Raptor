@@ -57,13 +57,20 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ChatBack.png">
-      <Name>ChatBack</Name>
+    <Compile Include="InvBack.png">
+      <Name>InvBack</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
     </Compile>
     <Compile Include="NpcChatBack.png">
       <Name>NpcChatBack</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="RectBack.png">
+      <Name>RectBack</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
     </Compile>
