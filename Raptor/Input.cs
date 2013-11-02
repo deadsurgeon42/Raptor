@@ -47,6 +47,14 @@ namespace Raptor
 			get { return Keyboard.IsKeyDown(Keys.LeftAlt) || Keyboard.IsKeyDown(Keys.RightAlt); }
 		}
 		/// <summary>
+		/// Gets or sets the cursor type (normal, move, resize, etc).
+		/// </summary>
+		public static int CursorType
+		{
+			get;
+			set;
+		}
+		/// <summary>
 		/// Gets if a control key is down.
 		/// </summary>
 		public static bool Control

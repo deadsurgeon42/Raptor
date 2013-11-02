@@ -20,13 +20,9 @@ namespace Raptor.Api.TShock
 			set;
 		}
 		/// <summary>
-		/// Gets or sets the area of the region.
+		/// The area of the region.
 		/// </summary>
-		public Rectangle Area
-		{
-			get;
-			set;
-		}
+		public Rectangle Area;
 		/// <summary>
 		/// Gets or sets the name of the region.
 		/// </summary>

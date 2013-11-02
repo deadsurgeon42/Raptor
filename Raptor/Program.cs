@@ -20,7 +20,8 @@ namespace Raptor
 		{
 			{ "DrawChat", "NPCChat" },
 			{ "DrawPlayerChat", "PlayerChat" },
-			{ "DrawInterface", "Interface" }
+			{ "DrawInterface", "Interface" },
+			{ "DrawMenu", "Menu" }
 		};
 		static Assembly terraria;
 		const string registry = @"SOFTWARE\Re-Logic\Terraria";
@@ -120,6 +121,7 @@ namespace Raptor
 				Instruction.Create(OpCodes.Ldc_I4_0),
 				Instruction.Create(OpCodes.Ret));
 
+			#region Draw
 			var mainDraw = asm.GetMethod("Main", "Draw");
 			// if (GameHooks.InvokeDraw(this.spriteBatch, "")) { base.Draw(gameTime); return; }
 			mainDraw.InsertStart(
@@ -139,6 +141,23 @@ namespace Raptor
 				Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeDrawn", allFlags))));
 			mainDraw.FixShortBranches();
 
+			var mainDrawInterface = asm.GetMethod("Main", "DrawInterface");
+			for (int i = mainDrawInterface.Body.Instructions.Count - 1; i >= 0; i--)
+			{
+				var instr = mainDrawInterface.Body.Instructions[i];
+
+				if (instr.OpCode == OpCodes.Ldfld && ((FieldReference)instr.Operand).Name == "spriteBatch" &&
+					instr.Next.OpCode == OpCodes.Ldsfld && ((FieldReference)instr.Next.Operand).Name == "cursorTexture")
+				{
+					var target = mainDrawInterface.Body.Instructions[i];
+					while (target.OpCode != OpCodes.Callvirt || ((MethodReference)target.Operand).Name != "Draw")
+						target = target.Next;
+					mainDrawInterface.InsertAfter(instr,
+						Instruction.Create(OpCodes.Call, mod.Import(typeof(Raptor).GetMethod("DrawCursor", allFlags))),
+						Instruction.Create(OpCodes.Br_S, target.Next));
+				}
+			}
+
 			foreach (KeyValuePair<string, string> kvp in drawHooks)
 			{
 				var draw = asm.GetMethod("Main", kvp.Key);
@@ -156,6 +175,7 @@ namespace Raptor
 					Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeDrawn", allFlags))));
 				draw.FixShortBranches();
 			}
+			#endregion
 
 			var mainInitialize = asm.GetMethod("Main", "Initialize");
 			// GameHooks.InvokeInitialized();

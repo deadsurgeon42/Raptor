@@ -22,6 +22,7 @@ namespace Raptor
 	/// </summary>
 	public static class Raptor
 	{
+		static Texture2D[] cursorTextures = new Texture2D[6];
 		static string mouseText = "";
 		internal static Texture2D rectBackTexture;
 
@@ -30,6 +31,14 @@ namespace Raptor
 			public Color color;
 			public string text;
 			public int timeOut;
+		}
+		[Flags]
+		enum Resize
+		{
+			Left = 1,
+			Right = 2,
+			Up = 4,
+			Down = 8
 		}
 
 		static List<string> typedChat = new List<string>();
@@ -43,16 +52,23 @@ namespace Raptor
 		static int chatMode;
 		static List<Chat> rawChat = new List<Chat>();
 
-		static bool isCreatingRegion;
 		internal static bool isEditingRegions;
-		static bool isNamingRegion;
-		static Point regionClickPt;
-		static string regionName = "";
-		static Point regionPt1;
-		static Point regionPt2;
 		static List<Region> regions = new List<Region>();
 		static List<Region> regionsToDraw = new List<Region>();
+
+		static bool isCreatingRegion;
+		static Point regionClickPt;
+		static Point regionPt1;
+		static Point regionPt2;
+		static bool isNamingRegion;
+		static string regionName = "";
+
 		static Region selectedRegion = null;
+
+		static bool regionMove;
+		static Point regionMovePt;
+		static Resize regionResize;
+		static Rectangle regionResizeArea;
 
 		internal static bool isEditingWarps;
 		static List<Warp> warps = new List<Warp>();
@@ -137,6 +153,29 @@ namespace Raptor
 			Main.mouseTextColor = 255;
 			Main.mouseTextColorChange = 0;
 		}
+		internal static void DrawCursor(SpriteBatch sb)
+		{
+			if (Input.CursorType == 0)
+			{
+				Texture2D cursor = cursorTextures[Input.CursorType];
+				sb.Draw(cursor,
+					new Rectangle(Input.MouseX + 1, Input.MouseY + 1, (int)(Main.cursorScale * 15.4f), (int)(Main.cursorScale * 15.4f)),
+					new Color((int)(Main.cursorColor.R * 0.2f), (int)(Main.cursorColor.G * 0.2f), (int)(Main.cursorColor.B * 0.2f), (int)(Main.cursorColor.A * 0.5f)));
+				sb.Draw(cursor,
+					new Rectangle(Input.MouseX, Input.MouseY, (int)(Main.cursorScale * 14.0f), (int)(Main.cursorScale * 14.0f)),
+					Main.cursorColor);
+			}
+			else
+			{
+				Texture2D cursor = cursorTextures[Input.CursorType];
+				sb.Draw(cursor,
+					new Rectangle(Input.MouseX + 1 - cursor.Width / 2, Input.MouseY + 1 - cursor.Height / 2, (int)(Main.cursorScale * 15.4f), (int)(Main.cursorScale * 15.4f)),
+					new Color((int)(Main.cursorColor.R * 0.2f), (int)(Main.cursorColor.G * 0.2f), (int)(Main.cursorColor.B * 0.2f), (int)(Main.cursorColor.A * 0.5f)));
+				sb.Draw(cursor,
+					new Rectangle(Input.MouseX - cursor.Width / 2, Input.MouseY - cursor.Height / 2, (int)(Main.cursorScale * 14.0f), (int)(Main.cursorScale * 14.0f)),
+					Main.cursorColor);
+			}
+		}
 		internal static void DrawInterface(SpriteBatch sb)
 		{
 			if (isEditingRegions)
@@ -205,32 +244,30 @@ namespace Raptor
 						new Color(20, 20, 20, 200));
 				}
 			}
-
-			if (Input.DisabledMouse)
-			{
-				sb.Draw(Main.cursorTexture,
-					new Rectangle(Input.MouseX + 1, Input.MouseY + 1, (int)(Main.cursorScale * 15.4f), (int)(Main.cursorScale * 15.4f)),
-					new Color((int)(Main.cursorColor.R * 0.2f), (int)(Main.cursorColor.G * 0.2f), (int)(Main.cursorColor.B * 0.2f), (int)(Main.cursorColor.A * 0.5f)));
-				sb.Draw(Main.cursorTexture,
-					new Rectangle(Input.MouseX, Input.MouseY, (int)(Main.cursorScale * 14.0f), (int)(Main.cursorScale * 14.0f)),
-					Main.cursorColor);
-			}
 		}
 		internal static void LoadedContent(ContentManager content)
 		{
-			string contentDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Content", "Raptor");
+			string dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Content", "Raptor");
 
-			Main.fontItemStack = Main.fontMouseText = content.Load<SpriteFont>(Path.Combine(contentDirectory, "Font"));
-			Main.fontDeathText = content.Load<SpriteFont>(Path.Combine(contentDirectory, "TitleFont"));
+			Main.cursorTexture = cursorTextures[0] = content.Load<Texture2D>(Path.Combine(dir, "Cursors", "Normal"));
+			cursorTextures[1] = content.Load<Texture2D>(Path.Combine(dir, "Cursors", "Move"));
+			cursorTextures[2] = content.Load<Texture2D>(Path.Combine(dir, "Cursors", "HorzResize"));
+			cursorTextures[3] = content.Load<Texture2D>(Path.Combine(dir, "Cursors", "VertResize"));
+			cursorTextures[4] = content.Load<Texture2D>(Path.Combine(dir, "Cursors", "DiagResize"));
+			// it's easier to do this than to just flip the texture
+			cursorTextures[5] = content.Load<Texture2D>(Path.Combine(dir, "Cursors", "DiagResize2"));
 
-			Texture2D invBack = content.Load<Texture2D>(Path.Combine(contentDirectory, "InvBack"));
+			Main.fontItemStack = Main.fontMouseText = content.Load<SpriteFont>(Path.Combine(dir, "Fonts", "Regular"));
+			Main.fontDeathText = content.Load<SpriteFont>(Path.Combine(dir, "Fonts", "Title"));
+
+			Texture2D invBack = content.Load<Texture2D>(Path.Combine(dir, "UI", "InvBack"));
 			Main.inventoryBackTexture = invBack;
 			for (int i = 2; i <= 12; i++)
 				typeof(Main).GetField("inventoryBack" + i + "Texture").SetValue(null, invBack);
 
-			Main.chatBackTexture = content.Load<Texture2D>(Path.Combine(contentDirectory, "NpcChatBack"));
+			Main.chatBackTexture = content.Load<Texture2D>(Path.Combine(dir, "UI", "NpcChatBack"));
 
-			rectBackTexture = content.Load<Texture2D>(Path.Combine(contentDirectory, "RectBack"));
+			rectBackTexture = content.Load<Texture2D>(Path.Combine(dir, "UI", "RectBack"));
 		}
 		internal static void NewText(string text, byte r, byte g, byte b)
 		{
@@ -273,12 +310,14 @@ namespace Raptor
 			if (!Main.hasFocus)
 				return;
 
+			Input.CursorType = 0;
 			Input.DisabledMouse = false;
 			Input.DisabledKeyboard = false;
 			Input.Update();
+			textBlinkTimer++;
+
 			// Do not allow Terraria's chat code to run b/c we handle it ourselves
 			Main.chatRelease = false;
-			textBlinkTimer++;
 
 			if (Main.netMode == 0 && Main.gameMenu)
 			{
@@ -299,32 +338,162 @@ namespace Raptor
 
 				if (Input.MouseLeftClick)
 					selectedRegion = null;
+				if (!Input.MouseLeftDown)
+				{
+					if (regionMove || regionResize > 0)
+						Utils.SendRegion(selectedRegion);
+
+					regionMove = false;
+					regionResize = 0;
+				}
+
+				var screen = new Rectangle(0, 0, Main.screenWidth, Main.screenHeight);
 
 				for (int i = 0; i < regions.Count; i++)
 				{
-					Rectangle region = new Rectangle(
+					var region = new Rectangle(
 						regions[i].Area.X * 16 - (int)Main.screenPosition.X, regions[i].Area.Y * 16 - (int)Main.screenPosition.Y,
 						regions[i].Area.Width * 16, regions[i].Area.Height * 16);
-					Rectangle screen = new Rectangle(
-						0, 0, Main.screenWidth, Main.screenHeight);
 
 					if (region.Intersects(screen))
 					{
 						regionsToDraw.Add(regions[i]);
-						if (region.Contains(Input.MouseX, Input.MouseY))
+
+						if (regionClickPt != Point.Zero)
+							continue;
+
+						#region Resizing Checks
+						bool isLeft = new Rectangle(region.Left, region.Top, 8, region.Height).Contains(Input.MouseX, Input.MouseY);
+						bool isRight = new Rectangle(region.Right - 8, region.Top, 8, region.Height).Contains(Input.MouseX, Input.MouseY);
+						bool isUp = new Rectangle(region.Left, region.Top, region.Width, 8).Contains(Input.MouseX, Input.MouseY);
+						bool isDown = new Rectangle(region.Left, region.Bottom - 8, region.Width, 8).Contains(Input.MouseX, Input.MouseY);
+						
+						if (isLeft || isRight)
+						{
+							Input.CursorType = 2;
+							Input.DisabledMouse = true;
+
+							if (Input.MouseLeftClick)
+							{
+								regionResize |= isLeft ? Resize.Left : Resize.Right;
+								regionResizeArea = regions[i].Area;
+								selectedRegion = regions[i];
+							}
+						}
+						if (isUp || isDown)
+						{
+							Input.CursorType = Input.CursorType == 2 ? 4 : 3;
+							if ((isUp && isLeft) || (isDown && isRight))
+								Input.CursorType++;
+							Input.DisabledMouse = true;
+
+							if (Input.MouseLeftClick)
+							{
+								regionResize |= isUp ? Resize.Up : Resize.Down;
+								regionResizeArea = regions[i].Area;
+								selectedRegion = regions[i];
+							}
+						}
+						#endregion
+
+						if (region.Contains(Input.MouseX, Input.MouseY) && !isLeft && !isRight && !isUp && !isDown)
 						{
 							mouseText = "Region name: " + regions[i].Name;
 							Input.DisabledMouse = true;
 
-							if (Input.MouseLeftClick && regionClickPt == Point.Zero)
+							if (Input.MouseLeftClick)
 							{
+								regionMove = true;
+								regionMovePt = new Point(Input.MouseX - region.X, Input.MouseY - region.Y);
 								selectedRegion = regions[i];
-								Main.PlaySound(12);
 							}
+
+							Input.CursorType = 1;
 						}
 					}
 				}
 
+				#region Resizing
+				if (regionResize != 0)
+				{
+					bool isLeft = regionResize.HasFlag(Resize.Left);
+					bool isRight = regionResize.HasFlag(Resize.Right);
+					bool isUp = regionResize.HasFlag(Resize.Up);
+					bool isDown = regionResize.HasFlag(Resize.Down);
+					mouseText = "Region name: " + selectedRegion.Name;
+					Input.DisabledMouse = true;
+
+					if (isLeft)
+					{
+						Input.CursorType = 2;
+
+						int x = (int)Math.Round((Input.MouseX + Main.screenPosition.X) / 16);
+						int width = regionResizeArea.X - x + regionResizeArea.Width;
+
+						if (width <= 0)
+						{
+							width = 1;
+							x = regionResizeArea.Right - 1;
+						}
+
+						selectedRegion.Area.X = x;
+						selectedRegion.Area.Width = width;
+					}
+					if (isRight)
+					{
+						Input.CursorType = 2;
+
+						int width = (int)Math.Round((Input.MouseX + Main.screenPosition.X) / 16) - regionResizeArea.X;
+						if (width <= 0)
+							width = 1;
+
+						selectedRegion.Area.Width = width;
+					}
+					if (isUp)
+					{
+						Input.CursorType = Input.CursorType == 2 ? 4 : 3;
+						if (isLeft)
+							Input.CursorType++;
+
+						int y = (int)Math.Round((Input.MouseY + Main.screenPosition.Y) / 16);
+						int height = regionResizeArea.Y - y + regionResizeArea.Height;
+
+						if (height <= 0)
+						{
+							height = 1;
+							y = regionResizeArea.Bottom - 1;
+						}
+
+						selectedRegion.Area.Y = y;
+						selectedRegion.Area.Height = height;
+					}
+					if (isDown)
+					{
+						Input.CursorType = Input.CursorType == 2 ? 4 : 3;
+						if (isRight)
+							Input.CursorType++;
+
+						int height = (int)Math.Round((Input.MouseY + Main.screenPosition.Y) / 16) - regionResizeArea.Y;
+						if (height <= 0)
+							height = 1;
+
+						selectedRegion.Area.Height = height;
+					}
+				}
+				#endregion
+				#region Moving
+				if (regionMove)
+				{
+					mouseText = "Region name: " + selectedRegion.Name;
+					Input.CursorType = 1;
+					Input.DisabledMouse = true;
+
+					selectedRegion.Area.X = (int)Math.Round((Main.screenPosition.X + Input.MouseX - regionMovePt.X) / 16.0);
+					selectedRegion.Area.Y = (int)Math.Round((Main.screenPosition.Y + Input.MouseY - regionMovePt.Y) / 16.0);
+					//selectedRegion.Area.X = (int)Math.Round((Input.mouseX;
+				}
+				#endregion
+				#region Creating
 				if (Input.MouseRightClick && regionClickPt == Point.Zero)
 				{
 					isCreatingRegion = true;
@@ -368,6 +537,8 @@ namespace Raptor
 						Main.PlaySound(10);
 					}
 				}
+				#endregion
+				#region Naming
 				else if (isNamingRegion)
 				{
 					Rectangle selection = new Rectangle(
@@ -409,21 +580,14 @@ namespace Raptor
 						Main.PlaySound(11);
 					}
 				}
+				#endregion
 
-				if (selectedRegion != null)
+				if (selectedRegion != null && Input.IsKeyTapped(Keys.Delete))
 				{
-					if (Input.IsKeyTapped(Keys.Delete))
-					{
-						Utils.SendRegionDelete(selectedRegion);
-						regions.Remove(selectedRegion);
-						regionsToDraw.Remove(selectedRegion);
-						Main.PlaySound(11);
-					}
-					else if (Input.IsKeyTapped(Keys.Escape))
-					{
-						selectedRegion = null;
-						Main.PlaySound(12);
-					}
+					Utils.SendRegionDelete(selectedRegion);
+					regions.Remove(selectedRegion);
+					regionsToDraw.Remove(selectedRegion);
+					Main.PlaySound(11);
 				}
 			}
 			#endregion
@@ -566,13 +730,9 @@ namespace Raptor
 			#endregion
 
 			if (Input.DisabledMouse)
-			{
 				Main.mouseState = Main.oldMouseState = new MouseState(-100, -100, Input.MouseScroll, 0, 0, 0, 0, 0);
-			}
 			if (Input.DisabledKeyboard)
-			{
 				Main.keyState = Main.inputText = Main.oldInputText = new KeyboardState(null);
-			}
 		}
 
 		internal static bool GetData(int index, int length)
@@ -599,7 +759,8 @@ namespace Raptor
 							}
 							return true;
 						case RaptorPacketTypes.Region:
-							Rectangle area = new Rectangle(reader.ReadInt32(), reader.ReadInt32(),
+							Rectangle area = new Rectangle(
+								reader.ReadInt32(), reader.ReadInt32(),
 								reader.ReadInt32(), reader.ReadInt32());
 							regions.Add(new Region { Area = area, Name = reader.ReadString() });
 							return true;
