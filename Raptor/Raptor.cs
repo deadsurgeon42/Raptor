@@ -399,6 +399,7 @@ namespace Raptor
 						if (region.Contains(Input.MouseX, Input.MouseY) && !isLeft && !isRight && !isUp && !isDown)
 						{
 							mouseText = "Region name: " + regions[i].Name;
+							Input.CursorType = 1;
 							Input.DisabledMouse = true;
 
 							if (Input.MouseLeftClick)
@@ -407,8 +408,6 @@ namespace Raptor
 								regionMovePt = new Point(Input.MouseX - region.X, Input.MouseY - region.Y);
 								selectedRegion = regions[i];
 							}
-
-							Input.CursorType = 1;
 						}
 					}
 				}
@@ -769,8 +768,8 @@ namespace Raptor
 							regions.RemoveAll(r => r.Name == regionName);
 							return true;
 						case RaptorPacketTypes.Warp:
-							Vector2 location = new Vector2(reader.ReadSingle(), reader.ReadSingle());
-							warps.Add(new Warp { Position = location, Name = reader.ReadString(), IsPrivate = reader.ReadBoolean() });
+							Point position = new Point(reader.ReadInt32(), reader.ReadInt32());
+							warps.Add(new Warp { Position = position, Name = reader.ReadString(), IsPrivate = reader.ReadBoolean() });
 							return true;
 						case RaptorPacketTypes.WarpDelete:
 							string warpName = reader.ReadString();

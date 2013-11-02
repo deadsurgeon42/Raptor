@@ -30,7 +30,7 @@ namespace Raptor.Api.TShock
 		/// <summary>
 		/// Gets or sets the position of the warp.
 		/// </summary>
-		public Vector2 Position
+		public Point Position
 		{
 			get;
 			set;
@@ -43,7 +43,7 @@ namespace Raptor.Api.TShock
 		{
 			IsPrivate = false;
 			Name = "";
-			Position = Vector2.Zero;
+			Position = Point.Zero;
 		}
 	}
 }
