@@ -316,8 +316,11 @@ namespace Raptor
 
 			if (Main.gameMenu)
 			{
-				chat.Clear();
-				rawChat.Clear();
+				if (Main.netMode != 1)
+				{
+					chat.Clear();
+					rawChat.Clear();
+				}
 				chatMode = 0;
 
 				isEditingRegions = false;
