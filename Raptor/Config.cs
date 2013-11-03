@@ -12,11 +12,11 @@ namespace Raptor
 		/// <summary>
 		/// The number of chat lines to show.
 		/// </summary>
-		public int ChatShow = 10;
+		public int ChatShow = 16;
 		/// <summary>
 		/// The speed to scroll chat with the mouse wheel.
 		/// </summary>
-		public int ChatScrollSpeed = 3;
+		public int ChatScrollSpeed = 8;
 		/// <summary>
 		/// The key bindings to commands.
 		/// </summary>

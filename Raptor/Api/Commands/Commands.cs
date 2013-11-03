@@ -134,7 +134,7 @@ namespace Raptor.Api.Commands
 				LuaCommands.Add(command);
 			}
 		}
-
+		
 		static void EditRegions(object o, CommandEventArgs e)
 		{
 			if (!Utils.HasTShockPermission("tshock.admin.region"))

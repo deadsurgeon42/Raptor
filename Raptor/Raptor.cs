@@ -206,7 +206,7 @@ namespace Raptor
 			{
 				string text = Main.chatText + (textBlinkTimer % 40 > 10 ? "|" : "");
 
-				sb.DrawGuiRectangle(new Rectangle(92, Main.screenHeight - 33, Main.screenWidth - 312, 28), new Color(25, 25, 25, 200));
+				sb.DrawGuiRectangle(new Rectangle(92, Main.screenHeight - 33, Main.screenWidth - 312, 28), new Color(12, 12, 12, 200));
 				if (chatMode == 1)
 				{
 					sb.DrawGuiText("Chat:", new Vector2(46, Main.screenHeight - 30), Color.White, Main.fontMouseText);
@@ -218,12 +218,11 @@ namespace Raptor
 					sb.DrawGuiText("/" + text, new Vector2(98, Main.screenHeight - 30), Color.Orange, Main.fontMouseText);
 				}
 
-				sb.DrawGuiRectangle(chatRectangle, new Color(25, 25, 25, 200));
+				sb.DrawGuiRectangle(chatRectangle, new Color(12, 12, 12, 200));
 			}
 
 			int linesShown = 0;
-			for (int i = -1; i + chatViewOffset >= 0 && linesShown < Config.ChatShow &&
-				(chatMode > 0 || chat[i + chatViewOffset].timeOut > 0); i--)
+			for (int i = -1; i + chatViewOffset >= 0 && linesShown < Config.ChatShow && (chatMode > 0 || chat[i + chatViewOffset].timeOut > 0); i--)
 			{
 				sb.DrawGuiText(chat[i + chatViewOffset].text,
 					new Vector2(98, Main.screenHeight - 64 - linesShown++ * 21),
@@ -231,18 +230,15 @@ namespace Raptor
 					Main.fontMouseText);
 			}
 
-			if (chatMode > 0)
+			if (chatMode > 0 && chat.Count > Config.ChatShow)
 			{
-				if (chat.Count > Config.ChatShow)
-				{
-					int scrollbarSize = (int)(Config.ChatShow * (Config.ChatShow * 21d - 4d) / chat.Count);
-					int scrollbarOffset = (int)((chatViewOffset - Config.ChatShow) * (Config.ChatShow * 21d - 4d) / chat.Count);
+				int scrollbarSize = (int)(Config.ChatShow * (Config.ChatShow * 21d - 4d) / chat.Count);
+				int scrollbarOffset = (int)((chatViewOffset - Config.ChatShow) * (Config.ChatShow * 21d - 4d) / chat.Count);
 
-					sb.Draw(Main.inventoryBackTexture,
-						new Rectangle(Main.screenWidth - 232, chatRectangle.Y + scrollbarOffset + 6, 6, scrollbarSize),
-						new Rectangle(8, 8, 36, 36),
-						new Color(20, 20, 20, 200));
-				}
+				sb.Draw(Main.inventoryBackTexture,
+					new Rectangle(Main.screenWidth - 232, chatRectangle.Y + scrollbarOffset + 6, 6, scrollbarSize),
+					new Rectangle(8, 8, 36, 36),
+					new Color(20, 20, 20, 200));
 			}
 		}
 		internal static void LoadedContent(ContentManager content)
@@ -275,7 +271,6 @@ namespace Raptor
 			if (rawChat.Count > 1000)
 				rawChat.RemoveAt(0);
 
-			float length = 0f;
 			var lineBuilder = new StringBuilder();
 			float lineLength = 0f;
 			int linesAdded = 0;
@@ -283,7 +278,7 @@ namespace Raptor
 
 			foreach (string word in text.Split(' '))
 			{
-				length = Main.fontMouseText.MeasureString(word).X + spaceLength;
+				float length = Main.fontMouseText.MeasureString(word).X + spaceLength;
 				lineLength += length;
 
 				if (lineLength > Main.screenWidth - 338f)
@@ -319,9 +314,12 @@ namespace Raptor
 			// Do not allow Terraria's chat code to run b/c we handle it ourselves
 			Main.chatRelease = false;
 
-			if (Main.netMode == 0 && Main.gameMenu)
+			if (Main.gameMenu)
 			{
+				chat.Clear();
+				rawChat.Clear();
 				chatMode = 0;
+
 				isEditingRegions = false;
 				isEditingWarps = false;
 				permissions.Clear();
@@ -489,7 +487,6 @@ namespace Raptor
 
 					selectedRegion.Area.X = (int)Math.Round((Main.screenPosition.X + Input.MouseX - regionMovePt.X) / 16.0);
 					selectedRegion.Area.Y = (int)Math.Round((Main.screenPosition.Y + Input.MouseY - regionMovePt.Y) / 16.0);
-					//selectedRegion.Area.X = (int)Math.Round((Input.mouseX;
 				}
 				#endregion
 				#region Creating
@@ -553,6 +550,7 @@ namespace Raptor
 						regionName = Input.GetInputText(regionName);
 						mouseText = "Region name: " + regionName + (textBlinkTimer % 40 > 10 ? "|" : "");
 					}
+
 					if (Input.IsKeyTapped(Keys.Enter) && regionName != "")
 					{
 						if (regions.Any(r => String.Equals(r.Name, regionName, StringComparison.OrdinalIgnoreCase)))
@@ -781,17 +779,14 @@ namespace Raptor
 				}
 			}
 		}
-		internal static bool SentData(int msgId, string text, int n1, float n2, float n3, float n4, int n5)
+		internal static void GotData(int index, int length)
 		{
-			switch ((PacketTypes)msgId)
-			{
-				case PacketTypes.ConnectRequest:
-					Utils.SendAcknowledge();
-					return false;
-			}
-			return false;
-		}
+			if (NetMessage.buffer[256].readBuffer[index] != (byte)PacketTypes.FirstSpawn)
+				return;
 
+			Utils.SendAcknowledge();
+		}
+		
 		internal static void Window_ClientSizeChanged(object sender, EventArgs e)
 		{
 			int newWidth = ClientApi.Main.Window.ClientBounds.Width;
@@ -801,7 +796,6 @@ namespace Raptor
 			if (newWidth != Main.screenWidth)
 			{
 				chat.Clear();
-				float length = 0f;
 				float lineLength = 0f;
 				var lineBuilder = new StringBuilder();
 				float spaceLength = Main.fontMouseText.MeasureString(" ").X;
@@ -810,7 +804,7 @@ namespace Raptor
 				{
 					foreach (string word in rawChat[i].text.Split(' '))
 					{
-						length = Main.fontMouseText.MeasureString(word).X + spaceLength;
+						float length = Main.fontMouseText.MeasureString(word).X + spaceLength;
 						lineLength += length;
 
 						if (lineLength > newWidth - 338f)

@@ -252,6 +252,8 @@ namespace Raptor.Api.Hooks
 
 		internal static void InvokeGotData(int index, int length)
 		{
+			Raptor.GotData(index, length);
+
 			if (GotData != null)
 			{
 				GetDataEventArgs args = new GetDataEventArgs
@@ -301,9 +303,6 @@ namespace Raptor.Api.Hooks
 
 		internal static void InvokeSentData(int msgId, string text, int n1, float n2, float n3, float n4, int n5)
 		{
-			if (Raptor.SentData(msgId, text, n1, n2, n3, n4, n5))
-				return;
-
 			if (SentData == null)
 				return;
 

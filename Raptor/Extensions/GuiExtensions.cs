@@ -49,43 +49,46 @@ namespace Raptor
 		/// <param name="sb">The spritebatch.</param>
 		/// <param name="rect">The rectangle.</param>
 		/// <param name="color">The color.</param>
-		public static void DrawGuiRectangle(this SpriteBatch sb, Rectangle rect, Color color)
+		/// <param name="texture">The backing texture.</param>
+		public static void DrawGuiRectangle(this SpriteBatch sb, Rectangle rect, Color color, Texture2D texture = null)
 		{
 			// If there's anything better, please tell >.<
 
-			sb.Draw(Raptor.rectBackTexture,
+			Texture2D backTexture = texture ?? Raptor.rectBackTexture;
+
+			sb.Draw(backTexture,
 				new Rectangle(rect.X, rect.Y, 8, 8),
 				new Rectangle(0, 0, 8, 8),
 				color);
-			sb.Draw(Raptor.rectBackTexture,
+			sb.Draw(backTexture,
 				new Rectangle(rect.X + rect.Width - 8, rect.Y, 8, 8),
 				new Rectangle(44, 0, 8, 8),
 				color);
-			sb.Draw(Raptor.rectBackTexture,
+			sb.Draw(backTexture,
 				new Rectangle(rect.X, rect.Y + rect.Height - 8, 8, 8),
 				new Rectangle(0, 44, 8, 8),
 				color);
-			sb.Draw(Raptor.rectBackTexture,
+			sb.Draw(backTexture,
 				new Rectangle(rect.X + rect.Width - 8, rect.Y + rect.Height - 8, 8, 8),
 				new Rectangle(44, 44, 8, 8),
 				color);
-			sb.Draw(Raptor.rectBackTexture,
+			sb.Draw(backTexture,
 				new Rectangle(rect.X + 8, rect.Y, rect.Width - 16, 8),
 				new Rectangle(9, 0, 34, 8),
 				color);
-			sb.Draw(Raptor.rectBackTexture,
+			sb.Draw(backTexture,
 				new Rectangle(rect.X + 8, rect.Y + rect.Height - 8, rect.Width - 16, 8),
 				new Rectangle(9, 44, 34, 8),
 				color);
-			sb.Draw(Raptor.rectBackTexture,
+			sb.Draw(backTexture,
 				new Rectangle(rect.X, rect.Y + 8, 8, rect.Height - 16),
 				new Rectangle(0, 9, 8, 34),
 				color);
-			sb.Draw(Raptor.rectBackTexture,
+			sb.Draw(backTexture,
 				new Rectangle(rect.X + rect.Width - 8, rect.Y + 8, 8, rect.Height - 16),
 				new Rectangle(44, 9, 8, 34),
 				color);
-			sb.Draw(Raptor.rectBackTexture,
+			sb.Draw(backTexture,
 				new Rectangle(rect.X + 8, rect.Y + 8, rect.Width - 16, rect.Height - 16),
 				new Rectangle(8, 8, 36, 36),
 				color);
