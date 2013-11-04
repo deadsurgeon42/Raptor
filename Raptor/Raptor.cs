@@ -206,7 +206,7 @@ namespace Raptor
 					sb.DrawGuiRectangle(selection, new Color(200, 25, 25, 175));
 				}
 			}
-			else if (isEditingWarps)
+			if (isEditingWarps)
 			{
 				foreach (Warp w in warpsToDraw)
 				{
@@ -649,7 +649,7 @@ namespace Raptor
 			}
 			#endregion
 			#region Warp editing
-			else if (isEditingWarps)
+			if (isEditingWarps)
 			{
 				warpsToDraw.Clear();
 

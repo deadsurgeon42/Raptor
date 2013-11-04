@@ -42,13 +42,24 @@ namespace Raptor.Api.Commands
 		}
 		internal static void Init()
 		{
-			ChatCommands.Add(new Command(Edit, "edit")
+			ChatCommands.Add(new Command(EditRegions, "editregions", "er")
 			{
-				Description = "Provides an interface for editing TShock regions and warps.",
+				Description = "Provides an interface for editing TShock regions.",
 				HelpText = new[]
 				{
-					"Syntax: /edit <regions | warps>",
-					"Allows you to edit regions and warps with a simple WYISWYG editor.",
+					"Syntax: /editregions",
+					"Allows you to edit regions with a simple WYISWYG editor.",
+					"You can add regions, resize them, and move them."
+				}
+			});
+			ChatCommands.Add(new Command(EditWarps, "editwarps", "ew")
+			{
+				Description = "Provides an interface for editing TShock warps.",
+				HelpText = new[]
+				{
+					"Syntax: /editwarps",
+					"Allows you to edit warps with a simple WYISWYG editor.",
+					"You can add warps and move them."
 				}
 			});
 			ChatCommands.Add(new Command(Help, "help", "?")
@@ -124,47 +135,27 @@ namespace Raptor.Api.Commands
 			}
 		}
 		
-		static void Edit(object o, CommandEventArgs e)
+		static void EditRegions(object o, CommandEventArgs e)
 		{
-			if (e.Length == 0)
+			if (!Utils.HasTShockPermission("tshock.admin.region"))
 			{
-				Utils.NewErrorText("Syntax: /edit <off | regions | warps>");
-				return;
-			}
-			if (Raptor.Permissions.Count == 0)
-			{
-				Utils.NewErrorText("You are not connected to a TShock server.");
+				Utils.NewErrorText("You do not have permission to edit regions or you are not connected to a TShock server.");
 				return;
 			}
 
-			switch (e[0].ToLower())
+			Raptor.isEditingRegions = !Raptor.isEditingRegions;
+			Utils.NewSuccessText("You are now {0}editing regions.", Raptor.isEditingRegions ? "" : "no longer ");
+		}
+		static void EditWarps(object o, CommandEventArgs e)
+		{
+			if (!Utils.HasTShockPermission("tshock.admin.warp"))
 			{
-				case "off":
-					Raptor.isEditingRegions = false;
-					Raptor.isEditingWarps = false;
-					Utils.NewSuccessText("You are no longer editing regions or warps.");
-					return;
-				case "regions":
-					if (!Utils.HasTShockPermission("tshock.admin.region"))
-					{
-						Utils.NewErrorText("You do not have permission to edit regions.");
-						return;
-					}
-					Raptor.isEditingRegions = true;
-					Raptor.isEditingWarps = false;
-					Utils.NewSuccessText("You are now editing regions.");
-					return;
-				case "warps":
-					if (!Utils.HasTShockPermission("tshock.admin.warp"))
-					{
-						Utils.NewErrorText("You do not have permission to edit warps.");
-						return;
-					}
-					Raptor.isEditingRegions = false;
-					Raptor.isEditingWarps = true;
-					Utils.NewSuccessText("You are now editing warps.");
-					return;
+				Utils.NewErrorText("You do not have permission to edit warps or you are not connected to a TShock server.");
+				return;
 			}
+
+			Raptor.isEditingWarps = !Raptor.isEditingWarps;
+			Utils.NewSuccessText("You are now {0}editing warps.", Raptor.isEditingWarps ? "" : "no longer ");
 		}
 		static void Help(object o, CommandEventArgs e)
 		{
