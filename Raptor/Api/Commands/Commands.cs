@@ -1,6 +1,6 @@
 ﻿using System;
-using System.CodeDom.Compiler;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -15,12 +15,17 @@ namespace Raptor.Api.Commands
 	/// </summary>
 	public static class Commands
 	{
-		/// <summary>
-		/// The list of chat commands.
-		/// </summary>
-		public static List<Command> ChatCommands = new List<Command>();
+		static List<Command> ChatCommands = new List<Command>();
 		static List<Command> LuaCommands = new List<Command>();
 
+		/// <summary>
+		/// Deregisters a command.
+		/// </summary>
+		/// <param name="commandName">The command name.</param>
+		public static void Deregister(string commandName)
+		{
+			ChatCommands.RemoveAll(c => String.Equals(c.Name, commandName, StringComparison.OrdinalIgnoreCase));
+		}
 		/// <summary>
 		/// Executes a string as a command.
 		/// </summary>
@@ -44,16 +49,15 @@ namespace Raptor.Api.Commands
 		{
 			ChatCommands.Add(new Command(Edit, "edit")
 			{
-				Description = "Provides an interface for editing TShock regions and warps.",
 				HelpText = new[]
 				{
-					"Syntax: /edit <regions | warps>",
-					"Allows you to edit regions and warps with a simple WYISWYG editor.",
+					"Syntax: /edit OR /edit <regions | warps>",
+					"Allows you to edit regions or warps with a simple GUI.",
+					"To disable editing, use /edit."
 				}
 			});
 			ChatCommands.Add(new Command(Help, "help", "?")
 			{
-				Description = "Provides help on commands.",
 				HelpText = new[]
 				{
 					"Syntax: /help (command)",
@@ -62,32 +66,31 @@ namespace Raptor.Api.Commands
 			});
 			ChatCommands.Add(new Command(Keybind, "keybind", "kb")
 			{
-				Description = "Manages key bindings.",
 				HelpText = new[]
 				{
 					"Syntax: /keybind <add | clr | del | list> [arguments...]",
+					"Manages key bindings, which are keys that, when pressed, execute a command.",
 					"To add a key binding, use /kb add <key> <command>, without the first /.",
 					"To clear all key bindings, use /kb clr.",
-					"To remove a key binding, use /kb del <key>.",
+					"To delete a key binding, use /kb del <key>.",
 					"To list all key bindings, use /kb list.",
-				}
-			});
-			ChatCommands.Add(new Command(Lua, "lua", "l")
-			{
-				Description = "Executes a Lua script.",
-				HelpText = new[]
-				{
-					"Syntax: /lua <script name>",
-					"Executes the Lua script file with the given filename in the Scripts folder.",
 				}
 			});
 			ChatCommands.Add(new Command(Reload, "reload")
 			{
-				Description = "Reloads various objects.",
 				HelpText = new[]
 				{
 					"Syntax: /reload",
-					"Reloads various objects such as the configuration file and lua script commands."
+					"Reloads various objects such as the configuration file and Lua script commands."
+				}
+			});
+			ChatCommands.Add(new Command(Set, "set")
+			{
+				HelpText = new[]
+				{
+					"Syntax: /set OR /set <option> <value>",
+					"To show the config file's options, use /set.",
+					"To edit the config file's options, use /set <option> <value>."
 				}
 			});
 
@@ -108,12 +111,6 @@ namespace Raptor.Api.Commands
 
 				var command = new Command(LuaCommand, names.ToArray());
 
-				var description = from s in lines
-								  where s.StartsWith("-- Description: ")
-								  select s.Substring(16);
-				if (description != null)
-					command.Description = description.ElementAt(0);
-
 				var helpTexts = from s in lines
 								where s.StartsWith("-- HelpText: ")
 								select s.Substring(13);
@@ -123,12 +120,22 @@ namespace Raptor.Api.Commands
 				LuaCommands.Add(command);
 			}
 		}
+		/// <summary>
+		/// Registers a command.
+		/// </summary>
+		/// <param name="command">The command.</param>
+		public static void Register(Command command)
+		{
+			ChatCommands.Add(command);
+		}
 		
 		static void Edit(object o, CommandEventArgs e)
 		{
 			if (e.Length == 0)
 			{
-				Utils.NewErrorText("Syntax: /edit <off | regions | warps>");
+				Raptor.isEditingRegions = false;
+				Raptor.isEditingWarps = false;
+				Utils.NewSuccessText("You are no longer editing regions or warps.");
 				return;
 			}
 			if (Raptor.Permissions.Count == 0)
@@ -139,11 +146,6 @@ namespace Raptor.Api.Commands
 
 			switch (e[0].ToLower())
 			{
-				case "off":
-					Raptor.isEditingRegions = false;
-					Raptor.isEditingWarps = false;
-					Utils.NewSuccessText("You are no longer editing regions or warps.");
-					return;
 				case "regions":
 					if (!Utils.HasTShockPermission("tshock.admin.region"))
 					{
@@ -171,23 +173,22 @@ namespace Raptor.Api.Commands
 			if (e.Length == 0)
 			{
 				Utils.NewSuccessText("Raptor commands: ");
-				foreach (Command c in ChatCommands.Concat(LuaCommands))
-					Utils.NewInfoText("/{0}: {1}", c.Name, c.Description);
+				Utils.NewInfoText(String.Join(", ", ChatCommands.Concat(LuaCommands).Select(c => "/" + c.Name)));
 				return;
 			}
 
-			string commandName = e.Eol(0).ToLower();
-			foreach (Command c in ChatCommands.Concat(LuaCommands))
+			string commandName = e[0].ToLowerInvariant();
+			foreach (Command command in ChatCommands.Concat(LuaCommands))
 			{
-				if (c.Name == commandName)
+				if (command.Names.Contains(commandName))
 				{
-					Utils.NewSuccessText("/{0} help:", c.Name);
-					foreach (string line in c.HelpText)
+					Utils.NewSuccessText("/{0} help:", command.Name);
+					foreach (string line in command.HelpText)
 						Utils.NewInfoText("{0}", line);
 					return;
 				}
 			}
-			Utils.NewErrorText("Invalid command: \"/{0}\".", commandName);
+			Utils.NewErrorText("Invalid command \"{0}\".", commandName);
 		}
 		static void Keybind(object o, CommandEventArgs e)
 		{
@@ -263,34 +264,6 @@ namespace Raptor.Api.Commands
 					return;
 			}
 		}
-		static void Lua(object o, CommandEventArgs e)
-		{
-			if (e.Length == 0)
-			{
-				Utils.NewErrorText("Syntax: /{0} <script name>", e[-1]);
-				return;
-			}
-
-			string scriptPath = Path.Combine("Scripts", e[-1] + ".lua");
-			if (File.Exists(scriptPath))
-			{
-				Raptor.Lua["args"] = new CommandEventArgs(e.Eol(0));
-				ThreadPool.QueueUserWorkItem(c =>
-				{
-					try
-					{
-						Raptor.Lua.DoFile(scriptPath);
-					}
-					catch (Exception ex)
-					{
-						Utils.NewErrorText(ex.ToString());
-					}
-				});
-				return;
-			}
-
-			Utils.NewErrorText("Invalid script.");
-		}
 		static void LuaCommand(object o, CommandEventArgs e)
 		{
 			Raptor.Lua["args"] = e;
@@ -315,6 +288,84 @@ namespace Raptor.Api.Commands
 			LoadLuaCommands();
 
 			Utils.NewSuccessText("Reloaded configuration file & scripts.");
+		}
+		static void Set(object o, CommandEventArgs e)
+		{
+			if (e.Length == 0 || String.Equals(e[0], "list", StringComparison.OrdinalIgnoreCase))
+			{
+				Utils.NewSuccessText("Config options:");
+				foreach (FieldInfo fi in typeof(Config).GetFields(BindingFlags.Instance | BindingFlags.Public))
+				{
+					Type t = fi.FieldType;
+					if (t != typeof(bool) && t != typeof(int) && t != typeof(string))
+						continue;
+
+					Utils.NewInfoText("{0}: {1} ({2})",
+						fi.Name, fi.GetValue(Raptor.Config), ((DescriptionAttribute)fi.GetCustomAttributes(false)[0]).Description);
+				}
+			}
+			else
+			{
+				FieldInfo fi = typeof(Config).GetField(e[0], BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase);
+
+				if (fi == null)
+				{
+					Utils.NewErrorText("Invalid option \"{0}\".", e[0]);
+					return;
+				}
+
+				Type t = fi.FieldType;
+				if (t != typeof(bool) && t != typeof(int) && t != typeof(string))
+				{
+					Utils.NewErrorText("Invalid option \"{0}\".", e[0]);
+					return;
+				}
+
+				if (e.Length == 1)
+				{
+					if (t == typeof(bool))
+						Utils.NewErrorText("Syntax: /set {0} <boolean>", fi.Name);
+					else if (t == typeof(int))
+						Utils.NewErrorText("Syntax: /set {0} <integer>", fi.Name);
+					else if (t == typeof(string))
+						Utils.NewErrorText("Syntax: /set {0} <string>", fi.Name);
+					return;
+				}
+
+				if (t == typeof(bool))
+				{
+					bool value;
+					if (!bool.TryParse(e[1], out value))
+					{
+						Utils.NewErrorText("Invalid value for option \"{0}\".", fi.Name);
+						return;
+					}
+
+					fi.SetValue(Raptor.Config, value);
+					Utils.NewSuccessText("Set option \"{0}\" to value \"{1}\".", fi.Name, value);
+				}
+				else if (t == typeof(int))
+				{
+					int value;
+					if (!int.TryParse(e[1], out value) || value <= 0)
+					{
+						Utils.NewErrorText("Invalid value for option \"{0}\".", fi.Name);
+						return;
+					}
+
+					fi.SetValue(Raptor.Config, value);
+					Utils.NewSuccessText("Set option \"{0}\" to value \"{1}\".", fi.Name, value);
+				}
+				else
+				{
+					string value = e.Eol(1);
+					fi.SetValue(Raptor.Config, value);
+					Utils.NewSuccessText("Set option \"{0}\" to value \"{1}\".", fi.Name, value);
+				}
+
+				string configPath = Path.Combine("Raptor", "config.json");
+				File.WriteAllText(configPath, JsonConvert.SerializeObject(Raptor.Config, Formatting.Indented));
+			}
 		}
 	}
 }

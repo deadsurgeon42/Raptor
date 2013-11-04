@@ -37,7 +37,6 @@ namespace Raptor.Api
 
 		internal static void DeInitialize()
 		{
-			Raptor.DeInitialize();
 			Log.LogNotice("Raptor v{0} stopped.\n", ApiVersion);
 
 			#region Dispose plugins

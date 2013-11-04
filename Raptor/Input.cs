@@ -22,7 +22,8 @@ namespace Raptor
 			Up = 1,
 			Down = 2,
 			Backspace = 4,
-			V = 8
+			V = 8,
+			Enter = 16,
 		}
 
 		static int keys;
@@ -192,8 +193,10 @@ namespace Raptor
 			if (!Main.hasFocus)
 				return text;
 
+			Main.inputTextEnter = ActiveSpecialKeys.HasFlag(SpecialKeys.Enter);
+			
 			string newText = text;
-			if (ActiveSpecialKeys.HasFlag(Input.SpecialKeys.Backspace) && newText.Length != 0)
+			if (ActiveSpecialKeys.HasFlag(SpecialKeys.Backspace) && newText.Length != 0)
 			{
 				if (Control)
 				{
@@ -203,7 +206,7 @@ namespace Raptor
 				else
 					newText = newText.Substring(0, newText.Length - 1);
 			}
-			else if (Control && ActiveSpecialKeys.HasFlag(Input.SpecialKeys.V) && Clipboard.ContainsText())
+			else if (Control && ActiveSpecialKeys.HasFlag(SpecialKeys.V) && Clipboard.ContainsText())
 			{
 				newText += Clipboard.GetText();
 			}
@@ -255,6 +258,9 @@ namespace Raptor
 				{
 					case 0x08:
 						ActiveSpecialKeys |= SpecialKeys.Backspace;
+						break;
+					case 0x0D:
+						ActiveSpecialKeys |= SpecialKeys.Enter;
 						break;
 					case 0x26:
 						ActiveSpecialKeys |= SpecialKeys.Up;

@@ -123,11 +123,6 @@ namespace Raptor
 			}
 		}
 
-		internal static void DeInitialize()
-		{
-			string configPath = Path.Combine("Raptor", "config.json");
-			File.WriteAllText(configPath, JsonConvert.SerializeObject(Config, Formatting.Indented));
-		}
 		internal static void Initialize()
 		{
 			Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
@@ -241,13 +236,13 @@ namespace Raptor
 					Main.inventoryBackTexture);
 				if (chatMode == 1)
 				{
-					sb.DrawGuiText("Chat:", new Vector2(46, Main.screenHeight - 30), Color.White, Main.fontMouseText);
-					sb.DrawGuiText(text, new Vector2(98, Main.screenHeight - 30), Color.White, Main.fontMouseText);
+					sb.DrawGuiText("Chat:", new Vector2(46, Main.screenHeight - 30), Color.White);
+					sb.DrawGuiText(text, new Vector2(98, Main.screenHeight - 30), Color.White);
 				}
 				else
 				{
-					sb.DrawGuiText("Cmd:", new Vector2(46, Main.screenHeight - 30), Color.Orange, Main.fontMouseText);
-					sb.DrawGuiText("/" + text, new Vector2(98, Main.screenHeight - 30), Color.Orange, Main.fontMouseText);
+					sb.DrawGuiText("Cmd:", new Vector2(46, Main.screenHeight - 30), Color.Orange);
+					sb.DrawGuiText("/" + text, new Vector2(98, Main.screenHeight - 30), Color.Orange);
 				}
 
 				sb.DrawGuiRectangle(
@@ -980,10 +975,8 @@ namespace Raptor
 		}
 		internal static void GotData(int index, int length)
 		{
-			if (NetMessage.buffer[256].readBuffer[index] != (byte)PacketTypes.FirstSpawn)
-				return;
-
-			Utils.SendAcknowledge();
+			if (NetMessage.buffer[256].readBuffer[index] == (byte)PacketTypes.FirstSpawn)
+				Utils.SendAcknowledge();
 		}
 		
 		internal static void Window_ClientSizeChanged(object sender, EventArgs e)

@@ -28,14 +28,6 @@ namespace Raptor.Api.Commands
 			get { return callback; }
 		}
 		/// <summary>
-		/// Gets or sets the command's description.
-		/// </summary>
-		public string Description
-		{
-			get;
-			set;
-		}
-		/// <summary>
 		/// Gets or sets the command's help text.
 		/// </summary>
 		public string[] HelpText
@@ -71,7 +63,6 @@ namespace Raptor.Api.Commands
 				throw new ArgumentException("\"names\" cannot be null or have no names.");
 
 			this.callback = callback;
-			this.Description = "Sorry, no description is available.";
 			this.HelpText = new[] { "Sorry, no help is available." };
 			this.names = names;
 		}
