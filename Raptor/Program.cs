@@ -318,7 +318,9 @@ namespace Raptor
 
 			var ms = new MemoryStream();
 			asm.Write(ms);
+#if DEBUG
 			asm.Write("debug.exe");
+#endif
 			terraria = Assembly.Load(ms.GetBuffer());
 
 			AppDomain.CurrentDomain.AssemblyResolve += (o, args) =>

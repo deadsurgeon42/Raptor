@@ -27,13 +27,9 @@ namespace Raptor
 			float xLength = Main.fontMouseText.MeasureString(str).X;
 			float yLength = Main.fontMouseText.MeasureString(str).Y;
 
-			float x = Input.MouseX + 10;
-			float y = Input.MouseY + 10;
-			if (x + xLength + 4f > Main.screenWidth)
-				x = Main.screenWidth - xLength - 4;
-			if (y + yLength + 4f > Main.screenHeight)
-				y = Main.screenHeight - yLength - 4;
-
+			float x = MathHelper.Clamp(Input.MouseX + 10f, 4f, Main.screenWidth - xLength - 4f);
+			float y = MathHelper.Clamp(Input.MouseY + 10f, 4f, Main.screenHeight - yLength - 4f);
+			
 			Vector2 position = new Vector2(x, y);
 
 			SpriteFont drawFont = font ?? Main.fontMouseText;

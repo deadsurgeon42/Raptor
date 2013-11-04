@@ -234,7 +234,11 @@ namespace Raptor
 			{
 				string text = Main.chatText + (textBlinkTimer % 40 > 10 ? "|" : "");
 
-				sb.DrawGuiRectangle(new Rectangle(92, Main.screenHeight - 33, Main.screenWidth - 312, 28), new Color(12, 12, 12, 200));
+				sb.DrawGuiRectangle(
+					new Rectangle(92, Main.screenHeight - 33,
+					Main.screenWidth - 312, 28),
+					new Color(100, 100, 100, 200),
+					Main.inventoryBackTexture);
 				if (chatMode == 1)
 				{
 					sb.DrawGuiText("Chat:", new Vector2(46, Main.screenHeight - 30), Color.White, Main.fontMouseText);
@@ -246,7 +250,10 @@ namespace Raptor
 					sb.DrawGuiText("/" + text, new Vector2(98, Main.screenHeight - 30), Color.Orange, Main.fontMouseText);
 				}
 
-				sb.DrawGuiRectangle(chatRectangle, new Color(12, 12, 12, 200));
+				sb.DrawGuiRectangle(
+					chatRectangle,
+					new Color(100, 100, 100, 200),
+					Main.inventoryBackTexture);
 			}
 
 			int linesShown = 0;
@@ -370,9 +377,19 @@ namespace Raptor
 					selectedRegion = null;
 				if (!Input.MouseLeftDown)
 				{
-					if (regionMove || regionResize > 0)
+					if (regionMove)
+					{
 						Utils.SendRegion(selectedRegion);
-
+						Log.LogNotice("Moved region \"{0}\" to ({1}, {2}).",
+							selectedRegion.Name, selectedRegion.Area.X, selectedRegion.Area.Y);
+						regionMove = false;
+					}
+					else if (regionResize > 0)
+					{
+						regionResize = 0;
+						Log.LogNotice("Resized region \"{0}\" to ({1}, {2}).",
+							selectedRegion.Name, selectedRegion.Area.Width, selectedRegion.Area.Height);
+					}
 					regionMove = false;
 					regionResize = 0;
 				}
@@ -526,6 +543,8 @@ namespace Raptor
 				#region Creating
 				if (Input.MouseRightClick && regionClickPt == Point.Zero)
 				{
+					Input.DisabledMouse = true;
+
 					isCreatingRegion = true;
 					regionClickPt.X = (int)(Main.screenPosition.X + Input.MouseX) / 16;
 					regionClickPt.Y = (int)(Main.screenPosition.Y + Input.MouseY) / 16;
@@ -534,6 +553,8 @@ namespace Raptor
 
 				if (isCreatingRegion)
 				{
+					Input.DisabledMouse = true;
+
 					if (Input.MouseRightDown && regionClickPt != Point.Zero)
 					{
 						int X = (int)(Main.screenPosition.X + Input.MouseX) / 16;
@@ -597,6 +618,8 @@ namespace Raptor
 							regions.Add(region);
 							regionsToDraw.Add(region);
 							Utils.SendRegion(region);
+							Log.LogNotice("Created new region \"{0}\" at ({1}, {2}) with size ({3}, {4})",
+								regionName, region.Area.X, region.Area.Y, region.Area.Width, region.Area.Height);
 
 							isNamingRegion = false;
 							regionClickPt = regionPt1 = regionPt2 = Point.Zero;
@@ -618,6 +641,8 @@ namespace Raptor
 					Utils.SendRegionDelete(selectedRegion);
 					regions.Remove(selectedRegion);
 					regionsToDraw.Remove(selectedRegion);
+					Log.LogNotice("Deleted region \"{0}\".", selectedRegion);
+
 					Main.PlaySound(11);
 				}
 				#endregion
@@ -633,8 +658,11 @@ namespace Raptor
 				if (!Input.MouseLeftDown)
 				{
 					if (warpMove)
+					{
 						Utils.SendWarp(selectedWarp);
-
+						Log.LogNotice("Moved warp \"{0}\" to ({1}, {2}).",
+							selectedWarp.Name, selectedWarp.Position.X, selectedWarp.Position.Y);
+					}
 					warpMove = false;
 				}
 
@@ -682,6 +710,8 @@ namespace Raptor
 				#region Creating
 				if (Input.MouseRightClick && warpPt == Point.Zero)
 				{
+					Input.DisabledMouse = true;
+
 					isCreatingWarp = true;
 					selectedWarp = null;
 					warpPt.X = (int)(Main.screenPosition.X + Input.MouseX) / 16;
@@ -690,6 +720,8 @@ namespace Raptor
 
 				if (isCreatingWarp)
 				{
+					Input.DisabledMouse = true;
+
 					if (Input.MouseRightDown && warpPt != Point.Zero)
 					{
 						warpPt.X = (int)(Main.screenPosition.X + Input.MouseX) / 16;
@@ -731,6 +763,7 @@ namespace Raptor
 							warps.Add(warp);
 							warpsToDraw.Add(warp);
 							Utils.SendWarp(warp);
+							Log.LogNotice("Created new warp \"{0}\" at ({1}, {2}).", warpName, warpPt.X, warpPt.Y);
 
 							isNamingWarp = false;
 							warpPt = Point.Zero;
@@ -752,6 +785,8 @@ namespace Raptor
 					Utils.SendWarpDelete(selectedWarp);
 					warps.Remove(selectedWarp);
 					warpsToDraw.Remove(selectedWarp);
+					Log.LogNotice("Deleted warp \"{0}\".", selectedWarp.Name);
+
 					Main.PlaySound(11);
 				}
 				#endregion
@@ -786,8 +821,6 @@ namespace Raptor
 						typedChatOffset--;
 						if (typedChatOffset < 0)
 							typedChatOffset = 0;
-						else
-							Main.PlaySound(12);
 						Main.chatText = typedChat[typedChatOffset];
 					}
 					else if (chatMode == 2 && typedCommands.Count != 0)
@@ -795,8 +828,6 @@ namespace Raptor
 						typedCommandOffset--;
 						if (typedCommandOffset < 0)
 							typedCommandOffset = 0;
-						else
-							Main.PlaySound(12);
 						Main.chatText = typedCommands[typedCommandOffset];
 					}
 				}
@@ -805,9 +836,6 @@ namespace Raptor
 					if (chatMode == 1 && typedChat.Count != 0)
 					{
 						typedChatOffset++;
-
-						if (typedChatOffset <= typedChat.Count)
-							Main.PlaySound(12);
 
 						if (typedChatOffset >= typedChat.Count)
 						{
@@ -820,9 +848,6 @@ namespace Raptor
 					else if (chatMode == 2 && typedCommands.Count != 0)
 					{
 						typedCommandOffset++;
-
-						if (typedCommandOffset <= typedCommands.Count)
-							Main.PlaySound(12);
 
 						if (typedCommandOffset >= typedCommands.Count)
 						{
