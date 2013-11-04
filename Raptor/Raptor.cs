@@ -63,7 +63,7 @@ namespace Raptor
 		static bool isNamingRegion;
 		static string regionName = "";
 
-		static Region selectedRegion = null;
+		static Region selectedRegion;
 
 		static bool regionMove;
 		static Point regionMovePt;
@@ -72,6 +72,17 @@ namespace Raptor
 
 		internal static bool isEditingWarps;
 		static List<Warp> warps = new List<Warp>();
+		static List<Warp> warpsToDraw = new List<Warp>();
+
+		static bool isCreatingWarp;
+		static Point warpPt;
+		static bool isNamingWarp;
+		static string warpName = "";
+
+		static bool warpMove;
+		static Point warpMovePt;
+
+		static Warp selectedWarp;
 
 		/// <summary>
 		/// Gets the configuration file.
@@ -182,16 +193,33 @@ namespace Raptor
 			{
 				foreach (Region r in regionsToDraw)
 				{
-					Rectangle region = new Rectangle(
+					var rectangle = new Rectangle(
 						r.Area.X * 16 - (int)Main.screenPosition.X, r.Area.Y * 16 - (int)Main.screenPosition.Y,
 						r.Area.Width * 16, r.Area.Height * 16);
-					sb.DrawGuiRectangle(region, r != selectedRegion ? new Color(25, 25, 25, 175) : new Color(25, 25, 200, 175));
+					sb.DrawGuiRectangle(rectangle, r != selectedRegion ? new Color(25, 25, 25, 175) : new Color(25, 25, 200, 175));
 				}
 				if (isCreatingRegion || isNamingRegion)
 				{
-					Rectangle selection = new Rectangle(
+					var selection = new Rectangle(
 						regionPt1.X * 16 - (int)Main.screenPosition.X, regionPt1.Y * 16 - (int)Main.screenPosition.Y,
 						(regionPt2.X - regionPt1.X + 1) * 16, (regionPt2.Y - regionPt1.Y + 1) * 16);
+					sb.DrawGuiRectangle(selection, new Color(200, 25, 25, 175));
+				}
+			}
+			else if (isEditingWarps)
+			{
+				foreach (Warp w in warpsToDraw)
+				{
+					var rectangle = new Rectangle(
+						w.Position.X * 16 - (int)Main.screenPosition.X, w.Position.Y * 16 - (int)Main.screenPosition.Y,
+						32, 48);
+					sb.DrawGuiRectangle(rectangle, w != selectedWarp ? new Color(25, 25, 25, 175) : new Color(25, 25, 200, 175));
+				}
+				if (isCreatingWarp || isNamingWarp)
+				{
+					var selection = new Rectangle(
+						warpPt.X * 16 - (int)Main.screenPosition.X, warpPt.Y * 16 - (int)Main.screenPosition.Y,
+						32, 48);
 					sb.DrawGuiRectangle(selection, new Color(200, 25, 25, 175));
 				}
 			}
@@ -322,6 +350,7 @@ namespace Raptor
 					rawChat.Clear();
 				}
 				chatMode = 0;
+				chatViewOffset = 0;
 
 				isEditingRegions = false;
 				isEditingWarps = false;
@@ -348,26 +377,28 @@ namespace Raptor
 					regionResize = 0;
 				}
 
+				#region Drawing, moving, & resizing
 				var screen = new Rectangle(0, 0, Main.screenWidth, Main.screenHeight);
-
 				for (int i = 0; i < regions.Count; i++)
 				{
-					var region = new Rectangle(
-						regions[i].Area.X * 16 - (int)Main.screenPosition.X, regions[i].Area.Y * 16 - (int)Main.screenPosition.Y,
-						regions[i].Area.Width * 16, regions[i].Area.Height * 16);
+					Region r = regions[i];
 
-					if (region.Intersects(screen))
+					var rectangle = new Rectangle(
+						r.Area.X * 16 - (int)Main.screenPosition.X, r.Area.Y * 16 - (int)Main.screenPosition.Y,
+						r.Area.Width * 16, r.Area.Height * 16);
+
+					if (rectangle.Intersects(screen))
 					{
-						regionsToDraw.Add(regions[i]);
+						regionsToDraw.Add(r);
 
 						if (regionClickPt != Point.Zero)
 							continue;
 
 						#region Resizing Checks
-						bool isLeft = new Rectangle(region.Left, region.Top, 8, region.Height).Contains(Input.MouseX, Input.MouseY);
-						bool isRight = new Rectangle(region.Right - 8, region.Top, 8, region.Height).Contains(Input.MouseX, Input.MouseY);
-						bool isUp = new Rectangle(region.Left, region.Top, region.Width, 8).Contains(Input.MouseX, Input.MouseY);
-						bool isDown = new Rectangle(region.Left, region.Bottom - 8, region.Width, 8).Contains(Input.MouseX, Input.MouseY);
+						bool isLeft = new Rectangle(rectangle.Left, rectangle.Top, 8, rectangle.Height).Contains(Input.MouseX, Input.MouseY);
+						bool isRight = new Rectangle(rectangle.Right - 8, rectangle.Top, 8, rectangle.Height).Contains(Input.MouseX, Input.MouseY);
+						bool isUp = new Rectangle(rectangle.Left, rectangle.Top, rectangle.Width, 8).Contains(Input.MouseX, Input.MouseY);
+						bool isDown = new Rectangle(rectangle.Left, rectangle.Bottom - 8, rectangle.Width, 8).Contains(Input.MouseX, Input.MouseY);
 						
 						if (isLeft || isRight)
 						{
@@ -377,8 +408,8 @@ namespace Raptor
 							if (Input.MouseLeftClick)
 							{
 								regionResize |= isLeft ? Resize.Left : Resize.Right;
-								regionResizeArea = regions[i].Area;
-								selectedRegion = regions[i];
+								regionResizeArea = r.Area;
+								selectedRegion = r;
 							}
 						}
 						if (isUp || isDown)
@@ -391,28 +422,28 @@ namespace Raptor
 							if (Input.MouseLeftClick)
 							{
 								regionResize |= isUp ? Resize.Up : Resize.Down;
-								regionResizeArea = regions[i].Area;
-								selectedRegion = regions[i];
+								regionResizeArea = r.Area;
+								selectedRegion = r;
 							}
 						}
 						#endregion
 
-						if (region.Contains(Input.MouseX, Input.MouseY) && !isLeft && !isRight && !isUp && !isDown)
+						if (rectangle.Contains(Input.MouseX, Input.MouseY) && !isLeft && !isRight && !isUp && !isDown)
 						{
-							mouseText = "Region name: " + regions[i].Name;
+							mouseText = "Region name: " + r.Name;
 							Input.CursorType = 1;
 							Input.DisabledMouse = true;
 
 							if (Input.MouseLeftClick)
 							{
 								regionMove = true;
-								regionMovePt = new Point(Input.MouseX - region.X, Input.MouseY - region.Y);
-								selectedRegion = regions[i];
+								regionMovePt = new Point(Input.MouseX - rectangle.X, Input.MouseY - rectangle.Y);
+								selectedRegion = r;
 							}
 						}
 					}
 				}
-
+				#endregion
 				#region Resizing
 				if (regionResize != 0)
 				{
@@ -540,12 +571,12 @@ namespace Raptor
 				#region Naming
 				else if (isNamingRegion)
 				{
-					Rectangle selection = new Rectangle(
+					var rectangle = new Rectangle(
 						regionPt1.X * 16 - (int)Main.screenPosition.X,
 						regionPt1.Y * 16 - (int)Main.screenPosition.Y,
 						(regionPt2.X - regionPt1.X + 1) * 16,
 						(regionPt2.Y - regionPt1.Y + 1) * 16);
-					if (selection.Contains(Input.MouseX, Input.MouseY))
+					if (rectangle.Contains(Input.MouseX, Input.MouseY))
 					{
 						Input.DisabledKeyboard = true;
 						Input.DisabledMouse = true;
@@ -581,7 +612,7 @@ namespace Raptor
 					}
 				}
 				#endregion
-
+				#region Deleting
 				if (selectedRegion != null && Input.IsKeyTapped(Keys.Delete))
 				{
 					Utils.SendRegionDelete(selectedRegion);
@@ -589,6 +620,141 @@ namespace Raptor
 					regionsToDraw.Remove(selectedRegion);
 					Main.PlaySound(11);
 				}
+				#endregion
+			}
+			#endregion
+			#region Warp editing
+			else if (isEditingWarps)
+			{
+				warpsToDraw.Clear();
+
+				if (Input.MouseLeftClick)
+					selectedWarp = null;
+				if (!Input.MouseLeftDown)
+				{
+					if (warpMove)
+						Utils.SendWarp(selectedWarp);
+
+					warpMove = false;
+				}
+
+				#region Drawing & moving
+				var screen = new Rectangle(0, 0, Main.screenWidth, Main.screenHeight);
+				for (int i = 0; i < warps.Count; i++)
+				{
+					Warp w = warps[i];
+
+					var rectangle = new Rectangle(
+						w.Position.X * 16 - (int)Main.screenPosition.X, w.Position.Y * 16 - (int)Main.screenPosition.Y,
+						32, 48);
+
+					if (rectangle.Intersects(screen))
+					{
+						warpsToDraw.Add(w);
+
+						if (rectangle.Contains(Input.MouseX, Input.MouseY))
+						{
+							mouseText = "Warp name: " + w.Name;
+							Input.CursorType = 1;
+							Input.DisabledMouse = true;
+
+							if (Input.MouseLeftClick)
+							{
+								warpMove = true;
+								warpMovePt = new Point(Input.MouseX - rectangle.X, Input.MouseY - rectangle.Y);
+								selectedWarp = w;
+							}
+						}
+					}
+				}
+				#endregion
+				#region Moving
+				if (warpMove)
+				{
+					mouseText = "Warp name: " + selectedWarp.Name;
+					Input.CursorType = 1;
+					Input.DisabledMouse = true;
+
+					selectedWarp.Position.X = (int)Math.Round((Main.screenPosition.X + Input.MouseX - warpMovePt.X) / 16.0);
+					selectedWarp.Position.Y = (int)Math.Round((Main.screenPosition.Y + Input.MouseY - warpMovePt.Y) / 16.0);
+				}
+				#endregion
+				#region Creating
+				if (Input.MouseRightClick && warpPt == Point.Zero)
+				{
+					isCreatingWarp = true;
+					selectedWarp = null;
+					warpPt.X = (int)(Main.screenPosition.X + Input.MouseX) / 16;
+					warpPt.Y = (int)(Main.screenPosition.Y + Input.MouseY) / 16;
+				}
+
+				if (isCreatingWarp)
+				{
+					if (Input.MouseRightDown && warpPt != Point.Zero)
+					{
+						warpPt.X = (int)(Main.screenPosition.X + Input.MouseX) / 16;
+						warpPt.Y = (int)(Main.screenPosition.Y + Input.MouseY) / 16;
+					}
+					if (Input.MouseRightRelease)
+					{
+						isCreatingWarp = false;
+						isNamingWarp = true;
+						warpName = "";
+						Main.PlaySound(10);
+					}
+				}
+				#endregion
+				#region Naming
+				else if (isNamingWarp)
+				{
+					var rectangle = new Rectangle(
+						warpPt.X * 16 - (int)Main.screenPosition.X, warpPt.Y * 16 - (int)Main.screenPosition.Y,
+						32, 48);
+					if (rectangle.Contains(Input.MouseX, Input.MouseY))
+					{
+						Input.DisabledKeyboard = true;
+						Input.DisabledMouse = true;
+
+						warpName = Input.GetInputText(warpName);
+						mouseText = "Warp name: " + warpName + (textBlinkTimer % 40 > 10 ? "|" : "");
+					}
+
+					if (Input.IsKeyTapped(Keys.Enter) && warpName != "")
+					{
+						if (warps.Any(w => String.Equals(w.Name, warpName, StringComparison.OrdinalIgnoreCase)))
+							Utils.NewErrorText("Invalid warp name.");
+						else
+						{
+							var warp = new Warp();
+							warp.Name = warpName;
+							warp.Position = warpPt;
+							warps.Add(warp);
+							warpsToDraw.Add(warp);
+							Utils.SendWarp(warp);
+
+							isNamingWarp = false;
+							warpPt = Point.Zero;
+						}
+
+						Main.PlaySound(11);
+					}
+					else if (Input.IsKeyTapped(Keys.Escape))
+					{
+						isNamingWarp = false;
+						warpPt = Point.Zero;
+						Main.PlaySound(11);
+					}
+				}
+				#endregion
+				#region Deleting
+				if (selectedWarp != null && Input.IsKeyTapped(Keys.Delete))
+				{
+					Utils.SendWarpDelete(selectedWarp);
+					warps.Remove(selectedWarp);
+					warpsToDraw.Remove(selectedWarp);
+					Main.PlaySound(11);
+				}
+				#endregion
 			}
 			#endregion
 
@@ -769,12 +935,17 @@ namespace Raptor
 							regions.RemoveAll(r => r.Name == regionName);
 							return true;
 						case RaptorPacketTypes.Warp:
-							Point position = new Point(reader.ReadInt32(), reader.ReadInt32());
-							warps.Add(new Warp { Position = position, Name = reader.ReadString(), IsPrivate = reader.ReadBoolean() });
+							{
+								Point position = new Point(reader.ReadInt32(), reader.ReadInt32());
+								string warpName = reader.ReadString();
+								warps.Add(new Warp { Position = position, Name = warpName });
+							}
 							return true;
 						case RaptorPacketTypes.WarpDelete:
-							string warpName = reader.ReadString();
-							warps.RemoveAll(r => r.Name == warpName);
+							{
+								string warpName = reader.ReadString();
+								warps.RemoveAll(r => r.Name == warpName);
+							}
 							return true;
 						default:
 							return true;

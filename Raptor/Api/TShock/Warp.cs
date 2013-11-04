@@ -28,13 +28,9 @@ namespace Raptor.Api.TShock
 			set;
 		}
 		/// <summary>
-		/// Gets or sets the position of the warp.
+		/// The position of the warp.
 		/// </summary>
-		public Point Position
-		{
-			get;
-			set;
-		}
+		public Point Position;
 
 		/// <summary>
 		/// Creates a new warp.
