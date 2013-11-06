@@ -947,20 +947,36 @@ namespace Raptor
 							}
 							return true;
 						case RaptorPacketTypes.Region:
-							Rectangle area = new Rectangle(
-								reader.ReadInt32(), reader.ReadInt32(),
-								reader.ReadInt32(), reader.ReadInt32());
-							regions.Add(new Region { Area = area, Name = reader.ReadString() });
+							{
+								var area = new Rectangle(
+									reader.ReadInt32(), reader.ReadInt32(),
+									reader.ReadInt32(), reader.ReadInt32());
+								string regionName = reader.ReadString();
+
+								Region region = regions.Find(r => String.Equals(r.Name, regionName, StringComparison.OrdinalIgnoreCase));
+
+								if (region == null)
+									regions.Add(new Region { Area = area, Name = regionName });
+								else
+									region.Area = area;
+							}
 							return true;
 						case RaptorPacketTypes.RegionDelete:
-							string regionName = reader.ReadString();
-							regions.RemoveAll(r => r.Name == regionName);
+							{
+								string regionName = reader.ReadString();
+								regions.RemoveAll(r => r.Name == regionName);
+							}
 							return true;
 						case RaptorPacketTypes.Warp:
 							{
-								Point position = new Point(reader.ReadInt32(), reader.ReadInt32());
+								var position = new Point(reader.ReadInt32(), reader.ReadInt32());
 								string warpName = reader.ReadString();
-								warps.Add(new Warp { Position = position, Name = warpName });
+								Warp warp = warps.Find(w => String.Equals(w.Name, warpName, StringComparison.OrdinalIgnoreCase));
+
+								if (warp == null)
+									warps.Add(new Warp { Position = position, Name = warpName });
+								else
+									warp.Position = position;
 							}
 							return true;
 						case RaptorPacketTypes.WarpDelete:

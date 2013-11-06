@@ -211,20 +211,20 @@ namespace Raptor.Api.Commands
 						Keys key;
 						if (!Enum.TryParse<Keys>(e[1], true, out key))
 						{
-							Utils.NewErrorText("Invalid key '{0}'.", e[1]);
+							Utils.NewErrorText("Invalid key \"{0}\".", e[1]);
 							return;
 						}
 
 						if (Raptor.Config.KeyBindings.ContainsKey(key))
 						{
-							Utils.NewErrorText("The key '{0}' is already bound.", key);
+							Utils.NewErrorText("The key \"{0}\" is already bound.", key);
 							return;
 						}
 
 						Raptor.Config.KeyBindings.Add(key, e.Eol(2));
 						string configPath = Path.Combine("Raptor", "config.json");
 						File.WriteAllText(configPath, JsonConvert.SerializeObject(Raptor.Config, Formatting.Indented));
-						Utils.NewSuccessText("Bound the key '{0}' to '{1}'.", key, e.Eol(2));
+						Utils.NewSuccessText("Bound the key \"{0}\" to \"{1}\".", key, e.Eol(2));
 					}
 					return;
 				case "clr":
@@ -246,24 +246,24 @@ namespace Raptor.Api.Commands
 						Keys key;
 						if (!Enum.TryParse<Keys>(e[1], true, out key))
 						{
-							Utils.NewErrorText("Invalid key '{0}'.", e[1]);
+							Utils.NewErrorText("Invalid key \"{0}\".", e[1]);
 							return;
 						}
 						if (!Raptor.Config.KeyBindings.ContainsKey(key))
 						{
-							Utils.NewErrorText("The key '{0}' is not bound.", key);
+							Utils.NewErrorText("The key \"{0}\" is not bound.", key);
 							return;
 						}
 						Raptor.Config.KeyBindings.Remove(key);
 						string configPath = Path.Combine("Raptor", "config.json");
 						File.WriteAllText(configPath, JsonConvert.SerializeObject(Raptor.Config, Formatting.Indented));
-						Utils.NewSuccessText("Unbound the key '{0}'.", key);
+						Utils.NewSuccessText("Unbound the key \"{0}\".", key);
 					}
 					return;
 				case "list":
 					Utils.NewSuccessText("Key Bindings:");
 					foreach (KeyValuePair<Keys, string> kv in Raptor.Config.KeyBindings)
-						Utils.NewInfoText("Key '{0}': {1}", kv.Key, kv.Value);
+						Utils.NewInfoText("Key \"{0}\": {1}", kv.Key, kv.Value);
 					return;
 				default:
 					Utils.NewErrorText("Syntax: /{0} <add | clr | del | list> [arguments...]");
