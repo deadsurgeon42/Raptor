@@ -382,12 +382,11 @@ namespace Raptor
 					}
 					else if (regionResize > 0)
 					{
-						regionResize = 0;
+						Utils.SendRegion(selectedRegion);
 						Log.LogNotice("Resized region \"{0}\" to ({1}, {2}).",
 							selectedRegion.Name, selectedRegion.Area.Width, selectedRegion.Area.Height);
+						regionResize = 0;
 					}
-					regionMove = false;
-					regionResize = 0;
 				}
 
 				#region Drawing, moving, & resizing
