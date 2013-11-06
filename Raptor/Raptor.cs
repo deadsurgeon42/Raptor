@@ -191,14 +191,14 @@ namespace Raptor
 					var rectangle = new Rectangle(
 						r.Area.X * 16 - (int)Main.screenPosition.X, r.Area.Y * 16 - (int)Main.screenPosition.Y,
 						r.Area.Width * 16, r.Area.Height * 16);
-					sb.DrawGuiRectangle(rectangle, r != selectedRegion ? new Color(25, 25, 25, 175) : new Color(25, 25, 200, 175));
+					sb.DrawGuiRectangle(rectangle, r != selectedRegion ? new Color(30, 30, 30, 125) : new Color(30, 30, 200, 125));
 				}
 				if (isCreatingRegion || isNamingRegion)
 				{
 					var selection = new Rectangle(
 						regionPt1.X * 16 - (int)Main.screenPosition.X, regionPt1.Y * 16 - (int)Main.screenPosition.Y,
 						(regionPt2.X - regionPt1.X + 1) * 16, (regionPt2.Y - regionPt1.Y + 1) * 16);
-					sb.DrawGuiRectangle(selection, new Color(200, 25, 25, 175));
+					sb.DrawGuiRectangle(selection, new Color(200, 30, 30, 125));
 				}
 			}
 			else if (isEditingWarps)
@@ -208,14 +208,14 @@ namespace Raptor
 					var rectangle = new Rectangle(
 						w.Position.X * 16 - (int)Main.screenPosition.X, w.Position.Y * 16 - (int)Main.screenPosition.Y,
 						32, 48);
-					sb.DrawGuiRectangle(rectangle, w != selectedWarp ? new Color(25, 25, 25, 175) : new Color(25, 25, 200, 175));
+					sb.DrawGuiRectangle(rectangle, w != selectedWarp ? new Color(30, 30, 30, 150) : new Color(30, 30, 200, 125));
 				}
 				if (isCreatingWarp || isNamingWarp)
 				{
 					var selection = new Rectangle(
 						warpPt.X * 16 - (int)Main.screenPosition.X, warpPt.Y * 16 - (int)Main.screenPosition.Y,
 						32, 48);
-					sb.DrawGuiRectangle(selection, new Color(200, 25, 25, 175));
+					sb.DrawGuiRectangle(selection, new Color(200, 30, 30, 125));
 				}
 			}
 
@@ -657,8 +657,8 @@ namespace Raptor
 						Utils.SendWarp(selectedWarp);
 						Log.LogNotice("Moved warp \"{0}\" to ({1}, {2}).",
 							selectedWarp.Name, selectedWarp.Position.X, selectedWarp.Position.Y);
+						warpMove = false;
 					}
-					warpMove = false;
 				}
 
 				#region Drawing & moving
@@ -949,7 +949,7 @@ namespace Raptor
 							{
 								var area = new Rectangle(
 									reader.ReadInt32(), reader.ReadInt32(),
-									reader.ReadInt32(), reader.ReadInt32());
+									reader.ReadInt32() + 1, reader.ReadInt32() + 1);
 								string regionName = reader.ReadString();
 
 								Region region = regions.Find(r => String.Equals(r.Name, regionName, StringComparison.OrdinalIgnoreCase));

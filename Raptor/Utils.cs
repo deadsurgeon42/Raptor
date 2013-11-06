@@ -105,8 +105,8 @@ namespace Raptor
 
 						writer.Write(region.Area.X);
 						writer.Write(region.Area.Y);
-						writer.Write(region.Area.Width);
-						writer.Write(region.Area.Height);
+						writer.Write(region.Area.Width - 1);
+						writer.Write(region.Area.Height - 1);
 						writer.Write(region.Name);
 
 						length = (int)writer.BaseStream.Position;
