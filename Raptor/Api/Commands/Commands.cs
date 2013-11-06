@@ -228,10 +228,12 @@ namespace Raptor.Api.Commands
 					}
 					return;
 				case "clr":
-					Raptor.Config.KeyBindings.Clear();
-					string configPath = Path.Combine("Raptor", "config.json");
-					File.WriteAllText(configPath, JsonConvert.SerializeObject(Raptor.Config, Formatting.Indented));
-					Utils.NewSuccessText("Cleared all key bindings.");
+					{
+						Raptor.Config.KeyBindings.Clear();
+						string configPath = Path.Combine("Raptor", "config.json");
+						File.WriteAllText(configPath, JsonConvert.SerializeObject(Raptor.Config, Formatting.Indented));
+						Utils.NewSuccessText("Cleared all key bindings.");
+					}
 					return;
 				case "del":
 					{
