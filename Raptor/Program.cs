@@ -21,7 +21,8 @@ namespace Raptor
 			{ "DrawChat", "NPCChat" },
 			{ "DrawPlayerChat", "PlayerChat" },
 			{ "DrawInterface", "Interface" },
-			{ "DrawMenu", "Menu" }
+			{ "DrawMenu", "Menu" },
+			{ "DrawMap", "Map" },
 		};
 		static Assembly terraria;
 		const string registry = @"SOFTWARE\Re-Logic\Terraria";
@@ -111,8 +112,7 @@ namespace Raptor
 			itemSetDefaults.InsertEnd(
 				Instruction.Create(OpCodes.Ldarg_0),
 				Instruction.Create(OpCodes.Call, mod.Import(typeof(ItemHooks).GetMethod("InvokeSetDefaults", allFlags))));
-			itemSetDefaults.FixShortBranches();
-
+			
 			var keyinPreFilterMessage = asm.GetType("keyBoardInput").NestedTypes[0].Methods[0];
 			// Input.FilterMessage(m); return false;
 			keyinPreFilterMessage.InsertStart(
@@ -139,8 +139,7 @@ namespace Raptor
 				Instruction.Create(OpCodes.Ldfld, asm.GetField("Main", "spriteBatch")),
 				Instruction.Create(OpCodes.Ldstr, ""),
 				Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeDrawn", allFlags))));
-			mainDraw.FixShortBranches();
-
+			
 			var mainDrawInterface = asm.GetMethod("Main", "DrawInterface");
 			for (int i = mainDrawInterface.Body.Instructions.Count - 1; i >= 0; i--)
 			{
@@ -173,7 +172,6 @@ namespace Raptor
 					Instruction.Create(OpCodes.Ldfld, asm.GetField("Main", "spriteBatch")),
 					Instruction.Create(OpCodes.Ldstr, kvp.Value),
 					Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeDrawn", allFlags))));
-				draw.FixShortBranches();
 			}
 			#endregion
 
@@ -181,8 +179,7 @@ namespace Raptor
 			// GameHooks.InvokeInitialized();
 			mainInitialize.InsertEnd(
 				Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeInitialized", allFlags))));
-			mainInitialize.FixShortBranches();
-
+			
 			var mainInputText = asm.GetMethod("Main", "GetInputText");
 			// return GameHooks.InvokeInputText(oldString);
 			mainInputText.InsertStart(
@@ -196,8 +193,7 @@ namespace Raptor
 				Instruction.Create(OpCodes.Ldarg_0),
 				Instruction.Create(OpCodes.Callvirt, mod.Import(typeof(Game).GetMethod("get_Content"))),
 				Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeLoadedContent", allFlags))));
-			mainLoadContent.FixShortBranches();
-
+			
 			var mainNewText = asm.GetMethod("Main", "NewText");
 			// GameHooks.InvokeNewText(text, r, g, b); return;
 			mainNewText.InsertStart(
@@ -243,8 +239,7 @@ namespace Raptor
 			mainUpdate.InsertEnd(
 				Instruction.Create(OpCodes.Ldarg_1),
 				Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeUpdated", allFlags))));
-			mainUpdate.FixShortBranches();
-
+			
 			var messageBufferGetData = asm.GetMethod("messageBuffer", "GetData");
 			// if (NetHooks.InvokeGetData(start, length)) return;
 			messageBufferGetData.InsertStart(
@@ -259,8 +254,7 @@ namespace Raptor
 				Instruction.Create(OpCodes.Ldarg_1),
 				Instruction.Create(OpCodes.Ldarg_2),
 				Instruction.Create(OpCodes.Call, mod.Import(typeof(NetHooks).GetMethod("InvokeGotData", allFlags))));
-			messageBufferGetData.FixShortBranches();
-
+			
 			var netMessageSendData = asm.GetMethod("NetMessage", "SendData");
 			// if (NetHooks.InvokeSendData(msgType, text, number, number2, number3, number4, number5)) return;
 			netMessageSendData.InsertStart(
@@ -285,8 +279,7 @@ namespace Raptor
 				Instruction.Create(OpCodes.Ldarg_S, netMessageSendData.Parameters[7]),
 				Instruction.Create(OpCodes.Ldarg_S, netMessageSendData.Parameters[8]),
 				Instruction.Create(OpCodes.Call, mod.Import(typeof(NetHooks).GetMethod("InvokeSentData", allFlags))));
-			netMessageSendData.FixShortBranches();
-
+			
 			// NpcHooks.InvokeProcessAI(this);
 			asm.GetMethod("NPC", "AI").InsertStart(
 				Instruction.Create(OpCodes.Ldarg_0),
@@ -297,8 +290,7 @@ namespace Raptor
 			npcSetDefaults.InsertEnd(
 				Instruction.Create(OpCodes.Ldarg_0),
 				Instruction.Create(OpCodes.Call, mod.Import(typeof(NpcHooks).GetMethod("InvokeSetDefaults", allFlags))));
-			npcSetDefaults.FixShortBranches();
-
+			
 			// return;
 			asm.GetMethod("Steam", "Kill").InsertStart(
 				Instruction.Create(OpCodes.Ret));
@@ -325,8 +317,7 @@ namespace Raptor
 
 			AppDomain.CurrentDomain.AssemblyResolve += (o, args) =>
 			{
-				string name = args.Name.Split(',')[0];
-				if (name == "Terraria")
+				if (args.Name.Split(',')[0] == "Terraria")
 					return terraria;
 
 				foreach (string dll in Directory.EnumerateFiles("Plugins", "*.dll"))

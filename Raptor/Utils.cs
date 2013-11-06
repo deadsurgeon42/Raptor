@@ -51,29 +51,29 @@ namespace Raptor
 		/// <summary>
 		/// Prints an error message.
 		/// </summary>
-		/// <param name="msg">The message format.</param>
+		/// <param name="format">The message format.</param>
 		/// <param name="args">The arguments.</param>
-		public static void NewErrorText(string msg, params object[] args)
+		public static void NewErrorText(string format, params object[] args)
 		{
-			Main.NewText(String.Format(msg, args), 255, 0, 0);
+			Main.NewText(String.Format(format, args), 255, 0, 0);
 		}
 		/// <summary>
 		/// Prints an info message.
 		/// </summary>
-		/// <param name="msg">The message format.</param>
+		/// <param name="format">The message format.</param>
 		/// <param name="args">The arguments.</param>
-		public static void NewInfoText(string msg, params object[] args)
+		public static void NewInfoText(string format, params object[] args)
 		{
-			Main.NewText(String.Format(msg, args), 255, 255, 0);
+			Main.NewText(String.Format(format, args), 255, 255, 0);
 		}
 		/// <summary>
 		/// Prints a success message.
 		/// </summary>
-		/// <param name="msg">The message format.</param>
+		/// <param name="format">The message format.</param>
 		/// <param name="args">The arguments.</param>
-		public static void NewSuccessText(string msg, params object[] args)
+		public static void NewSuccessText(string format, params object[] args)
 		{
-			Main.NewText(String.Format(msg, args), 0, 128, 0);
+			Main.NewText(String.Format(format, args), 0, 128, 0);
 		}
 		/// <summary>
 		/// Sends the Acknowledge packet.

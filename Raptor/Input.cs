@@ -162,7 +162,7 @@ namespace Raptor
 			get { return Keyboard.IsKeyDown(Keys.LeftShift) || Keyboard.IsKeyDown(Keys.RightShift); }
 		}
 		/// <summary>
-		/// Gets the typed string.
+		/// Gets the string formed from the most recent WM_CHAR messages.
 		/// </summary>
 		public static string TypedString
 		{

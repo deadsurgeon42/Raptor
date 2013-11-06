@@ -224,7 +224,7 @@ namespace Raptor
 		}
 		internal static void DrawPlayerChat(SpriteBatch sb)
 		{
-			var chatRectangle = new Rectangle(92, Main.screenHeight - 51 - Config.ChatShow * 21, Main.screenWidth - 312, Config.ChatShow * 21 + 12);
+			var chatRectangle = new Rectangle(92, Main.screenHeight - 51 - Config.ChatShow * 19, Main.screenWidth - 312, Config.ChatShow * 19 + 12);
 			if (chatMode > 0)
 			{
 				string text = Main.chatText + (textBlinkTimer % 40 > 10 ? "|" : "");
@@ -234,6 +234,7 @@ namespace Raptor
 					Main.screenWidth - 312, 28),
 					new Color(100, 100, 100, 200),
 					Main.inventoryBackTexture);
+
 				if (chatMode == 1)
 				{
 					sb.DrawGuiText("Chat:", new Vector2(46, Main.screenHeight - 30), Color.White);
@@ -255,15 +256,15 @@ namespace Raptor
 			for (int i = -1; i + chatViewOffset >= 0 && linesShown < Config.ChatShow && (chatMode > 0 || chat[i + chatViewOffset].timeOut > 0); i--)
 			{
 				sb.DrawGuiText(chat[i + chatViewOffset].text,
-					new Vector2(98, Main.screenHeight - 64 - linesShown++ * 21),
+					new Vector2(98, Main.screenHeight - 64 - linesShown++ * 19),
 					chat[i + chatViewOffset].color,
 					Main.fontMouseText);
 			}
 
 			if (chatMode > 0 && chat.Count > Config.ChatShow)
 			{
-				int scrollbarSize = (int)(Config.ChatShow * (Config.ChatShow * 21d - 4d) / chat.Count);
-				int scrollbarOffset = (int)((chatViewOffset - Config.ChatShow) * (Config.ChatShow * 21d - 4d) / chat.Count);
+				int scrollbarSize = (int)(Config.ChatShow * (Config.ChatShow * 19.0 - 4.0) / chat.Count);
+				int scrollbarOffset = (int)((chatViewOffset - Config.ChatShow) * (Config.ChatShow * 19.0 - 4.0) / chat.Count);
 
 				sb.Draw(Main.inventoryBackTexture,
 					new Rectangle(Main.screenWidth - 232, chatRectangle.Y + scrollbarOffset + 6, 6, scrollbarSize),
@@ -797,7 +798,7 @@ namespace Raptor
 			}
 			else if (chatMode > 0)
 			{
-				var chatRectangle = new Rectangle(96, Main.screenHeight - 49 - Config.ChatShow * 21, Main.screenWidth - 312, Config.ChatShow * 21 + 12);
+				var chatRectangle = new Rectangle(96, Main.screenHeight - 49 - Config.ChatShow * 19, Main.screenWidth - 312, Config.ChatShow * 19 + 12);
 				if (chatRectangle.Contains(Input.MouseX, Input.MouseY))
 				{
 					Input.DisabledMouse = true;
@@ -859,12 +860,13 @@ namespace Raptor
 
 				if (Input.IsKeyTapped(Keys.Escape))
 				{
-					Main.chatText = "";
-					Main.PlaySound(11);
-
 					chatMode = 0;
+					chatViewOffset = chat.Count;
 					typedChatOffset = typedChat.Count;
 					typedCommandOffset = typedCommands.Count;
+
+					Main.chatText = "";
+					Main.PlaySound(11);
 				}
 				else if (Input.IsKeyTapped(Keys.Enter) && Main.chatText != "")
 				{

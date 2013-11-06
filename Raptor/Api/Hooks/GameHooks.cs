@@ -152,6 +152,7 @@ namespace Raptor.Api.Hooks
 			{ "NPCChat", null },
 			{ "PlayerChat", null },
 			{ "Menu", null },
+			{ "Map", null },
 		};
 
 		internal static bool InvokeDraw(SpriteBatch spriteBatch, string type)
@@ -189,6 +190,7 @@ namespace Raptor.Api.Hooks
 			{ "NPCChat", null },
 			{ "PlayerChat", null },
 			{ "Menu", null },
+			{ "Map", null },
 		};
 
 		internal static void InvokeDrawn(SpriteBatch spriteBatch, string type)

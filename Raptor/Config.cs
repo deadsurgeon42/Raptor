@@ -19,7 +19,7 @@ namespace Raptor
 		/// The speed to scroll chat with the mouse wheel.
 		/// </summary>
 		[Description("The speed to scroll chat with the mouse wheel.")]
-		public int ChatScrollSpeed = 8;
+		public int ChatScrollSpeed = 6;
 		/// <summary>
 		/// The key bindings to commands.
 		/// </summary>

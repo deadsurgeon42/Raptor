@@ -171,6 +171,8 @@ namespace Raptor
 			var ilp = md.Body.GetILProcessor();
 			for (int j = instructions.Length - 1; j >= 0; j--)
 				ilp.InsertAfter(target, instructions[j]);
+
+			md.FixShortBranches();
 		}
 		/// <summary>
 		/// Inserts instructions before a target in a method.
@@ -187,6 +189,8 @@ namespace Raptor
 
 			for (int i = instructions.Length - 1; i >= 0; i--)
 				ilp.InsertAfter(target, instructions[i]);
+
+			md.FixShortBranches();
 		}
 		/// <summary>
 		/// Inserts instructions at the end(s) of a method.
@@ -207,6 +211,8 @@ namespace Raptor
 					instr.OpCode = OpCodes.Nop;
 				}
 			}
+
+			md.FixShortBranches();
 		}
 		/// <summary>
 		/// Inserts instructions at the start of a method.
