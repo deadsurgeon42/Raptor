@@ -222,11 +222,15 @@ namespace Raptor.Api.Commands
 						}
 
 						Raptor.Config.KeyBindings.Add(key, e.Eol(2));
+						string configPath = Path.Combine("Raptor", "config.json");
+						File.WriteAllText(configPath, JsonConvert.SerializeObject(Raptor.Config, Formatting.Indented));
 						Utils.NewSuccessText("Bound the key '{0}' to '{1}'.", key, e.Eol(2));
 					}
 					return;
 				case "clr":
 					Raptor.Config.KeyBindings.Clear();
+					string configPath = Path.Combine("Raptor", "config.json");
+					File.WriteAllText(configPath, JsonConvert.SerializeObject(Raptor.Config, Formatting.Indented));
 					Utils.NewSuccessText("Cleared all key bindings.");
 					return;
 				case "del":
@@ -249,15 +253,15 @@ namespace Raptor.Api.Commands
 							return;
 						}
 						Raptor.Config.KeyBindings.Remove(key);
+						string configPath = Path.Combine("Raptor", "config.json");
+						File.WriteAllText(configPath, JsonConvert.SerializeObject(Raptor.Config, Formatting.Indented));
 						Utils.NewSuccessText("Unbound the key '{0}'.", key);
 					}
 					return;
 				case "list":
 					Utils.NewSuccessText("Key Bindings:");
 					foreach (KeyValuePair<Keys, string> kv in Raptor.Config.KeyBindings)
-					{
 						Utils.NewInfoText("Key '{0}': {1}", kv.Key, kv.Value);
-					}
 					return;
 				default:
 					Utils.NewErrorText("Syntax: /{0} <add | clr | del | list> [arguments...]");
