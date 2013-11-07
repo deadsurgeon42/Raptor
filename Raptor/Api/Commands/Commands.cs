@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Threading;
 using Microsoft.Xna.Framework.Input;
 using Newtonsoft.Json;
+using Terraria;
 
 namespace Raptor.Api.Commands
 {
@@ -83,6 +84,14 @@ namespace Raptor.Api.Commands
 					"Reloads various objects such as the configuration file and Lua script commands."
 				}
 			});
+			ChatCommands.Add(new Command(Say, "say")
+			{
+				HelpText = new[]
+				{
+					"Syntax: /say <message>",
+					"Sends a message to the server."
+				}
+			});
 			ChatCommands.Add(new Command(Set, "set")
 			{
 				HelpText = new[]
@@ -130,6 +139,11 @@ namespace Raptor.Api.Commands
 		
 		static void Edit(object o, CommandEventArgs e)
 		{
+			if (e.Length != 1)
+			{
+				Utils.NewErrorText("Syntax: /edit <regions | warps>");
+				return;
+			}
 			if (Raptor.Permissions.Count == 0)
 			{
 				Utils.NewErrorText("You are not connected to a TShock server.");
@@ -289,6 +303,19 @@ namespace Raptor.Api.Commands
 			LoadLuaCommands();
 
 			Utils.NewSuccessText("Reloaded configuration file & scripts.");
+		}
+		static void Say(object o, CommandEventArgs e)
+		{
+			if (e.Length == 0)
+			{
+				Utils.NewSuccessText("Syntax: /say <message>");
+				return;
+			}
+
+			if (Main.netMode == 1)
+				NetMessage.SendData(25, -1, -1, e.Eol(0));
+			else
+				Main.NewText("<" + Main.player[Main.myPlayer].name + "> " + e.Eol(0));
 		}
 		static void Set(object o, CommandEventArgs e)
 		{
