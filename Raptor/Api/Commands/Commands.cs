@@ -51,9 +51,8 @@ namespace Raptor.Api.Commands
 			{
 				HelpText = new[]
 				{
-					"Syntax: /edit OR /edit <regions | warps>",
+					"Syntax: /edit <regions | warps>",
 					"Allows you to edit regions or warps with a simple GUI.",
-					"To disable editing, use /edit."
 				}
 			});
 			ChatCommands.Add(new Command(Help, "help", "?")
@@ -131,13 +130,6 @@ namespace Raptor.Api.Commands
 		
 		static void Edit(object o, CommandEventArgs e)
 		{
-			if (e.Length == 0)
-			{
-				Raptor.isEditingRegions = false;
-				Raptor.isEditingWarps = false;
-				Utils.NewSuccessText("You are no longer editing regions or warps.");
-				return;
-			}
 			if (Raptor.Permissions.Count == 0)
 			{
 				Utils.NewErrorText("You are not connected to a TShock server.");
@@ -152,9 +144,9 @@ namespace Raptor.Api.Commands
 						Utils.NewErrorText("You do not have permission to edit regions.");
 						return;
 					}
-					Raptor.isEditingRegions = true;
+					Raptor.isEditingRegions = !Raptor.isEditingRegions;
 					Raptor.isEditingWarps = false;
-					Utils.NewSuccessText("You are now editing regions.");
+					Utils.NewSuccessText("You are no{0} editing regions.", Raptor.isEditingRegions ? "w" : " longer");
 					return;
 				case "warps":
 					if (!Utils.HasTShockPermission("tshock.admin.warp"))
@@ -163,8 +155,11 @@ namespace Raptor.Api.Commands
 						return;
 					}
 					Raptor.isEditingRegions = false;
-					Raptor.isEditingWarps = true;
-					Utils.NewSuccessText("You are now editing warps.");
+					Raptor.isEditingWarps = !Raptor.isEditingWarps;
+					Utils.NewSuccessText("You are no{0} editing warps.", Raptor.isEditingWarps ? "w" : " longer");
+					return;
+				default:
+					Utils.NewSuccessText("Invalid editing option.");
 					return;
 			}
 		}
