@@ -26,6 +26,11 @@ namespace Raptor
 		[Description("The key bindings to commands.")]
 		public Dictionary<Keys, string> KeyBindings = new Dictionary<Keys, string>();
 		/// <summary>
+		/// Whether to log chat.
+		/// </summary>
+		[Description("Whether to log chat.")]
+		public bool LogChat = true;
+		/// <summary>
 		/// Whether to show the Terraria splash screen.
 		/// </summary>
 		[Description("Whether to show the Terraria splash screen.")]

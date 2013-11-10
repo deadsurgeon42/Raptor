@@ -340,9 +340,11 @@ namespace Raptor
 			Directory.CreateDirectory("Plugins");
 			Directory.CreateDirectory("Raptor").CreateSubdirectory("Scripts");
 
+			Log.Initialize();
 			ClientApi.Initialize();
 			Run(path);
 			ClientApi.DeInitialize();
+			Log.DeInitialize();
 		}
 		static void Run(string path)
 		{
@@ -356,6 +358,8 @@ namespace Raptor
 				}
 				catch (Exception e)
 				{
+					Log.LogFatal("An unhandled exception occured:");
+					Log.LogFatal(e.ToString());
 					MessageBox.Show("An unhandled exception occurred: " + e, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 				}
 			}

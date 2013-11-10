@@ -298,6 +298,9 @@ namespace Raptor
 		}
 		internal static void NewText(string text, byte r, byte g, byte b)
 		{
+			if (Config.LogChat)
+				Log.LogInfo("Chat: {0}", text);
+
 			rawChat.Add(new Chat { color = new Color(r, g, b), text = text });
 			if (rawChat.Count > 1000)
 				rawChat.RemoveAt(0);
@@ -377,14 +380,14 @@ namespace Raptor
 					if (regionMove)
 					{
 						Utils.SendRegion(selectedRegion);
-						Log.LogNotice("Moved region \"{0}\" to ({1}, {2}).",
+						Log.LogInfo("Moved region \"{0}\" to ({1}, {2}).",
 							selectedRegion.Name, selectedRegion.Area.X, selectedRegion.Area.Y);
 						regionMove = false;
 					}
 					else if (regionResize > 0)
 					{
 						Utils.SendRegion(selectedRegion);
-						Log.LogNotice("Resized region \"{0}\" to ({1}, {2}).",
+						Log.LogInfo("Resized region \"{0}\" to ({1}, {2}).",
 							selectedRegion.Name, selectedRegion.Area.Width, selectedRegion.Area.Height);
 						regionResize = 0;
 					}
@@ -614,7 +617,7 @@ namespace Raptor
 							regions.Add(region);
 							regionsToDraw.Add(region);
 							Utils.SendRegion(region);
-							Log.LogNotice("Created new region \"{0}\" at ({1}, {2}) with size ({3}, {4})",
+							Log.LogInfo("Created new region \"{0}\" at ({1}, {2}) with size ({3}, {4})",
 								regionName, region.Area.X, region.Area.Y, region.Area.Width, region.Area.Height);
 
 							isNamingRegion = false;
@@ -637,7 +640,7 @@ namespace Raptor
 					Utils.SendRegionDelete(selectedRegion);
 					regions.Remove(selectedRegion);
 					regionsToDraw.Remove(selectedRegion);
-					Log.LogNotice("Deleted region \"{0}\".", selectedRegion);
+					Log.LogInfo("Deleted region \"{0}\".", selectedRegion);
 
 					Main.PlaySound(11);
 				}
@@ -656,7 +659,7 @@ namespace Raptor
 					if (warpMove)
 					{
 						Utils.SendWarp(selectedWarp);
-						Log.LogNotice("Moved warp \"{0}\" to ({1}, {2}).",
+						Log.LogInfo("Moved warp \"{0}\" to ({1}, {2}).",
 							selectedWarp.Name, selectedWarp.Position.X, selectedWarp.Position.Y);
 						warpMove = false;
 					}
@@ -759,7 +762,7 @@ namespace Raptor
 							warps.Add(warp);
 							warpsToDraw.Add(warp);
 							Utils.SendWarp(warp);
-							Log.LogNotice("Created new warp \"{0}\" at ({1}, {2}).", warpName, warpPt.X, warpPt.Y);
+							Log.LogInfo("Created new warp \"{0}\" at ({1}, {2}).", warpName, warpPt.X, warpPt.Y);
 
 							isNamingWarp = false;
 							warpPt = Point.Zero;
@@ -781,7 +784,7 @@ namespace Raptor
 					Utils.SendWarpDelete(selectedWarp);
 					warps.Remove(selectedWarp);
 					warpsToDraw.Remove(selectedWarp);
-					Log.LogNotice("Deleted warp \"{0}\".", selectedWarp.Name);
+					Log.LogInfo("Deleted warp \"{0}\".", selectedWarp.Name);
 
 					Main.PlaySound(11);
 				}

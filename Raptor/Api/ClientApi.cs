@@ -37,7 +37,7 @@ namespace Raptor.Api
 
 		internal static void DeInitialize()
 		{
-			Log.LogNotice("Raptor v{0} stopped.\n", ApiVersion);
+			Log.LogInfo("Raptor v{0} stopped.\n", ApiVersion);
 
 			foreach (TerrariaPlugin plugin in plugins)
 			{
@@ -54,7 +54,7 @@ namespace Raptor.Api
 		}
 		internal static void Initialize()
 		{
-			Log.LogNotice("Raptor v{0} started.", ApiVersion);
+			Log.LogInfo("Raptor v{0} started.", ApiVersion);
 
 			#region Load plugins
 			var loadedAssemblies = new Dictionary<string, Assembly>();
@@ -120,7 +120,7 @@ namespace Raptor.Api
 				try
 				{
 					plugin.Initialize();
-					Log.LogNotice("Plugin \"{0}\" v{1} (by {2}) initialized.", plugin.Name, plugin.Version, plugin.Author);
+					Log.LogInfo("Plugin \"{0}\" v{1} (by {2}) initialized.", plugin.Name, plugin.Version, plugin.Author);
 				}
 				catch (Exception ex)
 				{
