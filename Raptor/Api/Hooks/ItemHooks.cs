@@ -14,7 +14,12 @@ namespace Raptor.Api.Hooks
 		public Item Item
 		{
 			get;
-			internal set;
+			private set;
+		}
+
+		internal ItemEventArgs(Item item)
+		{
+			Item = item;
 		}
 	}
 
@@ -32,7 +37,7 @@ namespace Raptor.Api.Hooks
 		internal static void InvokeSetDefaults(object item)
 		{
 			if (SetDefaults != null)
-				SetDefaults(null, new ItemEventArgs { Item = (Item)item });
+				SetDefaults(null, new ItemEventArgs((Item)item));
 		}
 		#endregion
 	}

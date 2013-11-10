@@ -11,36 +11,45 @@ namespace Raptor.Api.Hooks
 	public class GetDataEventArgs : HandledEventArgs
 	{
 		/// <summary>
-		/// Gets or sets the message buffer.
+		/// Gets the message buffer.
 		/// </summary>
 		public messageBuffer Msg
 		{
 			get;
-			set;
+			private set;
 		}
 		/// <summary>
-		/// Gets or sets the message packet type.
+		/// Gets the message packet type.
 		/// </summary>
 		public PacketTypes MsgID
 		{
 			get;
-			set;
+			private set;
 		}
 		/// <summary>
-		/// Gets or sets the index in the data buffer.
+		/// Gets the index in the data buffer.
 		/// </summary>
 		public int Index
 		{
 			get;
-			set;
+			private set;
 		}
 		/// <summary>
-		/// Gets or sets the length of the data in the data buffer.
+		/// Gets the length of the data in the data buffer.
 		/// </summary>
 		public int Length
 		{
 			get;
-			set;
+			private set;
+		}
+
+		internal GetDataEventArgs(int index, int length)
+		{
+			MsgID = (PacketTypes)NetMessage.buffer[256].readBuffer[index];
+			Msg = NetMessage.buffer[256];
+
+			Index = index;
+			Length = length;
 		}
 	}
 	#endregion
@@ -51,36 +60,45 @@ namespace Raptor.Api.Hooks
 	public class GotDataEventArgs : EventArgs
 	{
 		/// <summary>
-		/// Gets or sets the message buffer.
+		/// Gets the message buffer.
 		/// </summary>
 		public messageBuffer Msg
 		{
 			get;
-			set;
+			private set;
 		}
 		/// <summary>
-		/// Gets or sets the message packet type.
+		/// Gets the message packet type.
 		/// </summary>
 		public PacketTypes MsgID
 		{
 			get;
-			set;
+			private set;
 		}
 		/// <summary>
-		/// Gets or sets the index in the data buffer.
+		/// Gets the index in the data buffer.
 		/// </summary>
 		public int Index
 		{
 			get;
-			set;
+			private set;
 		}
 		/// <summary>
-		/// Gets or sets the length of the data in the data buffer.
+		/// Gets the length of the data in the data buffer.
 		/// </summary>
 		public int Length
 		{
 			get;
-			set;
+			private set;
+		}
+
+		internal GotDataEventArgs(int index, int length)
+		{
+			MsgID = (PacketTypes)NetMessage.buffer[256].readBuffer[index];
+			Msg = NetMessage.buffer[256];
+
+			Index = index;
+			Length = length;
 		}
 	}
 	#endregion
@@ -91,60 +109,71 @@ namespace Raptor.Api.Hooks
 	public class SendDataEventArgs : HandledEventArgs
 	{
 		/// <summary>
-		/// Gets or sets the message packet type.
+		/// Gets the message packet type.
 		/// </summary>
 		public PacketTypes MsgId
 		{
 			get;
-			set;
+			private set;
 		}
 		/// <summary>
-		/// Gets or sets the first argument of the message.
+		/// Gets the first argument of the message.
 		/// </summary>
 		public int Number
 		{
 			get;
-			set;
+			private set;
 		}
 		/// <summary>
-		/// Gets or sets the second argument of the message.
+		/// Gets the second argument of the message.
 		/// </summary>
 		public float Number2
 		{
 			get;
-			set;
+			private set;
 		}
 		/// <summary>
-		/// Gets or sets the third argument of the message.
+		/// Gets the third argument of the message.
 		/// </summary>
 		public float Number3
 		{
 			get;
-			set;
+			private set;
 		}
 		/// <summary>
-		/// Gets or sets the fourth argument of the message.
+		/// Gets the fourth argument of the message.
 		/// </summary>
 		public float Number4
 		{
 			get;
-			set;
+			private set;
 		}
 		/// <summary>
-		/// Gets or sets the fifth argument of the message.
+		/// Gets the fifth argument of the message.
 		/// </summary>
 		public int Number5
 		{
 			get;
-			set;
+			private set;
 		}
 		/// <summary>
-		/// Gets or sets the message text.
+		/// Gets the message text.
 		/// </summary>
 		public string Text
 		{
 			get;
-			set;
+			private set;
+		}
+
+		internal SendDataEventArgs(int msgId, string text, int n1, float n2, float n3, float n4, int n5)
+		{
+			MsgId = (PacketTypes)msgId;
+			Text = text;
+			Number = n1;
+			Number2 = n2;
+			Number3 = n3;
+			Number4 = n4;
+			Number5 = n5;
 		}
 	}
 	#endregion
@@ -155,60 +184,71 @@ namespace Raptor.Api.Hooks
 	public class SentDataEventArgs : EventArgs
 	{
 		/// <summary>
-		/// Gets or sets the message packet type.
+		/// Gets the message packet type.
 		/// </summary>
 		public PacketTypes MsgId
 		{
 			get;
-			set;
+			private set;
 		}
 		/// <summary>
-		/// Gets or sets the first argument of the message.
+		/// Gets the first argument of the message.
 		/// </summary>
 		public int Number
 		{
 			get;
-			set;
+			private set;
 		}
 		/// <summary>
-		/// Gets or sets the second argument of the message.
+		/// Gets the second argument of the message.
 		/// </summary>
 		public float Number2
 		{
 			get;
-			set;
+			private set;
 		}
 		/// <summary>
-		/// Gets or sets the third argument of the message.
+		/// Gets the third argument of the message.
 		/// </summary>
 		public float Number3
 		{
 			get;
-			set;
+			private set;
 		}
 		/// <summary>
-		/// Gets or sets the fourth argument of the message.
+		/// Gets the fourth argument of the message.
 		/// </summary>
 		public float Number4
 		{
 			get;
-			set;
+			private set;
 		}
 		/// <summary>
-		/// Gets or sets the fifth argument of the message.
+		/// Gets the fifth argument of the message.
 		/// </summary>
 		public int Number5
 		{
 			get;
-			set;
+			private set;
 		}
 		/// <summary>
-		/// Gets or sets the message text.
+		/// Gets the message text.
 		/// </summary>
 		public string Text
 		{
 			get;
-			set;
+			private set;
+		}
+
+		internal SentDataEventArgs(int msgId, string text, int n1, float n2, float n3, float n4, int n5)
+		{
+			MsgId = (PacketTypes)msgId;
+			Text = text;
+			Number = n1;
+			Number2 = n2;
+			Number3 = n3;
+			Number4 = n4;
+			Number5 = n5;
 		}
 	}
 	#endregion
@@ -231,13 +271,7 @@ namespace Raptor.Api.Hooks
 
 			if (GetData != null)
 			{
-				GetDataEventArgs args = new GetDataEventArgs
-				{
-					MsgID = (PacketTypes)NetMessage.buffer[256].readBuffer[index],
-					Msg = NetMessage.buffer[256],
-					Index = index,
-					Length = length
-				};
+				var args = new GetDataEventArgs(index, length);
 				GetData(null, args);
 				return args.Handled;
 			}
@@ -256,13 +290,7 @@ namespace Raptor.Api.Hooks
 
 			if (GotData != null)
 			{
-				GetDataEventArgs args = new GetDataEventArgs
-				{
-					MsgID = (PacketTypes)NetMessage.buffer[256].readBuffer[index],
-					Msg = NetMessage.buffer[256],
-					Index = index,
-					Length = length
-				};
+				var args = new GetDataEventArgs(index, length);
 				GotData(null, args);
 			}
 		}
@@ -279,19 +307,8 @@ namespace Raptor.Api.Hooks
 			if (SendData == null)
 				return false;
 
-			SendDataEventArgs args = new SendDataEventArgs
-			{
-				MsgId = (PacketTypes)msgId,
-				Text = text,
-				Number = n1,
-				Number2 = n2,
-				Number3 = n3,
-				Number4 = n4,
-				Number5 = n5
-			};
-
+			var args = new SendDataEventArgs(msgId, text, n1, n2, n3, n4, n5);
 			SendData(null, args);
-
 			return args.Handled;
 		}
 		#endregion
@@ -299,24 +316,14 @@ namespace Raptor.Api.Hooks
 		/// <summary>
 		/// The event that runs when the client sent network data.
 		/// </summary>
-		public static event EventHandler<SendDataEventArgs> SentData;
+		public static event EventHandler<SentDataEventArgs> SentData;
 
 		internal static void InvokeSentData(int msgId, string text, int n1, float n2, float n3, float n4, int n5)
 		{
 			if (SentData == null)
 				return;
 
-			SendDataEventArgs args = new SendDataEventArgs
-			{
-				MsgId = (PacketTypes)msgId,
-				Text = text,
-				Number = n1,
-				Number2 = n2,
-				Number3 = n3,
-				Number4 = n4,
-				Number5 = n5
-			};
-
+			var args = new SentDataEventArgs(msgId, text, n1, n2, n3, n4, n5);
 			SentData(null, args);
 		}
 		#endregion

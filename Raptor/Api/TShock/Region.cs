@@ -12,14 +12,6 @@ namespace Raptor.Api.TShock
 	public class Region
 	{
 		/// <summary>
-		/// Gets or sets the list of allowed user IDs.
-		/// </summary>
-		public List<int> AllowedIDs
-		{
-			get;
-			set;
-		}
-		/// <summary>
 		/// The area of the region.
 		/// </summary>
 		public Rectangle Area;
@@ -31,24 +23,14 @@ namespace Raptor.Api.TShock
 			get;
 			set;
 		}
-		/// <summary>
-		/// Gets or sets the owner's account name.
-		/// </summary>
-		public string Owner
-		{
-			get;
-			set;
-		}
 
 		/// <summary>
 		/// Creates a new region.
 		/// </summary>
 		public Region()
 		{
-			AllowedIDs = new List<int>();
 			Area = new Rectangle();
 			Name = "";
-			Owner = "";
 		}
 	}
 }

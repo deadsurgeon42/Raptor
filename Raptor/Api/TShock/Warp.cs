@@ -12,14 +12,6 @@ namespace Raptor.Api.TShock
 	public class Warp
 	{
 		/// <summary>
-		/// Gets or sets whether the warp is private.
-		/// </summary>
-		public bool IsPrivate
-		{
-			get;
-			set;
-		}
-		/// <summary>
 		/// Gets or sets the name of the warp.
 		/// </summary>
 		public string Name
@@ -37,7 +29,6 @@ namespace Raptor.Api.TShock
 		/// </summary>
 		public Warp()
 		{
-			IsPrivate = false;
 			Name = "";
 			Position = Point.Zero;
 		}

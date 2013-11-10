@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace Raptor.Api.Commands
 {
@@ -10,20 +7,13 @@ namespace Raptor.Api.Commands
 	/// </summary>
 	public class Command
 	{
-		/// <summary>
-		/// The command delegate.
-		/// </summary>
-		/// <param name="sender">The sender (in this case, the command).</param>
-		/// <param name="e">The command event arguments.</param>
-		public delegate void CommandD(object sender, CommandEventArgs e);
-
-		private CommandD callback;
-		private string[] names;
+		EventHandler<CommandEventArgs> callback;
+		string[] names;
 
 		/// <summary>
 		/// Gets the command callback.
 		/// </summary>
-		public CommandD Callback
+		public EventHandler<CommandEventArgs> Callback
 		{
 			get { return callback; }
 		}
@@ -55,12 +45,12 @@ namespace Raptor.Api.Commands
 		/// </summary>
 		/// <param name="callback">The command callback.</param>
 		/// <param name="names">The command names.</param>
-		public Command(CommandD callback, params string[] names)
+		public Command(EventHandler<CommandEventArgs> callback, params string[] names)
 		{
 			if (callback == null)
 				throw new ArgumentNullException("callback");
-			if (names == null || names.Length == 0)
-				throw new ArgumentException("\"names\" cannot be null or have no names.");
+			if (names == null)
+				throw new ArgumentNullException("names");
 
 			this.callback = callback;
 			this.HelpText = new[] { "Sorry, no help is available." };

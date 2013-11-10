@@ -3,6 +3,7 @@ using Terraria;
 
 namespace Raptor.Api.Hooks
 {
+	#region NpcEventArgs
 	/// <summary>
 	/// Event arguments for NPC hooks.
 	/// </summary>
@@ -14,16 +15,22 @@ namespace Raptor.Api.Hooks
 		public NPC Npc
 		{
 			get;
-			internal set;
+			private set;
+		}
+
+		internal NpcEventArgs(NPC npc)
+		{
+			Npc = npc;
 		}
 	}
+	#endregion
 
 	/// <summary>
 	/// The API's NPC hooks.
 	/// </summary>
 	public static class NpcHooks
 	{
-		#region AI
+		#region ProcessAI
 		/// <summary>
 		/// The event that runs when an NPC's AI is processed.
 		/// </summary>
@@ -32,7 +39,7 @@ namespace Raptor.Api.Hooks
 		internal static void InvokeProcessAI(object npc)
 		{
 			if (ProcessAI != null)
-				ProcessAI(null, new NpcEventArgs { Npc = (NPC)npc });
+				ProcessAI(null, new NpcEventArgs((NPC)npc));
 		}
 		#endregion
 
@@ -45,7 +52,7 @@ namespace Raptor.Api.Hooks
 		internal static void InvokeSetDefaults(object npc)
 		{
 			if (SetDefaults != null)
-				SetDefaults(null, new NpcEventArgs { Npc = (NPC)npc });
+				SetDefaults(null, new NpcEventArgs((NPC)npc));
 		}
 		#endregion
 	}

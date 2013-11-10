@@ -109,7 +109,7 @@ namespace Raptor.Api.Commands
 			foreach (string path in Directory.EnumerateFiles(Path.Combine("Raptor", "Scripts"), "*.lua"))
 			{
 				List<string> lines = File.ReadAllLines(path).ToList();
-				List<string> names = new List<string> { Path.GetFileNameWithoutExtension(path) };
+				var names = new List<string> { Path.GetFileNameWithoutExtension(path) };
 
 				var aliases = from s in lines
 							  where s.StartsWith("-- Aliases: ")
@@ -158,6 +158,7 @@ namespace Raptor.Api.Commands
 						Utils.NewErrorText("You do not have permission to edit regions.");
 						return;
 					}
+
 					Raptor.isEditingRegions = !Raptor.isEditingRegions;
 					Raptor.isEditingWarps = false;
 					Utils.NewSuccessText("You are no{0} editing regions.", Raptor.isEditingRegions ? "w" : " longer");

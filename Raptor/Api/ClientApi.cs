@@ -39,7 +39,6 @@ namespace Raptor.Api
 		{
 			Log.LogNotice("Raptor v{0} stopped.\n", ApiVersion);
 
-			#region Dispose plugins
 			foreach (TerrariaPlugin plugin in plugins)
 			{
 				try
@@ -52,7 +51,6 @@ namespace Raptor.Api
 					Log.LogError(ex.ToString());
 				}
 			}
-			#endregion
 		}
 		internal static void Initialize()
 		{
@@ -122,7 +120,7 @@ namespace Raptor.Api
 				try
 				{
 					plugin.Initialize();
-					Log.LogNotice("Plugin \"{0}\" v{1} (by {2}) initiated.", plugin.Name, plugin.Version, plugin.Author);
+					Log.LogNotice("Plugin \"{0}\" v{1} (by {2}) initialized.", plugin.Name, plugin.Version, plugin.Author);
 				}
 				catch (Exception ex)
 				{

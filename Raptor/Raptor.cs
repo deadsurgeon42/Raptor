@@ -100,7 +100,7 @@ namespace Raptor
 			get;
 			internal set;
 		}
-		private static List<string> negatedPermissions = new List<string>();
+		static List<string> negatedPermissions = new List<string>();
 		/// <summary>
 		/// Gets the list of negated TShock permissions.
 		/// </summary>
@@ -111,7 +111,7 @@ namespace Raptor
 				return new ReadOnlyCollection<string>(negatedPermissions);
 			}
 		}
-		private static List<string> permissions = new List<string>();
+		static List<string> permissions = new List<string>();
 		/// <summary>
 		/// Gets the list of TShock permissions.
 		/// </summary>
@@ -354,6 +354,7 @@ namespace Raptor
 				}
 				chatMode = 0;
 				chatViewOffset = 0;
+				Main.chatText = "";
 
 				isEditingRegions = false;
 				isEditingWarps = false;
@@ -927,66 +928,63 @@ namespace Raptor
 			if (NetMessage.buffer[256].readBuffer[index] != (byte)PacketTypes.Raptor)
 				return false;
 
-			using (var ms = new MemoryStream(NetMessage.buffer[256].readBuffer, index + 1, length - 1))
+			using (var reader = new BinaryReader(new MemoryStream(NetMessage.buffer[256].readBuffer, index + 1, length - 1)))
 			{
-				using (var reader = new BinaryReader(ms))
+				switch ((RaptorPacketTypes)reader.ReadByte())
 				{
-					switch ((RaptorPacketTypes)reader.ReadByte())
-					{
-						case RaptorPacketTypes.Permissions:
-							negatedPermissions.Clear();
-							permissions.Clear();
+					case RaptorPacketTypes.Permissions:
+						negatedPermissions.Clear();
+						permissions.Clear();
 
-							foreach (string p in reader.ReadString().Split(','))
-							{
-								if (p.StartsWith("!"))
-									negatedPermissions.Add(p.Substring(1));
-								else
-									permissions.Add(p);
-							}
-							return true;
-						case RaptorPacketTypes.Region:
-							{
-								var area = new Rectangle(
-									reader.ReadInt32(), reader.ReadInt32(),
-									reader.ReadInt32() + 1, reader.ReadInt32() + 1);
-								string regionName = reader.ReadString();
+						foreach (string p in reader.ReadString().Split(','))
+						{
+							if (p.StartsWith("!"))
+								negatedPermissions.Add(p.Substring(1));
+							else
+								permissions.Add(p);
+						}
+						return true;
+					case RaptorPacketTypes.Region:
+						{
+							var area = new Rectangle(
+								reader.ReadInt32(), reader.ReadInt32(),
+								reader.ReadInt32() + 1, reader.ReadInt32() + 1);
+							string regionName = reader.ReadString();
 
-								Region region = regions.Find(r => String.Equals(r.Name, regionName, StringComparison.OrdinalIgnoreCase));
+							Region region = regions.Find(r => String.Equals(r.Name, regionName, StringComparison.OrdinalIgnoreCase));
 
-								if (region == null)
-									regions.Add(new Region { Area = area, Name = regionName });
-								else
-									region.Area = area;
-							}
-							return true;
-						case RaptorPacketTypes.RegionDelete:
-							{
-								string regionName = reader.ReadString();
-								regions.RemoveAll(r => r.Name == regionName);
-							}
-							return true;
-						case RaptorPacketTypes.Warp:
-							{
-								var position = new Point(reader.ReadInt32(), reader.ReadInt32());
-								string warpName = reader.ReadString();
-								Warp warp = warps.Find(w => String.Equals(w.Name, warpName, StringComparison.OrdinalIgnoreCase));
+							if (region == null)
+								regions.Add(new Region { Area = area, Name = regionName });
+							else
+								region.Area = area;
+						}
+						return true;
+					case RaptorPacketTypes.RegionDelete:
+						{
+							string regionName = reader.ReadString();
+							regions.RemoveAll(r => r.Name == regionName);
+						}
+						return true;
+					case RaptorPacketTypes.Warp:
+						{
+							var position = new Point(reader.ReadInt32(), reader.ReadInt32());
+							string warpName = reader.ReadString();
+							Warp warp = warps.Find(w => String.Equals(w.Name, warpName, StringComparison.OrdinalIgnoreCase));
 
-								if (warp == null)
-									warps.Add(new Warp { Position = position, Name = warpName });
-								else
-									warp.Position = position;
-							}
-							return true;
-						case RaptorPacketTypes.WarpDelete:
-							{
-								string warpName = reader.ReadString();
-								warps.RemoveAll(r => r.Name == warpName);
-							}
-							return true;
-						default:
-							return true;
-					}
+							if (warp == null)
+								warps.Add(new Warp { Position = position, Name = warpName });
+							else
+								warp.Position = position;
+						}
+						return true;
+					case RaptorPacketTypes.WarpDelete:
+						{
+							string warpName = reader.ReadString();
+							warps.RemoveAll(r => r.Name == warpName);
+						}
+						return true;
+					default:
+						return true;
 				}
 			}
 		}
@@ -1005,12 +1003,13 @@ namespace Raptor
 			if (newWidth != Main.screenWidth)
 			{
 				chat.Clear();
-				float lineLength = 0f;
 				var lineBuilder = new StringBuilder();
 				float spaceLength = Main.fontMouseText.MeasureString(" ").X;
 
 				for (int i = 0; i < rawChat.Count; i++)
 				{
+					float lineLength = 0f;
+
 					foreach (string word in rawChat[i].text.Split(' '))
 					{
 						float length = Main.fontMouseText.MeasureString(word).X + spaceLength;
@@ -1030,8 +1029,6 @@ namespace Raptor
 						chat.Add(new Chat { color = rawChat[i].color, text = lineBuilder.ToString(), timeOut = rawChat[i].timeOut });
 						lineBuilder.Clear();
 					}
-
-					lineLength = 0f;
 				}
 				chatViewOffset = chat.Count;
 			}

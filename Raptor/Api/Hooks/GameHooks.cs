@@ -23,7 +23,12 @@ namespace Raptor.Api.Hooks
 		public SpriteBatch SpriteBatch
 		{
 			get;
-			internal set;
+			private set;
+		}
+
+		internal DrawEventArgs(SpriteBatch sb)
+		{
+			SpriteBatch = sb;
 		}
 	}
 	#endregion
@@ -39,7 +44,12 @@ namespace Raptor.Api.Hooks
 		public SpriteBatch SpriteBatch
 		{
 			get;
-			internal set;
+			private set;
+		}
+
+		internal DrawnEventArgs(SpriteBatch sb)
+		{
+			SpriteBatch = sb;
 		}
 	}
 	#endregion
@@ -56,7 +66,19 @@ namespace Raptor.Api.Hooks
 		public AssemblyDefinition Assembly
 		{
 			get;
-			internal set;
+			private set;
+		}
+		/// <summary>
+		/// Gets the main module definition.
+		/// </summary>
+		public ModuleDefinition Module
+		{
+			get { return Assembly.MainModule; }
+		}
+
+		internal ILModifiedEventArgs(AssemblyDefinition asm)
+		{
+			Assembly = asm;
 		}
 	}
 	#endregion
@@ -73,7 +95,12 @@ namespace Raptor.Api.Hooks
 		public ContentManager Content
 		{
 			get;
-			internal set;
+			private set;
+		}
+
+		internal LoadedContentEventArgs(ContentManager cm)
+		{
+			Content = cm;
 		}
 	}
 	#endregion
@@ -100,6 +127,12 @@ namespace Raptor.Api.Hooks
 			get;
 			set;
 		}
+
+		internal NewTextEventArgs(Color color, string text)
+		{
+			Color = color;
+			Text = text;
+		}
 	}
 	#endregion
 
@@ -115,7 +148,12 @@ namespace Raptor.Api.Hooks
 		public GameTime GameTime
 		{
 			get;
-			internal set;
+			private set;
+		}
+
+		internal UpdateEventArgs(GameTime gt)
+		{
+			GameTime = gt;
 		}
 	}
 	#endregion
@@ -131,7 +169,12 @@ namespace Raptor.Api.Hooks
 		public GameTime GameTime
 		{
 			get;
-			internal set;
+			private set;
+		}
+
+		internal UpdatedEventArgs(GameTime gt)
+		{
+			GameTime = gt;
 		}
 	}
 	#endregion
@@ -172,7 +215,7 @@ namespace Raptor.Api.Hooks
 
 			if (Draw[type] != null)
 			{
-				var args = new DrawEventArgs { SpriteBatch = spriteBatch };
+				var args = new DrawEventArgs(spriteBatch);
 				Draw[type](null, args);
 				return args.Handled;
 			}
@@ -196,7 +239,7 @@ namespace Raptor.Api.Hooks
 		internal static void InvokeDrawn(SpriteBatch spriteBatch, string type)
 		{
 			if (Drawn[type] != null)
-				Drawn[type](null, new DrawnEventArgs { SpriteBatch = spriteBatch });
+				Drawn[type](null, new DrawnEventArgs(spriteBatch));
 		}
 		#endregion
 
@@ -222,7 +265,7 @@ namespace Raptor.Api.Hooks
 		internal static void InvokeILModified(AssemblyDefinition asm)
 		{
 			if (ILModified != null)
-				ILModified(null, new ILModifiedEventArgs { Assembly = asm });
+				ILModified(null, new ILModifiedEventArgs(asm));
 		}
 		#endregion
 
@@ -232,12 +275,12 @@ namespace Raptor.Api.Hooks
 		/// </summary>
 		public static event EventHandler<LoadedContentEventArgs> LoadedContent;
 
-		internal static void InvokeLoadedContent(ContentManager content)
+		internal static void InvokeLoadedContent(ContentManager cm)
 		{
-			Raptor.LoadedContent(content);
+			Raptor.LoadedContent(cm);
 
 			if (LoadedContent != null)
-				LoadedContent(null, new LoadedContentEventArgs { Content = content });
+				LoadedContent(null, new LoadedContentEventArgs(cm));
 		}
 		#endregion
 
@@ -253,7 +296,7 @@ namespace Raptor.Api.Hooks
 
 			if (NewText != null)
 			{
-				var args = new NewTextEventArgs { Color = new Color(r, g, b), Text = text };
+				var args = new NewTextEventArgs(new Color(r, g, b), text);
 				NewText(null, args);
 
 				if (!args.Handled)
@@ -269,13 +312,13 @@ namespace Raptor.Api.Hooks
 		/// The event that runs before the game is updated each frame.
 		/// </summary>
 		public static event EventHandler<UpdateEventArgs> Update;
-		internal static bool InvokeUpdate(GameTime gameTime)
+		internal static bool InvokeUpdate(GameTime gt)
 		{
 			Raptor.Update();
 
 			if (Update != null)
 			{
-				var args = new UpdateEventArgs { GameTime = gameTime };
+				var args = new UpdateEventArgs(gt);
 				Update(null, args);
 				return args.Handled;
 			}
@@ -287,10 +330,10 @@ namespace Raptor.Api.Hooks
 		/// The event that runs after the game is updated each frame.
 		/// </summary>
 		public static event EventHandler<UpdatedEventArgs> Updated;
-		internal static void InvokeUpdated(GameTime gameTime)
+		internal static void InvokeUpdated(GameTime gt)
 		{
 			if (Updated != null)
-				Updated(null, new UpdatedEventArgs { GameTime = gameTime });
+				Updated(null, new UpdatedEventArgs(gt));
 		}
 		#endregion
 	}

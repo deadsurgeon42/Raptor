@@ -94,25 +94,22 @@ namespace Raptor
 			{
 				int length = 0;
 
-				using (var ms = new MemoryStream(NetMessage.buffer[256].writeBuffer, true))
+				using (var writer = new BinaryWriter(new MemoryStream(NetMessage.buffer[256].writeBuffer, true)))
 				{
-					using (var writer = new BinaryWriter(ms))
-					{
-						writer.BaseStream.Position = 4;
+					writer.BaseStream.Position = 4;
 
-						writer.Write((byte)PacketTypes.Raptor);
-						writer.Write((byte)RaptorPacketTypes.Region);
+					writer.Write((byte)PacketTypes.Raptor);
+					writer.Write((byte)RaptorPacketTypes.Region);
 
-						writer.Write(region.Area.X);
-						writer.Write(region.Area.Y);
-						writer.Write(region.Area.Width - 1);
-						writer.Write(region.Area.Height - 1);
-						writer.Write(region.Name);
+					writer.Write(region.Area.X);
+					writer.Write(region.Area.Y);
+					writer.Write(region.Area.Width - 1);
+					writer.Write(region.Area.Height - 1);
+					writer.Write(region.Name);
 
-						length = (int)writer.BaseStream.Position;
-						writer.BaseStream.Position = 0;
-						writer.Write(length - 4);
-					}
+					length = (int)writer.BaseStream.Position;
+					writer.BaseStream.Position = 0;
+					writer.Write(length - 4);
 				}
 
 				ClientSock cs = Netplay.clientSock;
@@ -129,21 +126,18 @@ namespace Raptor
 			{
 				int length = 0;
 
-				using (var ms = new MemoryStream(NetMessage.buffer[256].writeBuffer, true))
+				using (var writer = new BinaryWriter(new MemoryStream(NetMessage.buffer[256].writeBuffer, true)))
 				{
-					using (var writer = new BinaryWriter(ms))
-					{
-						writer.BaseStream.Position = 4;
+					writer.BaseStream.Position = 4;
 
-						writer.Write((byte)PacketTypes.Raptor);
-						writer.Write((byte)RaptorPacketTypes.RegionDelete);
+					writer.Write((byte)PacketTypes.Raptor);
+					writer.Write((byte)RaptorPacketTypes.RegionDelete);
 
-						writer.Write(region.Name);
+					writer.Write(region.Name);
 
-						length = (int)writer.BaseStream.Position;
-						writer.BaseStream.Position = 0;
-						writer.Write(length - 4);
-					}
+					length = (int)writer.BaseStream.Position;
+					writer.BaseStream.Position = 0;
+					writer.Write(length - 4);
 				}
 
 				ClientSock cs = Netplay.clientSock;
@@ -160,23 +154,20 @@ namespace Raptor
 			{
 				int length = 0;
 
-				using (var ms = new MemoryStream(NetMessage.buffer[256].writeBuffer, true))
+				using (var writer = new BinaryWriter(new MemoryStream(NetMessage.buffer[256].writeBuffer, true)))
 				{
-					using (var writer = new BinaryWriter(ms))
-					{
-						writer.BaseStream.Position = 4;
+					writer.BaseStream.Position = 4;
 
-						writer.Write((byte)PacketTypes.Raptor);
-						writer.Write((byte)RaptorPacketTypes.Warp);
+					writer.Write((byte)PacketTypes.Raptor);
+					writer.Write((byte)RaptorPacketTypes.Warp);
 
-						writer.Write(warp.Position.X);
-						writer.Write(warp.Position.Y);
-						writer.Write(warp.Name);
+					writer.Write(warp.Position.X);
+					writer.Write(warp.Position.Y);
+					writer.Write(warp.Name);
 
-						length = (int)writer.BaseStream.Position;
-						writer.BaseStream.Position = 0;
-						writer.Write(length - 4);
-					}
+					length = (int)writer.BaseStream.Position;
+					writer.BaseStream.Position = 0;
+					writer.Write(length - 4);
 				}
 
 				ClientSock cs = Netplay.clientSock;
@@ -193,21 +184,18 @@ namespace Raptor
 			{
 				int length = 0;
 
-				using (var ms = new MemoryStream(NetMessage.buffer[256].writeBuffer, true))
+				using (var writer = new BinaryWriter(new MemoryStream(NetMessage.buffer[256].writeBuffer, true)))
 				{
-					using (var writer = new BinaryWriter(ms))
-					{
-						writer.BaseStream.Position = 4;
+					writer.BaseStream.Position = 4;
 
-						writer.Write((byte)PacketTypes.Raptor);
-						writer.Write((byte)RaptorPacketTypes.WarpDelete);
+					writer.Write((byte)PacketTypes.Raptor);
+					writer.Write((byte)RaptorPacketTypes.WarpDelete);
 
-						writer.Write(warp.Name);
+					writer.Write(warp.Name);
 
-						length = (int)writer.BaseStream.Position;
-						writer.BaseStream.Position = 0;
-						writer.Write(length - 4);
-					}
+					length = (int)writer.BaseStream.Position;
+					writer.BaseStream.Position = 0;
+					writer.Write(length - 4);
 				}
 
 				ClientSock cs = Netplay.clientSock;
