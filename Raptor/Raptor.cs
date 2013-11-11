@@ -87,29 +87,18 @@ namespace Raptor
 		/// <summary>
 		/// Gets the configuration file.
 		/// </summary>
-		public static Config Config
-		{
-			get;
-			internal set;
-		}
+		public static Config Config { get; internal set; }
 		/// <summary>
 		/// Gets the lua instance.
 		/// </summary>
-		public static Lua Lua
-		{
-			get;
-			internal set;
-		}
+		public static Lua Lua { get; internal set; }
 		static List<string> negatedPermissions = new List<string>();
 		/// <summary>
 		/// Gets the list of negated TShock permissions.
 		/// </summary>
 		public static ReadOnlyCollection<string> NegatedPermissions
 		{
-			get
-			{
-				return new ReadOnlyCollection<string>(negatedPermissions);
-			}
+			get { return new ReadOnlyCollection<string>(negatedPermissions); }
 		}
 		static List<string> permissions = new List<string>();
 		/// <summary>
@@ -117,40 +106,28 @@ namespace Raptor
 		/// </summary>
 		public static ReadOnlyCollection<string> Permissions
 		{
-			get
-			{
-				return new ReadOnlyCollection<string>(permissions);
-			}
+			get { return new ReadOnlyCollection<string>(permissions); }
 		}
 
+		internal static void DeInitialize()
+		{
+			Lua.Dispose();
+		}
 		internal static void Initialize()
 		{
 			Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
-			
-			string version = "Raptor v" + ClientApi.ApiVersion;
-			ClientApi.Main.Window.Title = version;
-			Main.chTitle = false;
-			Main.versionNumber = "Terraria " + Main.versionNumber + "\n" + version;
+			Main.versionNumber = "Terraria " + Main.versionNumber + "\nRaptor v" + ClientApi.ApiVersion;
 
 			Commands.Init();
-
-			#region Config
 			string configPath = Path.Combine("Raptor", "config.json");
 			if (!File.Exists(configPath))
-			{
-				Config = new Config();
-				File.WriteAllText(configPath, JsonConvert.SerializeObject(Config, Formatting.Indented));
-			}
+				File.WriteAllText(configPath, JsonConvert.SerializeObject(Config = new Config(), Formatting.Indented));
 			else
 				Config = JsonConvert.DeserializeObject<Config>(File.ReadAllText(configPath));
-
-			Main.mouseTextColorChange = 0;
-			Main.showSplash = Config.ShowSplashScreen;
-			#endregion
-
 			Lua = new Lua();
 			Lua.LoadCLRPackage();
 
+			Main.showSplash = Config.ShowSplashScreen;
 			ClientApi.Main.Window.ClientSizeChanged += Window_ClientSizeChanged;
 		}
 

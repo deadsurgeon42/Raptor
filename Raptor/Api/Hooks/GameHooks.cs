@@ -11,180 +11,26 @@ using Terraria;
 
 namespace Raptor.Api.Hooks
 {
-	#region DrawEventArgs
-	/// <summary>
-	/// Event arguments for Draw hooks.
-	/// </summary>
-	public class DrawEventArgs : HandledEventArgs
-	{
-		/// <summary>
-		/// Gets the sprite batch.
-		/// </summary>
-		public SpriteBatch SpriteBatch
-		{
-			get;
-			private set;
-		}
-
-		internal DrawEventArgs(SpriteBatch sb)
-		{
-			SpriteBatch = sb;
-		}
-	}
-	#endregion
-	#region DrawnEventArgs
-	/// <summary>
-	/// Event arguments for Drawn hooks.
-	/// </summary>
-	public class DrawnEventArgs : EventArgs
-	{
-		/// <summary>
-		/// Gets the sprite batch.
-		/// </summary>
-		public SpriteBatch SpriteBatch
-		{
-			get;
-			private set;
-		}
-
-		internal DrawnEventArgs(SpriteBatch sb)
-		{
-			SpriteBatch = sb;
-		}
-	}
-	#endregion
-
-	#region ILModifiedEventArgs
-	/// <summary>
-	/// Event arguments for ILModified hooks.
-	/// </summary>
-	public class ILModifiedEventArgs : EventArgs
-	{
-		/// <summary>
-		/// Gets the assembly definition.
-		/// </summary>
-		public AssemblyDefinition Assembly
-		{
-			get;
-			private set;
-		}
-		/// <summary>
-		/// Gets the main module definition.
-		/// </summary>
-		public ModuleDefinition Module
-		{
-			get { return Assembly.MainModule; }
-		}
-
-		internal ILModifiedEventArgs(AssemblyDefinition asm)
-		{
-			Assembly = asm;
-		}
-	}
-	#endregion
-
-	#region LoadedContentEventArgs
-	/// <summary>
-	/// Event arguments for LoadedContent hooks.
-	/// </summary>
-	public class LoadedContentEventArgs : EventArgs
-	{
-		/// <summary>
-		/// Gets the content manager used for loading content.
-		/// </summary>
-		public ContentManager Content
-		{
-			get;
-			private set;
-		}
-
-		internal LoadedContentEventArgs(ContentManager cm)
-		{
-			Content = cm;
-		}
-	}
-	#endregion
-
-	#region NewTextEventArgs
-	/// <summary>
-	/// Event arguments for NewText hooks.
-	/// </summary>
-	public class NewTextEventArgs : HandledEventArgs
-	{
-		/// <summary>
-		/// Gets or sets the color.
-		/// </summary>
-		public Color Color
-		{
-			get;
-			set;
-		}
-		/// <summary>
-		/// Gets or sets the text.
-		/// </summary>
-		public string Text
-		{
-			get;
-			set;
-		}
-
-		internal NewTextEventArgs(Color color, string text)
-		{
-			Color = color;
-			Text = text;
-		}
-	}
-	#endregion
-
-	#region UpdateEventArgs
-	/// <summary>
-	/// Event arguments for Update hooks.
-	/// </summary>
-	public class UpdateEventArgs : HandledEventArgs
-	{
-		/// <summary>
-		/// Gets the game time.
-		/// </summary>
-		public GameTime GameTime
-		{
-			get;
-			private set;
-		}
-
-		internal UpdateEventArgs(GameTime gt)
-		{
-			GameTime = gt;
-		}
-	}
-	#endregion
-	#region UpdatedEventArgs
-	/// <summary>
-	/// Event arguments for Updated hooks.
-	/// </summary>
-	public class UpdatedEventArgs : EventArgs
-	{
-		/// <summary>
-		/// Gets the game time.
-		/// </summary>
-		public GameTime GameTime
-		{
-			get;
-			private set;
-		}
-
-		internal UpdatedEventArgs(GameTime gt)
-		{
-			GameTime = gt;
-		}
-	}
-	#endregion
-
 	/// <summary>
 	/// The API's game hooks.
 	/// </summary>
 	public static class GameHooks
 	{
 		#region Draw
+		/// <summary>
+		/// Event arguments for Draw hooks.
+		/// </summary>
+		public class DrawEventArgs : HandledEventArgs
+		{
+			/// <summary>
+			/// Gets the sprite batch.
+			/// </summary>
+			public SpriteBatch SpriteBatch { get; private set; }
+			internal DrawEventArgs(SpriteBatch sb)
+			{
+				SpriteBatch = sb;
+			}
+		}
 		/// <summary>
 		/// The events that run before drawing certain things.
 		/// </summary>
@@ -197,7 +43,6 @@ namespace Raptor.Api.Hooks
 			{ "Menu", null },
 			{ "Map", null },
 		};
-
 		internal static bool InvokeDraw(SpriteBatch spriteBatch, string type)
 		{
 			switch (type)
@@ -224,6 +69,21 @@ namespace Raptor.Api.Hooks
 		#endregion
 		#region Drawn
 		/// <summary>
+		/// Event arguments for Drawn hooks.
+		/// </summary>
+		public class DrawnEventArgs : EventArgs
+		{
+			/// <summary>
+			/// Gets the sprite batch.
+			/// </summary>
+			public SpriteBatch SpriteBatch { get; private set; }
+
+			internal DrawnEventArgs(SpriteBatch sb)
+			{
+				SpriteBatch = sb;
+			}
+		}
+		/// <summary>
 		/// The events that run after drawing certain things.
 		/// </summary>
 		public static Dictionary<string, EventHandler<DrawnEventArgs>> Drawn = new Dictionary<string, EventHandler<DrawnEventArgs>>
@@ -235,7 +95,6 @@ namespace Raptor.Api.Hooks
 			{ "Menu", null },
 			{ "Map", null },
 		};
-
 		internal static void InvokeDrawn(SpriteBatch spriteBatch, string type)
 		{
 			if (Drawn[type] != null)
@@ -259,6 +118,27 @@ namespace Raptor.Api.Hooks
 
 		#region ILModified
 		/// <summary>
+		/// Event arguments for ILModified hooks.
+		/// </summary>
+		public class ILModifiedEventArgs : EventArgs
+		{
+			/// <summary>
+			/// Gets the assembly definition.
+			/// </summary>
+			public AssemblyDefinition Assembly { get; private set; }
+			/// <summary>
+			/// Gets the main module definition.
+			/// </summary>
+			public ModuleDefinition Module
+			{
+				get { return Assembly.MainModule; }
+			}
+			internal ILModifiedEventArgs(AssemblyDefinition asm)
+			{
+				Assembly = asm;
+			}
+		}
+		/// <summary>
 		/// The event that runs after the game's IL is modified.
 		/// </summary>
 		public static event EventHandler<ILModifiedEventArgs> ILModified;
@@ -271,10 +151,23 @@ namespace Raptor.Api.Hooks
 
 		#region LoadedContent
 		/// <summary>
+		/// Event arguments for LoadedContent hooks.
+		/// </summary>
+		public class LoadedContentEventArgs : EventArgs
+		{
+			/// <summary>
+			/// Gets the content manager used for loading content.
+			/// </summary>
+			public ContentManager Content { get; private set; }
+			internal LoadedContentEventArgs(ContentManager cm)
+			{
+				Content = cm;
+			}
+		}
+		/// <summary>
 		/// The event that runs after the game loaded content.
 		/// </summary>
 		public static event EventHandler<LoadedContentEventArgs> LoadedContent;
-
 		internal static void InvokeLoadedContent(ContentManager cm)
 		{
 			Raptor.LoadedContent(cm);
@@ -285,6 +178,25 @@ namespace Raptor.Api.Hooks
 		#endregion
 
 		#region NewText
+		/// <summary>
+		/// Event arguments for NewText hooks.
+		/// </summary>
+		public class NewTextEventArgs : HandledEventArgs
+		{
+			/// <summary>
+			/// Gets or sets the color.
+			/// </summary>
+			public Color Color { get; set; }
+			/// <summary>
+			/// Gets or sets the text.
+			/// </summary>
+			public string Text { get; set; }
+			internal NewTextEventArgs(Color color, string text)
+			{
+				Color = color;
+				Text = text;
+			}
+		}
 		/// <summary>
 		/// The event that runs before new text is printed.
 		/// </summary>
@@ -309,6 +221,20 @@ namespace Raptor.Api.Hooks
 
 		#region Update
 		/// <summary>
+		/// Event arguments for Update hooks.
+		/// </summary>
+		public class UpdateEventArgs : HandledEventArgs
+		{
+			/// <summary>
+			/// Gets the game time.
+			/// </summary>
+			public GameTime GameTime { get; private set; }
+			internal UpdateEventArgs(GameTime gt)
+			{
+				GameTime = gt;
+			}
+		}
+		/// <summary>
 		/// The event that runs before the game is updated each frame.
 		/// </summary>
 		public static event EventHandler<UpdateEventArgs> Update;
@@ -326,6 +252,20 @@ namespace Raptor.Api.Hooks
 		}
 		#endregion
 		#region Updated
+		/// <summary>
+		/// Event arguments for Updated hooks.
+		/// </summary>
+		public class UpdatedEventArgs : EventArgs
+		{
+			/// <summary>
+			/// Gets the game time.
+			/// </summary>
+			public GameTime GameTime { get; private set; }
+			internal UpdatedEventArgs(GameTime gt)
+			{
+				GameTime = gt;
+			}
+		}
 		/// <summary>
 		/// The event that runs after the game is updated each frame.
 		/// </summary>

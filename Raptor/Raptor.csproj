@@ -124,6 +124,7 @@
   <ItemGroup>
     <Compile Include="Api\ApiVersionAttribute.cs" />
     <Compile Include="Api\ClientApi.cs" />
+    <Compile Include="Api\Hooks\PlayerHooks.cs" />
     <Compile Include="Api\TShock\RaptorPacketTypes.cs" />
     <Compile Include="Api\Hooks\GameHooks.cs" />
     <Compile Include="Api\Hooks\ItemHooks.cs" />

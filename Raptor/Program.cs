@@ -15,7 +15,7 @@ namespace Raptor
 {
 	class Program
 	{
-		const BindingFlags allFlags = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static;
+		const BindingFlags FLAGS = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static;
 		static Dictionary<string, string> drawHooks = new Dictionary<string, string>
 		{
 			{ "DrawChat", "NPCChat" },
@@ -25,25 +25,31 @@ namespace Raptor
 			{ "DrawMap", "Map" },
 		};
 		static Assembly terraria;
-		const string registry = @"SOFTWARE\Re-Logic\Terraria";
+		const string PIRACY_MSG = "You do not appear to have a legitimate copy of Terraria. If this is not the case, perhaps try re-installing.";
+		const string REGISTRY = @"SOFTWARE\Re-Logic\Terraria";
 		
 		[STAThread]
 		static void Main()
 		{
-			string path = (string)Registry.LocalMachine.OpenSubKey(registry).GetValue("Install_Path", null);
+			RegistryKey rk = Registry.LocalMachine.OpenSubKey(REGISTRY);
+			if (rk == null)
+			{
+				MessageBox.Show(PIRACY_MSG, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				return;
+			}
+
+			string path = (string)Registry.LocalMachine.OpenSubKey(REGISTRY).GetValue("Install_Path", null);
 
 			#region Piracy checks
 			if (path == null || !File.Exists(Path.Combine(path, "Terraria.exe")))
 			{
-				MessageBox.Show("Sorry, you do not appear to have a legitimate copy of Terraria.", "Error",
-					MessageBoxButtons.OK, MessageBoxIcon.Error);
+				MessageBox.Show(PIRACY_MSG, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 				return;
 			}
 
-			if (Directory.GetCurrentDirectory() == path)
+			if (File.Exists("Terraria.exe"))
 			{
-				MessageBox.Show("Please do not run this program in the same folder as Terraria.", "Error",
-					MessageBoxButtons.OK, MessageBoxIcon.Error);
+				MessageBox.Show("Do not run this program in the same folder as Terraria.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 				return;
 			}
 
@@ -56,8 +62,7 @@ namespace Raptor
 				var steamApiInit = asm.GetMethod("Steam", "SteamAPI_Init");
 				if (!steamApiInit.IsPInvokeImpl || steamApiInit.PInvokeInfo.Module.Name != "steam_api.dll")
 				{
-					MessageBox.Show("Sorry, you do not appear to have a legitimate copy of Terraria.", "Error",
-						MessageBoxButtons.OK, MessageBoxIcon.Error);
+					MessageBox.Show(PIRACY_MSG, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 					return;
 				}
 
@@ -68,8 +73,7 @@ namespace Raptor
 					Instruction.Create(OpCodes.Stsfld, asm.GetField("Steam", "SteamInit")),
 					Instruction.Create(OpCodes.Ret)))
 				{
-					MessageBox.Show("Sorry, you do not appear to have a legitimate copy of Terraria.", "Error",
-						MessageBoxButtons.OK, MessageBoxIcon.Error);
+					MessageBox.Show(PIRACY_MSG, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 					return;
 				}
 
@@ -93,207 +97,278 @@ namespace Raptor
 
 				if (!foundCheck)
 				{
-					MessageBox.Show("Sorry, you do not appear to have a legitimate copy of Terraria.", "Error",
-						MessageBoxButtons.OK, MessageBoxIcon.Error);
+					MessageBox.Show(PIRACY_MSG, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 					return;
 				}
 			}
 			catch
 			{
 				// Exception here means piracy
-				MessageBox.Show("Sorry, you do not appear to have a legitimate copy of Terraria.", "Error",
-					MessageBoxButtons.OK, MessageBoxIcon.Error);
+				MessageBox.Show(PIRACY_MSG, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 				return;
 			}
 			#endregion
 			#region IL injection
-			var itemSetDefaults = asm.GetMethod("Item", "SetDefaults", new[] { "Int32", "Boolean" });
-			// ItemHooks.InvokeSetDefaults(this);
-			itemSetDefaults.InsertEnd(
-				Instruction.Create(OpCodes.Ldarg_0),
-				Instruction.Create(OpCodes.Call, mod.Import(typeof(ItemHooks).GetMethod("InvokeSetDefaults", allFlags))));
-			
-			var keyinPreFilterMessage = asm.GetType("keyBoardInput").NestedTypes[0].Methods[0];
-			// Input.FilterMessage(m); return false;
-			keyinPreFilterMessage.InsertStart(
-				Instruction.Create(OpCodes.Ldarg_1),
-				Instruction.Create(OpCodes.Call, mod.Import(typeof(Input).GetMethod("FilterMessage", allFlags))),
-				Instruction.Create(OpCodes.Ldc_I4_0),
-				Instruction.Create(OpCodes.Ret));
-
-			#region Draw
-			var mainDraw = asm.GetMethod("Main", "Draw");
-			// if (GameHooks.InvokeDraw(this.spriteBatch, "")) { base.Draw(gameTime); return; }
-			mainDraw.InsertStart(
-				Instruction.Create(OpCodes.Ldarg_0),
-				Instruction.Create(OpCodes.Ldfld, asm.GetField("Main", "spriteBatch")),
-				Instruction.Create(OpCodes.Ldstr, ""),
-				Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeDraw", allFlags))),
-				Instruction.Create(OpCodes.Brfalse_S, mainDraw.Body.Instructions[0]),
-				Instruction.Create(OpCodes.Ldarg_0),
-				Instruction.Create(OpCodes.Ldarg_1),
-				Instruction.Create(OpCodes.Call, mod.Import(typeof(Game).GetMethod("Draw", allFlags))),
-				Instruction.Create(OpCodes.Ret));
-			mainDraw.InsertEnd(
-				Instruction.Create(OpCodes.Ldarg_0),
-				Instruction.Create(OpCodes.Ldfld, asm.GetField("Main", "spriteBatch")),
-				Instruction.Create(OpCodes.Ldstr, ""),
-				Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeDrawn", allFlags))));
-			
-			var mainDrawInterface = asm.GetMethod("Main", "DrawInterface");
-			for (int i = mainDrawInterface.Body.Instructions.Count - 1; i >= 0; i--)
+			#region Item
 			{
-				var instr = mainDrawInterface.Body.Instructions[i];
-
-				if (instr.OpCode == OpCodes.Ldfld && ((FieldReference)instr.Operand).Name == "spriteBatch" &&
-					instr.Next.OpCode == OpCodes.Ldsfld && ((FieldReference)instr.Next.Operand).Name == "cursorTexture")
-				{
-					var target = mainDrawInterface.Body.Instructions[i];
-					while (target.OpCode != OpCodes.Callvirt || ((MethodReference)target.Operand).Name != "Draw")
-						target = target.Next;
-					mainDrawInterface.InsertAfter(instr,
-						Instruction.Create(OpCodes.Call, mod.Import(typeof(Raptor).GetMethod("DrawCursor", allFlags))),
-						Instruction.Create(OpCodes.Br_S, target.Next));
-				}
+				var itemSetDefaults = asm.GetMethod("Item", "SetDefaults", new[] { "Int32", "Boolean" });
+				// ItemHooks.InvokeSetDefaults(this);
+				itemSetDefaults.InsertEnd(
+					Instruction.Create(OpCodes.Ldarg_0),
+					Instruction.Create(OpCodes.Call, mod.Import(typeof(ItemHooks).GetMethod("InvokeSetDefaults", FLAGS))));
 			}
-
-			foreach (KeyValuePair<string, string> kvp in drawHooks)
+			#endregion
+			#region keyBoardInput
 			{
-				var draw = asm.GetMethod("Main", kvp.Key);
+				// Input.FilterMessage(m); return false;
+				asm.GetType("keyBoardInput").NestedTypes[0].Methods[0].InsertStart(
+					Instruction.Create(OpCodes.Ldarg_1),
+					Instruction.Create(OpCodes.Call, mod.Import(typeof(Input).GetMethod("FilterMessage", FLAGS))),
+					Instruction.Create(OpCodes.Ldc_I4_0),
+					Instruction.Create(OpCodes.Ret));
+			}
+			#endregion
+			#region Main
+			{
+				var draw = asm.GetMethod("Main", "Draw");
+				// if (GameHooks.InvokeDraw(this.spriteBatch, "")) { base.Draw(gameTime); return; }
 				draw.InsertStart(
 					Instruction.Create(OpCodes.Ldarg_0),
 					Instruction.Create(OpCodes.Ldfld, asm.GetField("Main", "spriteBatch")),
-					Instruction.Create(OpCodes.Ldstr, kvp.Value),
-					Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeDraw", allFlags))),
+					Instruction.Create(OpCodes.Ldstr, ""),
+					Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeDraw", FLAGS))),
 					Instruction.Create(OpCodes.Brfalse_S, draw.Body.Instructions[0]),
+					Instruction.Create(OpCodes.Ldarg_0),
+					Instruction.Create(OpCodes.Ldarg_1),
+					Instruction.Create(OpCodes.Call, mod.Import(typeof(Game).GetMethod("Draw", FLAGS))),
 					Instruction.Create(OpCodes.Ret));
+				// GameHooks.InvokeDrawn(this.spriteBatch, "");
 				draw.InsertEnd(
 					Instruction.Create(OpCodes.Ldarg_0),
 					Instruction.Create(OpCodes.Ldfld, asm.GetField("Main", "spriteBatch")),
-					Instruction.Create(OpCodes.Ldstr, kvp.Value),
-					Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeDrawn", allFlags))));
+					Instruction.Create(OpCodes.Ldstr, ""),
+					Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeDrawn", FLAGS))));
+
+				var drawInterface = asm.GetMethod("Main", "DrawInterface");
+				for (int i = drawInterface.Body.Instructions.Count - 1; i >= 0; i--)
+				{
+					var instr = drawInterface.Body.Instructions[i];
+
+					if (instr.OpCode == OpCodes.Ldfld && ((FieldReference)instr.Operand).Name == "spriteBatch" &&
+						instr.Next.OpCode == OpCodes.Ldsfld && ((FieldReference)instr.Next.Operand).Name == "cursorTexture")
+					{
+						var target = drawInterface.Body.Instructions[i];
+						while (target.OpCode != OpCodes.Callvirt || ((MethodReference)target.Operand).Name != "Draw")
+							target = target.Next;
+
+						// Raptor.DrawCursor();
+						drawInterface.InsertAfter(instr,
+							Instruction.Create(OpCodes.Call, mod.Import(typeof(Raptor).GetMethod("DrawCursor", FLAGS))),
+							Instruction.Create(OpCodes.Br_S, target.Next));
+					}
+				}
+
+				foreach (KeyValuePair<string, string> kvp in drawHooks)
+				{
+					var method = asm.GetMethod("Main", kvp.Key);
+					method.InsertStart(
+						Instruction.Create(OpCodes.Ldarg_0),
+						Instruction.Create(OpCodes.Ldfld, asm.GetField("Main", "spriteBatch")),
+						Instruction.Create(OpCodes.Ldstr, kvp.Value),
+						Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeDraw", FLAGS))),
+						Instruction.Create(OpCodes.Brfalse_S, method.Body.Instructions[0]),
+						Instruction.Create(OpCodes.Ret));
+					method.InsertEnd(
+						Instruction.Create(OpCodes.Ldarg_0),
+						Instruction.Create(OpCodes.Ldfld, asm.GetField("Main", "spriteBatch")),
+						Instruction.Create(OpCodes.Ldstr, kvp.Value),
+						Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeDrawn", FLAGS))));
+				}
+
+				// GameHooks.InvokeInitialized();
+				asm.GetMethod("Main", "Initialize").InsertEnd(
+					Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeInitialized", FLAGS))));
+
+				// return GameHooks.InvokeInputText(oldString);
+				asm.GetMethod("Main", "GetInputText").InsertStart(
+					Instruction.Create(OpCodes.Ldarg_0),
+					Instruction.Create(OpCodes.Call, mod.Import(typeof(Input).GetMethod("GetInputText", FLAGS))),
+					Instruction.Create(OpCodes.Ret));
+
+				// GameHooks.InvokeLoadedContent(this.Content);
+				asm.GetMethod("Main", "LoadContent").InsertEnd(
+					Instruction.Create(OpCodes.Ldarg_0),
+					Instruction.Create(OpCodes.Callvirt, mod.Import(typeof(Game).GetMethod("get_Content"))),
+					Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeLoadedContent", FLAGS))));
+
+				// GameHooks.InvokeNewText(text, r, g, b); return;
+				asm.GetMethod("Main", "NewText").InsertStart(
+					Instruction.Create(OpCodes.Ldarg_0),
+					Instruction.Create(OpCodes.Ldarg_1),
+					Instruction.Create(OpCodes.Ldarg_2),
+					Instruction.Create(OpCodes.Ldarg_3),
+					Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeNewText", FLAGS))),
+					Instruction.Create(OpCodes.Ret));
+
+				var update = asm.GetMethod("Main", "Update");
+				// GameHooks.InvokeUpdate();
+				update.InsertStart(
+					Instruction.Create(OpCodes.Ldarg_1),
+					Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeUpdate", FLAGS))),
+					Instruction.Create(OpCodes.Brfalse_S, update.Body.Instructions[0]),
+					Instruction.Create(OpCodes.Ldarg_0),
+					Instruction.Create(OpCodes.Ldarg_1),
+					Instruction.Create(OpCodes.Call, mod.Import(typeof(Game).GetMethod("Update", FLAGS))),
+					Instruction.Create(OpCodes.Ret));
+
+				var disabledKeyboard = mod.Import(typeof(Input).GetField("DisabledKeyboard"));
+				var disabledMouse = mod.Import(typeof(Input).GetField("DisabledMouse"));
+
+				for (int i = update.Body.Instructions.Count - 1; i >= 0; i--)
+				{
+					var instr = update.Body.Instructions[i];
+					if (instr.OpCode == OpCodes.Call && ((MethodReference)instr.Operand).ReturnType.Name == "MouseState")
+					{
+						update.InsertBefore(instr,
+							Instruction.Create(OpCodes.Ldsfld, disabledMouse),
+							Instruction.Create(OpCodes.Brtrue_S, instr.Next.Next));
+					}
+					else if (instr.OpCode == OpCodes.Call && ((MethodReference)instr.Operand).ReturnType.Name == "KeyboardState")
+					{
+						update.InsertBefore(instr,
+							Instruction.Create(OpCodes.Ldsfld, disabledKeyboard),
+							Instruction.Create(OpCodes.Brtrue_S, instr.Next.Next));
+					}
+				}
+
+				// GameHooks.InvokeUpdated();
+				update.InsertEnd(
+					Instruction.Create(OpCodes.Ldarg_1),
+					Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeUpdated", FLAGS))));
 			}
 			#endregion
-
-			var mainInitialize = asm.GetMethod("Main", "Initialize");
-			// GameHooks.InvokeInitialized();
-			mainInitialize.InsertEnd(
-				Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeInitialized", allFlags))));
-			
-			var mainInputText = asm.GetMethod("Main", "GetInputText");
-			// return GameHooks.InvokeInputText(oldString);
-			mainInputText.InsertStart(
-				Instruction.Create(OpCodes.Ldarg_0),
-				Instruction.Create(OpCodes.Call, mod.Import(typeof(Input).GetMethod("GetInputText", allFlags))),
-				Instruction.Create(OpCodes.Ret));
-
-			var mainLoadContent = asm.GetMethod("Main", "LoadContent");
-			// GameHooks.InvokeLoadedContent(this.Content);
-			mainLoadContent.InsertEnd(
-				Instruction.Create(OpCodes.Ldarg_0),
-				Instruction.Create(OpCodes.Callvirt, mod.Import(typeof(Game).GetMethod("get_Content"))),
-				Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeLoadedContent", allFlags))));
-			
-			var mainNewText = asm.GetMethod("Main", "NewText");
-			// GameHooks.InvokeNewText(text, r, g, b); return;
-			mainNewText.InsertStart(
-				Instruction.Create(OpCodes.Ldarg_0),
-				Instruction.Create(OpCodes.Ldarg_1),
-				Instruction.Create(OpCodes.Ldarg_2),
-				Instruction.Create(OpCodes.Ldarg_3),
-				Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeNewText", allFlags))),
-				Instruction.Create(OpCodes.Ret));
-
-			var mainUpdate = asm.GetMethod("Main", "Update");
-			// GameHooks.InvokeUpdate();
-			mainUpdate.InsertStart(
-				Instruction.Create(OpCodes.Ldarg_1),
-				Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeUpdate", allFlags))),
-				Instruction.Create(OpCodes.Brfalse_S, mainUpdate.Body.Instructions[0]),
-				Instruction.Create(OpCodes.Ldarg_0),
-				Instruction.Create(OpCodes.Ldarg_1),
-				Instruction.Create(OpCodes.Call, mod.Import(typeof(Game).GetMethod("Update", allFlags))),
-				Instruction.Create(OpCodes.Ret));
-
-			var disabledKeyboard = mod.Import(typeof(Input).GetField("DisabledKeyboard"));
-			var disabledMouse = mod.Import(typeof(Input).GetField("DisabledMouse"));
-
-			for (int i = mainUpdate.Body.Instructions.Count - 1; i >= 0; i--)
+			#region messageBuffer
 			{
-				var instr = mainUpdate.Body.Instructions[i];
-				if (instr.OpCode == OpCodes.Call && ((MethodReference)instr.Operand).ReturnType.Name == "MouseState")
-				{
-					mainUpdate.InsertBefore(instr,
-						Instruction.Create(OpCodes.Ldsfld, disabledMouse),
-						Instruction.Create(OpCodes.Brtrue_S, instr.Next.Next));
-				}
-				else if (instr.OpCode == OpCodes.Call && ((MethodReference)instr.Operand).ReturnType.Name == "KeyboardState")
-				{
-					mainUpdate.InsertBefore(instr,
-						Instruction.Create(OpCodes.Ldsfld, disabledKeyboard),
-						Instruction.Create(OpCodes.Brtrue_S, instr.Next.Next));
-				}
+				var getData = asm.GetMethod("messageBuffer", "GetData");
+				// if (NetHooks.InvokeGetData(start, length)) return;
+				getData.InsertStart(
+					Instruction.Create(OpCodes.Ldarg_1),
+					Instruction.Create(OpCodes.Ldarg_2),
+					Instruction.Create(OpCodes.Call, mod.Import(typeof(NetHooks).GetMethod("InvokeGetData", FLAGS))),
+					Instruction.Create(OpCodes.Brfalse_S, getData.Body.Instructions[0]),
+					Instruction.Create(OpCodes.Ret));
+
+				// NetHooks.InvokeGotData(start, length);
+				getData.InsertEnd(
+					Instruction.Create(OpCodes.Ldarg_1),
+					Instruction.Create(OpCodes.Ldarg_2),
+					Instruction.Create(OpCodes.Call, mod.Import(typeof(NetHooks).GetMethod("InvokeGotData", FLAGS))));
 			}
+			#endregion
+			#region NetMessage
+			{
+				var sendData = asm.GetMethod("NetMessage", "SendData");
+				// if (NetHooks.InvokeSendData(msgType, text, number, number2, number3, number4, number5)) return;
+				sendData.InsertStart(
+					Instruction.Create(OpCodes.Ldarg_0),
+					Instruction.Create(OpCodes.Ldarg_3),
+					Instruction.Create(OpCodes.Ldarg_S, sendData.Parameters[4]),
+					Instruction.Create(OpCodes.Ldarg_S, sendData.Parameters[5]),
+					Instruction.Create(OpCodes.Ldarg_S, sendData.Parameters[6]),
+					Instruction.Create(OpCodes.Ldarg_S, sendData.Parameters[7]),
+					Instruction.Create(OpCodes.Ldarg_S, sendData.Parameters[8]),
+					Instruction.Create(OpCodes.Call, mod.Import(typeof(NetHooks).GetMethod("InvokeSendData", FLAGS))),
+					Instruction.Create(OpCodes.Brfalse_S, sendData.Body.Instructions[0]),
+					Instruction.Create(OpCodes.Ret));
 
-			// GameHooks.InvokeUpdated();
-			mainUpdate.InsertEnd(
-				Instruction.Create(OpCodes.Ldarg_1),
-				Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeUpdated", allFlags))));
-			
-			var messageBufferGetData = asm.GetMethod("messageBuffer", "GetData");
-			// if (NetHooks.InvokeGetData(start, length)) return;
-			messageBufferGetData.InsertStart(
-				Instruction.Create(OpCodes.Ldarg_1),
-				Instruction.Create(OpCodes.Ldarg_2),
-				Instruction.Create(OpCodes.Call, mod.Import(typeof(NetHooks).GetMethod("InvokeGetData", allFlags))),
-				Instruction.Create(OpCodes.Brfalse_S, messageBufferGetData.Body.Instructions[0]),
-				Instruction.Create(OpCodes.Ret));
+				// NetHooks.InvokeSentData(msgType, text, number, number2, number3, number4, number5));
+				sendData.InsertEnd(
+					Instruction.Create(OpCodes.Ldarg_0),
+					Instruction.Create(OpCodes.Ldarg_3),
+					Instruction.Create(OpCodes.Ldarg_S, sendData.Parameters[4]),
+					Instruction.Create(OpCodes.Ldarg_S, sendData.Parameters[5]),
+					Instruction.Create(OpCodes.Ldarg_S, sendData.Parameters[6]),
+					Instruction.Create(OpCodes.Ldarg_S, sendData.Parameters[7]),
+					Instruction.Create(OpCodes.Ldarg_S, sendData.Parameters[8]),
+					Instruction.Create(OpCodes.Call, mod.Import(typeof(NetHooks).GetMethod("InvokeSentData", FLAGS))));
+			}
+			#endregion
+			#region NPC
+			{
+				// NpcHooks.InvokeProcessAI(this);
+				asm.GetMethod("NPC", "AI").InsertStart(
+					Instruction.Create(OpCodes.Ldarg_0),
+					Instruction.Create(OpCodes.Call, mod.Import(typeof(NpcHooks).GetMethod("InvokeProcessAI", FLAGS))));
 
-			// NetHooks.InvokeGotData(start, length);
-			messageBufferGetData.InsertEnd(
-				Instruction.Create(OpCodes.Ldarg_1),
-				Instruction.Create(OpCodes.Ldarg_2),
-				Instruction.Create(OpCodes.Call, mod.Import(typeof(NetHooks).GetMethod("InvokeGotData", allFlags))));
-			
-			var netMessageSendData = asm.GetMethod("NetMessage", "SendData");
-			// if (NetHooks.InvokeSendData(msgType, text, number, number2, number3, number4, number5)) return;
-			netMessageSendData.InsertStart(
-				Instruction.Create(OpCodes.Ldarg_0),
-				Instruction.Create(OpCodes.Ldarg_3),
-				Instruction.Create(OpCodes.Ldarg_S, netMessageSendData.Parameters[4]),
-				Instruction.Create(OpCodes.Ldarg_S, netMessageSendData.Parameters[5]),
-				Instruction.Create(OpCodes.Ldarg_S, netMessageSendData.Parameters[6]),
-				Instruction.Create(OpCodes.Ldarg_S, netMessageSendData.Parameters[7]),
-				Instruction.Create(OpCodes.Ldarg_S, netMessageSendData.Parameters[8]),
-				Instruction.Create(OpCodes.Call, mod.Import(typeof(NetHooks).GetMethod("InvokeSendData", allFlags))),
-				Instruction.Create(OpCodes.Brfalse_S, netMessageSendData.Body.Instructions[0]),
-				Instruction.Create(OpCodes.Ret));
+				var setDefaults = asm.GetMethod("NPC", "SetDefaults", new[] { "Int32", "Single" });
+				// NpcHooks.InvokeSetDefaults(this);
+				setDefaults.InsertEnd(
+					Instruction.Create(OpCodes.Ldarg_0),
+					Instruction.Create(OpCodes.Call, mod.Import(typeof(NpcHooks).GetMethod("InvokeSetDefaults", FLAGS))));
+			}
+			#endregion
+			#region Player
+			{
+				var hurt = asm.GetMethod("Player", "Hurt");
+				hurt.InsertStart(
+					Instruction.Create(OpCodes.Ldarg_0),
+					Instruction.Create(OpCodes.Ldarg_1),
+					Instruction.Create(OpCodes.Ldarg_3),
+					Instruction.Create(OpCodes.Ldarg_S, hurt.Parameters[5]),
+					Instruction.Create(OpCodes.Call, mod.Import(typeof(PlayerHooks).GetMethod("InvokeHurt", FLAGS))),
+					Instruction.Create(OpCodes.Brfalse_S, hurt.Body.Instructions[0]),
+					Instruction.Create(OpCodes.Ldc_R8, 0.0),
+					Instruction.Create(OpCodes.Ret));
 
-			// NetHooks.InvokeSentData(msgType, text, number, number2, number3, number4, number5));
-			netMessageSendData.InsertEnd(
-				Instruction.Create(OpCodes.Ldarg_0),
-				Instruction.Create(OpCodes.Ldarg_3),
-				Instruction.Create(OpCodes.Ldarg_S, netMessageSendData.Parameters[4]),
-				Instruction.Create(OpCodes.Ldarg_S, netMessageSendData.Parameters[5]),
-				Instruction.Create(OpCodes.Ldarg_S, netMessageSendData.Parameters[6]),
-				Instruction.Create(OpCodes.Ldarg_S, netMessageSendData.Parameters[7]),
-				Instruction.Create(OpCodes.Ldarg_S, netMessageSendData.Parameters[8]),
-				Instruction.Create(OpCodes.Call, mod.Import(typeof(NetHooks).GetMethod("InvokeSentData", allFlags))));
-			
-			// NpcHooks.InvokeProcessAI(this);
-			asm.GetMethod("NPC", "AI").InsertStart(
-				Instruction.Create(OpCodes.Ldarg_0),
-				Instruction.Create(OpCodes.Call, mod.Import(typeof(NpcHooks).GetMethod("InvokeProcessAI", allFlags))));
+				var killMe = asm.GetMethod("Player", "KillMe");
+				killMe.InsertStart(
+					Instruction.Create(OpCodes.Ldarg_0),
+					Instruction.Create(OpCodes.Ldarg_1),
+					Instruction.Create(OpCodes.Ldarg_3),
+					Instruction.Create(OpCodes.Ldarg_S, killMe.Parameters[3]),
+					Instruction.Create(OpCodes.Call, mod.Import(typeof(PlayerHooks).GetMethod("InvokeKill", FLAGS))),
+					Instruction.Create(OpCodes.Brfalse_S, killMe.Body.Instructions[0]),
+					Instruction.Create(OpCodes.Ret));
 
-			var npcSetDefaults = asm.GetMethod("NPC", "SetDefaults", new[] { "Int32", "Single" });
-			// NpcHooks.InvokeSetDefaults(this);
-			npcSetDefaults.InsertEnd(
-				Instruction.Create(OpCodes.Ldarg_0),
-				Instruction.Create(OpCodes.Call, mod.Import(typeof(NpcHooks).GetMethod("InvokeSetDefaults", allFlags))));
-			
-			// return;
-			asm.GetMethod("Steam", "Kill").InsertStart(
-				Instruction.Create(OpCodes.Ret));
+				var update = asm.GetMethod("Player", "UpdatePlayer");
+
+				// PlayerHooks.InvokeUpdate(this);
+				update.InsertStart(
+					Instruction.Create(OpCodes.Ldarg_0),
+					Instruction.Create(OpCodes.Call, mod.Import(typeof(PlayerHooks).GetMethod("InvokeUpdate", FLAGS))));
+				for (int i = 0; i < update.Body.Instructions.Count; i++)
+				{
+					var instr = update.Body.Instructions[i];
+					if (instr.OpCode == OpCodes.Stfld && ((FieldReference)instr.Operand).Name == "rangedCrit" &&
+						instr.Previous.OpCode == OpCodes.Add)
+					{
+						// PlayerHooks.InvokeUpdateVars(this);
+						update.InsertAfter(instr,
+							Instruction.Create(OpCodes.Ldarg_0),
+							Instruction.Create(OpCodes.Call, mod.Import(typeof(PlayerHooks).GetMethod("InvokeUpdateVars", FLAGS))));
+					}
+					if (instr.OpCode == OpCodes.Stfld && ((FieldReference)instr.Operand).Name == "lifeRegenCount")
+					{
+						// PlayerHooks.InvokeUpdatedVars(this);
+						update.InsertAfter(instr,
+							Instruction.Create(OpCodes.Ldarg_0),
+							Instruction.Create(OpCodes.Call, mod.Import(typeof(PlayerHooks).GetMethod("InvokeUpdatedVars", FLAGS))));
+						break;
+					}
+				}
+				// PlayerHooks.InvokeUpdated(this);
+				update.InsertEnd(
+					Instruction.Create(OpCodes.Ldarg_0),
+					Instruction.Create(OpCodes.Call, mod.Import(typeof(PlayerHooks).GetMethod("InvokeUpdated", FLAGS))));
+			}
+			#endregion
+			#region Steam
+			{
+				// return;
+				asm.GetMethod("Steam", "Kill").InsertStart(
+					Instruction.Create(OpCodes.Ret));
+			}
+			#endregion
 
 			// Force everything public
 			foreach (var type in mod.Types)
@@ -313,7 +388,8 @@ namespace Raptor
 #if DEBUG
 			asm.Write("debug.exe");
 #endif
-			terraria = Assembly.Load(ms.GetBuffer());
+			terraria = Assembly.Load(ms.ToArray());
+			ms.Dispose();
 
 			AppDomain.CurrentDomain.AssemblyResolve += (o, args) =>
 			{
@@ -340,14 +416,13 @@ namespace Raptor
 			Directory.CreateDirectory("Plugins");
 			Directory.CreateDirectory("Raptor").CreateSubdirectory("Scripts");
 
-			Log.Initialize();
-			ClientApi.Initialize();
 			Run(path);
-			ClientApi.DeInitialize();
-			Log.DeInitialize();
 		}
 		static void Run(string path)
 		{
+			Log.Initialize();
+			ClientApi.Initialize();
+
 			using (ClientApi.Main = new Main())
 			{
 				try
@@ -363,6 +438,10 @@ namespace Raptor
 					MessageBox.Show("An unhandled exception occurred: " + e, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 				}
 			}
+
+			Raptor.DeInitialize();
+			ClientApi.DeInitialize();
+			Log.DeInitialize();
 		}
 	}
 }

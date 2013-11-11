@@ -35,6 +35,10 @@ namespace Raptor.Api
 		{
 			Order = 0;
 		}
+		~TerrariaPlugin()
+		{
+			Dispose(false);
+		}
 
 		/// <summary>
 		/// Disposes the plugin.
