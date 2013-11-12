@@ -410,7 +410,10 @@ namespace Raptor
 				foreach (var method in type.Methods)
 					method.IsPublic = true;
 			}
-
+			
+			Log.Initialize();
+			ClientApi.Initialize();
+			GameHooks.InvokeILModified(asm);
 			using (var ms = new MemoryStream())
 			{
 				asm.Write(ms);
@@ -438,17 +441,6 @@ namespace Raptor
 				return null;
 			};
 
-			Log.Initialize();
-			ClientApi.Initialize();
-			// Reload assembly
-			GameHooks.InvokeILModified(asm);
-			using (var ms = new MemoryStream())
-			{
-				asm.Write(ms);
-				terraria = Assembly.Load(ms.ToArray());
-			}
-
-			// Delete local Terraria.exe copy, if it exists, forcing AssemblyResolve event later on
 			Directory.CreateDirectory("Logs");
 			Directory.CreateDirectory("Plugins");
 			Directory.CreateDirectory("Raptor").CreateSubdirectory("Scripts");

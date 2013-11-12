@@ -25,7 +25,7 @@ namespace Raptor.Api
 			get;
 			internal set;
 		}
-		static List<TerrariaPlugin> plugins = new List<TerrariaPlugin>();
+		internal static List<TerrariaPlugin> plugins = new List<TerrariaPlugin>();
 
 		/// <summary>
 		/// Gets the list of loaded plugins.
