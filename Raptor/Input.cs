@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.Xna.Framework.Input;
@@ -26,11 +27,9 @@ namespace Raptor
 			Enter = 16,
 		}
 
-		static int keys;
-		static int specialKeys;
-		static char[] keyCodes = new char[10];
-		static byte[] specialKeyCodes = new byte[10];
-
+		static List<char> charCodes = new List<char>();
+		static List<byte> vkCodes = new List<byte>();
+		
 		static KeyboardState LastKeyboard = Microsoft.Xna.Framework.Input.Keyboard.GetState();
 		static MouseState LastMouse = Microsoft.Xna.Framework.Input.Mouse.GetState();
 		static KeyboardState Keyboard = Microsoft.Xna.Framework.Input.Keyboard.GetState();
@@ -172,21 +171,21 @@ namespace Raptor
 
 		internal static void FilterMessage(ref System.Windows.Forms.Message m)
 		{
+			// WM_KEYDOWN
 			if (m.Msg == 0x100)
 			{
-				if (specialKeys < 10)
-					specialKeyCodes[specialKeys++] = (byte)m.WParam;
+				vkCodes.Add((byte)m.WParam);
 
+				// Translate message
 				IntPtr ptr = Marshal.AllocHGlobal(Marshal.SizeOf(m));
 				Marshal.StructureToPtr(m, ptr, true);
 				TranslateMessage(ptr);
 			}
-			// WM_CHAR
-			else if (m.Msg == 0x102)
-			{
-				if (keys < 10)
-					keyCodes[keys++] = (char)m.WParam;
-			}
+		}
+		internal static void Form_KeyPress(object o, System.Windows.Forms.KeyPressEventArgs e)
+		{
+			if (e.KeyChar >= 20 && e.KeyChar != 127)
+				charCodes.Add(e.KeyChar);
 		}
 		internal static string GetInputText(string text)
 		{
@@ -236,7 +235,7 @@ namespace Raptor
 		{
 			return Keyboard.IsKeyDown(key) && LastKeyboard.IsKeyUp(key);
 		}
-		[DllImport("user32.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Auto)]
+		[DllImport("user32.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
 		static extern bool TranslateMessage(IntPtr message);
 		internal static void Update()
 		{
@@ -245,16 +244,15 @@ namespace Raptor
 			LastMouse = Mouse;
 			Mouse = Microsoft.Xna.Framework.Input.Mouse.GetState();
 
-			ActiveSpecialKeys = 0;
 			TypedString = "";
-			for (int i = 0; i < keys; i++)
+			for (int i = 0; i < charCodes.Count; i++)
+				TypedString += charCodes[i];
+			charCodes.Clear();
+
+			ActiveSpecialKeys = 0;
+			for (int i = 0; i < vkCodes.Count; i++)
 			{
-				if (keyCodes[i] >= 32 && keyCodes[i] != 127)
-					TypedString += keyCodes[i];
-			}
-			for (int i = 0; i < specialKeys; i++)
-			{
-				switch (specialKeyCodes[i])
+				switch (vkCodes[i])
 				{
 					case 0x08:
 						ActiveSpecialKeys |= SpecialKeys.Backspace;
@@ -273,7 +271,7 @@ namespace Raptor
 						break;
 				}
 			}
-			keys = specialKeys = 0;
+			vkCodes.Clear();
 		}
 	}
 }

@@ -15,6 +15,8 @@ using Raptor.Api.Commands;
 using Raptor.Api.TShock;
 using Terraria;
 
+using Form = System.Windows.Forms.Form;
+
 namespace Raptor
 {
 	/// <summary>
@@ -128,7 +130,10 @@ namespace Raptor
 			Lua.LoadCLRPackage();
 
 			Main.showSplash = Config.ShowSplashScreen;
-			ClientApi.Main.Window.ClientSizeChanged += Window_ClientSizeChanged;
+			
+			Form form = (Form)Form.FromHandle(ClientApi.Main.Window.Handle);
+			form.ClientSizeChanged += Form_ClientSizeChanged;
+			form.KeyPress += Input.Form_KeyPress;
 		}
 
 		internal static void Draw(SpriteBatch sb)
@@ -974,7 +979,7 @@ namespace Raptor
 				Utils.SendAcknowledge();
 		}
 		
-		internal static void Window_ClientSizeChanged(object sender, EventArgs e)
+		internal static void Form_ClientSizeChanged(object sender, EventArgs e)
 		{
 			int newWidth = ClientApi.Main.Window.ClientBounds.Width;
 			if (newWidth < 800)
