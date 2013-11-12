@@ -109,7 +109,7 @@ namespace Raptor
 				return;
 			}
 			#endregion
-			#region IL injection
+
 			#region Item
 			{
 				var itemSetDefaults = asm.GetMethod("Item", "SetDefaults", new[] { "Int32", "Boolean" });
@@ -410,20 +410,6 @@ namespace Raptor
 				foreach (var method in type.Methods)
 					method.IsPublic = true;
 			}
-			#endregion
-
-			Log.Initialize();
-			ClientApi.Initialize();
-			GameHooks.InvokeILModified(asm);
-
-			using (var ms = new MemoryStream())
-			{
-				asm.Write(ms);
-#if DEBUG
-				asm.Write("debug.exe");
-#endif
-				terraria = Assembly.Load(ms.ToArray());
-			}
 
 			AppDomain.CurrentDomain.AssemblyResolve += (o, args) =>
 			{
@@ -444,6 +430,18 @@ namespace Raptor
 				return null;
 			};
 
+			Log.Initialize();
+			ClientApi.Initialize();
+			GameHooks.InvokeILModified(asm);
+
+			using (var ms = new MemoryStream())
+			{
+				asm.Write(ms);
+#if DEBUG
+				asm.Write("debug.exe");
+#endif
+				terraria = Assembly.Load(ms.ToArray());
+			}
 			// Delete local Terraria.exe copy, if it exists, forcing AssemblyResolve event later on
 			File.Delete("Terraria.exe");
 			Directory.CreateDirectory("Logs");
@@ -451,6 +449,9 @@ namespace Raptor
 			Directory.CreateDirectory("Raptor").CreateSubdirectory("Scripts");
 
 			Run(path);
+			Raptor.DeInitialize();
+			ClientApi.DeInitialize();
+			Log.DeInitialize();
 		}
 		static void Run(string path)
 		{
@@ -469,10 +470,6 @@ namespace Raptor
 					MessageBox.Show("An unhandled exception occurred: " + e, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 				}
 			}
-
-			Raptor.DeInitialize();
-			ClientApi.DeInitialize();
-			Log.DeInitialize();
 		}
 	}
 }
