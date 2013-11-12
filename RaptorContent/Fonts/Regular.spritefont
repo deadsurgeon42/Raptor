@@ -51,17 +51,30 @@ with.
     See the documentation for more information.
     -->
     <CharacterRegions>
+      <!-- Latin characters -->
       <CharacterRegion>
-        <Start>&#32;</Start>
-        <End>&#255;</End>
+        <Start>&#x0020;</Start>
+        <End>&#x007e;</End>
       </CharacterRegion>
+      <!-- Accented Latin characters-->
       <CharacterRegion>
-        <Start>&#9650;</Start>
-        <End>&#9650;</End>
+        <Start>&#x00a0;</Start>
+        <End>&#x00ff;</End>
       </CharacterRegion>
+      <!-- Greek characters -->
       <CharacterRegion>
-        <Start>&#9660;</Start>
-        <End>&#9660;</End>
+        <Start>&#x0391;</Start>
+        <End>&#x03c9;</End>
+      </CharacterRegion>
+      <!-- Cyrillic characters -->
+      <CharacterRegion>
+        <Start>&#x0401;</Start>
+        <End>&#x045f;</End>
+      </CharacterRegion>
+      <!-- Unicode shape characters -->
+      <CharacterRegion>
+        <Start>&#x25b2;</Start>
+        <End>&#x25c4;</End>
       </CharacterRegion>
     </CharacterRegions>
   </Asset>
