@@ -410,9 +410,11 @@ namespace Raptor
 				foreach (var method in type.Methods)
 					method.IsPublic = true;
 			}
-
-			GameHooks.InvokeILModified(asm);
 			#endregion
+
+			Log.Initialize();
+			ClientApi.Initialize();
+			GameHooks.InvokeILModified(asm);
 
 			using (var ms = new MemoryStream())
 			{
@@ -452,9 +454,6 @@ namespace Raptor
 		}
 		static void Run(string path)
 		{
-			Log.Initialize();
-			ClientApi.Initialize();
-
 			using (ClientApi.Main = new Main())
 			{
 				try
