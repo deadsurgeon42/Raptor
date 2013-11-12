@@ -18,11 +18,12 @@ namespace Raptor
 		const BindingFlags FLAGS = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static;
 		static Dictionary<string, string> drawHooks = new Dictionary<string, string>
 		{
+			{ "DrawInterface", "Interface" },
+			{ "DrawInventory", "Inventory" },
+			{ "DrawMap", "Map" },
+			{ "DrawMenu", "Menu" },
 			{ "DrawChat", "NPCChat" },
 			{ "DrawPlayerChat", "PlayerChat" },
-			{ "DrawInterface", "Interface" },
-			{ "DrawMenu", "Menu" },
-			{ "DrawMap", "Map" },
 		};
 		static Assembly terraria;
 		const string PIRACY_MSG = "You do not appear to have a legitimate copy of Terraria. If this is not the case, perhaps try re-installing.";
@@ -330,8 +331,38 @@ namespace Raptor
 					Instruction.Create(OpCodes.Brfalse_S, killMe.Body.Instructions[0]),
 					Instruction.Create(OpCodes.Ret));
 
-				var update = asm.GetMethod("Player", "UpdatePlayer");
+				var load = asm.GetMethod("Player", "LoadPlayer");
+				for (int i = 0; i < load.Body.Instructions.Count; i++)
+				{
+					var instr = load.Body.Instructions[i];
+					if (instr.OpCode == OpCodes.Callvirt && ((MethodReference)instr.Operand).Name == "Close")
+					{
+						// PlayerHooks.InvokeLoaded(binaryReader);
+						load.InsertBefore(instr,
+							Instruction.Create(OpCodes.Dup),
+							Instruction.Create(OpCodes.Call, mod.Import(typeof(PlayerHooks).GetMethod("InvokeLoaded", FLAGS))));
+						break;
+					}
+				}
 
+				var save = asm.GetMethod("Player", "SavePlayer");
+				// PlayerHooks.InvokeSave();
+				save.InsertStart(
+					Instruction.Create(OpCodes.Call, mod.Import(typeof(PlayerHooks).GetMethod("InvokeSave", FLAGS))));
+				for (int i = 0; i < save.Body.Instructions.Count; i++)
+				{
+					var instr = save.Body.Instructions[i];
+					if (instr.OpCode == OpCodes.Callvirt && ((MethodReference)instr.Operand).Name == "Close")
+					{
+						// PlayerHooks.InvokeSaved(binaryWriter);
+						save.InsertBefore(instr,
+							Instruction.Create(OpCodes.Dup),
+							Instruction.Create(OpCodes.Call, mod.Import(typeof(PlayerHooks).GetMethod("InvokeSaved", FLAGS))));
+						break;
+					}
+				}
+
+				var update = asm.GetMethod("Player", "UpdatePlayer");
 				// PlayerHooks.InvokeUpdate(this);
 				update.InsertStart(
 					Instruction.Create(OpCodes.Ldarg_0),
@@ -383,13 +414,14 @@ namespace Raptor
 			GameHooks.InvokeILModified(asm);
 			#endregion
 
-			var ms = new MemoryStream();
-			asm.Write(ms);
+			using (var ms = new MemoryStream())
+			{
+				asm.Write(ms);
 #if DEBUG
-			asm.Write("debug.exe");
+				asm.Write("debug.exe");
 #endif
-			terraria = Assembly.Load(ms.ToArray());
-			ms.Dispose();
+				terraria = Assembly.Load(ms.ToArray());
+			}
 
 			AppDomain.CurrentDomain.AssemblyResolve += (o, args) =>
 			{

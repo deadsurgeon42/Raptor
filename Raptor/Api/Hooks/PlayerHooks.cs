@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Text;
 using Terraria;
@@ -114,6 +115,68 @@ namespace Raptor.Api.Hooks
 				return args.Handled;
 			}
 			return false;
+		}
+		#endregion
+
+		#region Load
+		/// <summary>
+		/// Event arguments for Load hooks.
+		/// </summary>
+		public class LoadedEventArgs : EventArgs
+		{
+			/// <summary>
+			/// Gets the binary reader.
+			/// </summary>
+			public BinaryReader Reader { get; private set; }
+			internal LoadedEventArgs(BinaryReader reader)
+			{
+				Reader = reader;
+			}
+		}
+		/// <summary>
+		/// Occurs after a player file has been loaded.
+		/// </summary>
+		public static event EventHandler<LoadedEventArgs> Loaded;
+		internal static void InvokeLoad(BinaryReader reader)
+		{
+			if (Loaded != null)
+				Loaded(null, new LoadedEventArgs(reader));
+		}
+		#endregion
+		#region Save
+		/// <summary>
+		/// Occurs before a player file is saved.
+		/// </summary>
+		public static event EventHandler Save;
+		internal static void InvokeSave()
+		{
+			if (Save != null)
+				Save(null, EventArgs.Empty);
+		}
+		#endregion
+		#region Saved
+		/// <summary>
+		/// Event arguments for Saved hooks.
+		/// </summary>
+		public class SavedEventArgs : EventArgs
+		{
+			/// <summary>
+			/// Gets the binary writer.
+			/// </summary>
+			public BinaryWriter Writer { get; private set; }
+			internal SavedEventArgs(BinaryWriter writer)
+			{
+				Writer = writer;
+			}
+		}
+		/// <summary>
+		/// Occurs after a player file has been saved, but before it has been encrypted.
+		/// </summary>
+		public static event EventHandler<SavedEventArgs> Saved;
+		internal static void InvokeSaved(BinaryWriter writer)
+		{
+			if (Saved != null)
+				Saved(null, new SavedEventArgs(writer));
 		}
 		#endregion
 
