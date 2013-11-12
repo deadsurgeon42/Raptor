@@ -411,6 +411,14 @@ namespace Raptor
 					method.IsPublic = true;
 			}
 
+			using (var ms = new MemoryStream())
+			{
+				asm.Write(ms);
+#if DEBUG
+				asm.Write("debug.exe");
+#endif
+				terraria = Assembly.Load(ms.ToArray());
+			}
 			AppDomain.CurrentDomain.AssemblyResolve += (o, args) =>
 			{
 				if (args.Name.Split(',')[0] == "Terraria")
@@ -432,18 +440,15 @@ namespace Raptor
 
 			Log.Initialize();
 			ClientApi.Initialize();
+			// Reload assembly
 			GameHooks.InvokeILModified(asm);
-
 			using (var ms = new MemoryStream())
 			{
 				asm.Write(ms);
-#if DEBUG
-				asm.Write("debug.exe");
-#endif
 				terraria = Assembly.Load(ms.ToArray());
 			}
+
 			// Delete local Terraria.exe copy, if it exists, forcing AssemblyResolve event later on
-			File.Delete("Terraria.exe");
 			Directory.CreateDirectory("Logs");
 			Directory.CreateDirectory("Plugins");
 			Directory.CreateDirectory("Raptor").CreateSubdirectory("Scripts");
