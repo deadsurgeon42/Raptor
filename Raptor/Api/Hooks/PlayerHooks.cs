@@ -137,7 +137,7 @@ namespace Raptor.Api.Hooks
 		/// Occurs after a player file has been loaded.
 		/// </summary>
 		public static event EventHandler<LoadedEventArgs> Loaded;
-		internal static void InvokeLoad(BinaryReader reader)
+		internal static void InvokeLoaded(BinaryReader reader)
 		{
 			if (Loaded != null)
 				Loaded(null, new LoadedEventArgs(reader));
