@@ -118,39 +118,6 @@ namespace Raptor.Api.Hooks
 		}
 		#endregion
 
-		#region ILModified
-		/// <summary>
-		/// Event arguments for ILModified hooks.
-		/// </summary>
-		public class ILModifiedEventArgs : EventArgs
-		{
-			/// <summary>
-			/// Gets the assembly definition.
-			/// </summary>
-			public AssemblyDefinition Assembly { get; private set; }
-			/// <summary>
-			/// Gets the main module definition.
-			/// </summary>
-			public ModuleDefinition Module
-			{
-				get { return Assembly.MainModule; }
-			}
-			internal ILModifiedEventArgs(AssemblyDefinition asm)
-			{
-				Assembly = asm;
-			}
-		}
-		/// <summary>
-		/// The event that runs after the game's IL is modified.
-		/// </summary>
-		public static event EventHandler<ILModifiedEventArgs> ILModified;
-		internal static void InvokeILModified(AssemblyDefinition asm)
-		{
-			if (ILModified != null)
-				ILModified(null, new ILModifiedEventArgs(asm));
-		}
-		#endregion
-
 		#region LoadedContent
 		/// <summary>
 		/// Event arguments for LoadedContent hooks.

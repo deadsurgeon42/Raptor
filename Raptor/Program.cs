@@ -468,9 +468,6 @@ namespace Raptor
 					method.IsPublic = true;
 			}
 
-			Log.Initialize();
-			ClientApi.Initialize();
-			GameHooks.InvokeILModified(asm);
 			using (var ms = new MemoryStream())
 			{
 				asm.Write(ms);
@@ -502,6 +499,8 @@ namespace Raptor
 			Directory.CreateDirectory("Plugins");
 			Directory.CreateDirectory("Raptor").CreateSubdirectory("Scripts");
 
+			Log.Initialize();
+			ClientApi.Initialize();
 			Run(path);
 			Raptor.DeInitialize();
 			ClientApi.DeInitialize();
