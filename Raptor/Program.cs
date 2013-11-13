@@ -450,6 +450,24 @@ namespace Raptor
 					Instruction.Create(OpCodes.Call, mod.Import(typeof(PlayerHooks).GetMethod("InvokeUpdated", FLAGS))));
 			}
 			#endregion
+			#region Projectile
+			{
+				// ProjectileHooks.InvokeProcessAI(this);
+				asm.GetMethod("Projectile", "AI").InsertStart(
+					Instruction.Create(OpCodes.Ldarg_0),
+					Instruction.Create(OpCodes.Call, mod.Import(typeof(ProjectileHooks).GetMethod("InvokeProcessAI", FLAGS))));
+
+				// ProjectileHooks.InvokeKill(this);
+				asm.GetMethod("Projectile", "Kill").InsertEnd(
+					Instruction.Create(OpCodes.Ldarg_0),
+					Instruction.Create(OpCodes.Call, mod.Import(typeof(ProjectileHooks).GetMethod("InvokeKill", FLAGS))));
+
+				// ProjectileHooks.InvokeSetDefaults(this);
+				asm.GetMethod("Projectile", "SetDefaults").InsertEnd(
+					Instruction.Create(OpCodes.Ldarg_0),
+					Instruction.Create(OpCodes.Call, mod.Import(typeof(ProjectileHooks).GetMethod("InvokeSetDefaults", FLAGS))));
+			}
+			#endregion
 			#region Steam
 			{
 				// return;
