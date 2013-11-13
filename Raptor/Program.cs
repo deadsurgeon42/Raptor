@@ -149,7 +149,7 @@ namespace Raptor
 					Instruction.Create(OpCodes.Call, mod.Import(typeof(LightingHooks).GetMethod("InvokeColorR", FLAGS))),
 					Instruction.Create(OpCodes.Brfalse_S, colorR.Body.Instructions[0]),
 					Instruction.Create(OpCodes.Ret));
-				var colorR2 = asm.GetMethod("Lighting", "LightColorG");
+				var colorR2 = asm.GetMethod("Lighting", "LightColor2");
 				colorR2.InsertStart(
 					Instruction.Create(OpCodes.Ldarg_0),
 					Instruction.Create(OpCodes.Ldarg_1),
