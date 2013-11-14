@@ -514,7 +514,7 @@ namespace Raptor
 
 			Directory.CreateDirectory("Logs");
 			Directory.CreateDirectory("Plugins");
-			Directory.CreateDirectory("Raptor").CreateSubdirectory("Scripts");
+			Directory.CreateDirectory("Scripts");
 
 			Log.Initialize();
 			ClientApi.Initialize();

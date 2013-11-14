@@ -115,7 +115,7 @@ namespace Raptor.Api.Commands
 		}
 		static void LoadLuaCommands()
 		{
-			foreach (string path in Directory.EnumerateFiles(Path.Combine("Raptor", "Scripts"), "*.lua"))
+			foreach (string path in Directory.EnumerateFiles("Scripts", "*.lua"))
 			{
 				List<string> lines = File.ReadAllLines(path).ToList();
 				var names = new List<string> { Path.GetFileNameWithoutExtension(path) };
@@ -244,7 +244,7 @@ namespace Raptor.Api.Commands
 						}
 
 						Raptor.Config.KeyBindings.Add(key, e.Eol(2));
-						string configPath = Path.Combine("Raptor", "config.json");
+						string configPath = "raptor.config";
 						File.WriteAllText(configPath, JsonConvert.SerializeObject(Raptor.Config, Formatting.Indented));
 						Utils.NewSuccessText("Bound the key \"{0}\" to \"{1}\".", key, e.Eol(2));
 					}
@@ -252,7 +252,7 @@ namespace Raptor.Api.Commands
 				case "clr":
 					{
 						Raptor.Config.KeyBindings.Clear();
-						string configPath = Path.Combine("Raptor", "config.json");
+						string configPath = "raptor.config";
 						File.WriteAllText(configPath, JsonConvert.SerializeObject(Raptor.Config, Formatting.Indented));
 						Utils.NewSuccessText("Cleared all key bindings.");
 					}
@@ -277,7 +277,7 @@ namespace Raptor.Api.Commands
 							return;
 						}
 						Raptor.Config.KeyBindings.Remove(key);
-						string configPath = Path.Combine("Raptor", "config.json");
+						string configPath = "raptor.config";
 						File.WriteAllText(configPath, JsonConvert.SerializeObject(Raptor.Config, Formatting.Indented));
 						Utils.NewSuccessText("Unbound the key \"{0}\".", key);
 					}
@@ -299,7 +299,7 @@ namespace Raptor.Api.Commands
 			{
 				try
 				{
-					Raptor.Lua.DoFile(Path.Combine("Raptor", "Scripts", ((Command)o).Name + ".lua"));
+					Raptor.Lua.DoFile(Path.Combine("Scripts", ((Command)o).Name + ".lua"));
 				}
 				catch (Exception ex)
 				{
@@ -309,7 +309,7 @@ namespace Raptor.Api.Commands
 		}
 		static void Reload(object o, CommandEventArgs e)
 		{
-			string configPath = Path.Combine("Raptor", "config.json");
+			string configPath = "raptor.config";
 			Raptor.Config = JsonConvert.DeserializeObject<Config>(File.ReadAllText(configPath));
 
 			LuaCommands.Clear();
@@ -404,7 +404,7 @@ namespace Raptor.Api.Commands
 					Utils.NewSuccessText("Set option \"{0}\" to value \"{1}\".", fi.Name, value);
 				}
 
-				string configPath = Path.Combine("Raptor", "config.json");
+				string configPath = "raptor.config";
 				File.WriteAllText(configPath, JsonConvert.SerializeObject(Raptor.Config, Formatting.Indented));
 			}
 		}

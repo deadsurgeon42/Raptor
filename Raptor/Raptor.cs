@@ -121,7 +121,7 @@ namespace Raptor
 			Main.versionNumber = "Terraria " + Main.versionNumber + "\nRaptor v" + ClientApi.ApiVersion;
 
 			Commands.Init();
-			string configPath = Path.Combine("Raptor", "config.json");
+			string configPath = "raptor.config";
 			if (!File.Exists(configPath))
 				File.WriteAllText(configPath, JsonConvert.SerializeObject(Config = new Config(), Formatting.Indented));
 			else
