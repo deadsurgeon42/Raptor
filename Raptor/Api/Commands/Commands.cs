@@ -46,6 +46,15 @@ namespace Raptor.Api.Commands
 
 			Utils.NewErrorText("Invalid command.");
 		}
+		/// <summary>
+		/// Finds a command.
+		/// </summary>
+		/// <param name="commandName">The command name.</param>
+		/// <returns>The command.</returns>
+		public static Command Find(string commandName)
+		{
+			return ChatCommands.FirstOrDefault(c => String.Equals(c.Name, commandName, StringComparison.OrdinalIgnoreCase));
+		}
 		internal static void Init()
 		{
 			ChatCommands.Add(new Command(Edit, "edit")
@@ -134,6 +143,9 @@ namespace Raptor.Api.Commands
 		/// <param name="command">The command.</param>
 		public static void Register(Command command)
 		{
+			if (ChatCommands.Any(c => String.Equals(c.Name, command.Name, StringComparison.OrdinalIgnoreCase)))
+				throw new InvalidOperationException("Cannot register another command with the same name.");
+
 			ChatCommands.Add(command);
 		}
 		
@@ -356,7 +368,7 @@ namespace Raptor.Api.Commands
 						Utils.NewErrorText("Syntax: /set {0} <boolean>", fi.Name);
 					else if (t == typeof(int))
 						Utils.NewErrorText("Syntax: /set {0} <integer>", fi.Name);
-					else if (t == typeof(string))
+					else
 						Utils.NewErrorText("Syntax: /set {0} <string>", fi.Name);
 					return;
 				}

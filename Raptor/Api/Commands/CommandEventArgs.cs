@@ -10,7 +10,7 @@ namespace Raptor.Api.Commands
 	/// </summary>
 	public class CommandEventArgs : EventArgs
 	{
-		private List<string> parameters;
+		List<string> parameters;
 		
 		/// <summary>
 		/// Gets the parameter at the specified index, with no quotes. An index of -1 is the command itself.
@@ -23,9 +23,7 @@ namespace Raptor.Api.Commands
 			{
 				string param = parameters[index + 1];
 				if (param.StartsWith("\"") && param.EndsWith("\"") && param.Length > 1)
-				{
 					return param.Substring(1, param.Length - 2);
-				}
 				return param;
 			}
 		}
@@ -43,31 +41,42 @@ namespace Raptor.Api.Commands
 		/// <param name="str">The string.</param>
 		public CommandEventArgs(string str)
 		{
-			List<string> parameters = new List<string>();
-			StringBuilder sb = new StringBuilder();
+			var parameters = new List<string>();
+			var sb = new StringBuilder();
 
 			bool quote = false;
-
 			for (int i = 0; i < str.Length; i++)
 			{
-				if (str[i] == ' ' && !quote)
+				char c = str[i];
+
+				if (c == '\\' && ++i < str.Length)
 				{
-					parameters.Add(sb.ToString());
-					sb.Clear();
-				}
-				else
-				{
-					if (str[i] == '"' && (i == 0 || str[i - 1] != '\\'))
-					{
-						quote = !quote;
-					}
+					if (str[i] != '"' && str[i] != ' ' && str[i] != '\\')
+						sb.Append('\\');
 					sb.Append(str[i]);
 				}
+				else if (c == '"')
+				{
+					quote = !quote;
+					if (!quote || sb.Length > 0)
+					{
+						parameters.Add(sb.ToString());
+						sb.Clear();
+					}
+				}
+				else if (Char.IsWhiteSpace(c) && !quote)
+				{
+					if (sb.Length > 0)
+					{
+						parameters.Add(sb.ToString());
+						sb.Clear();
+					}
+				}
+				else
+					sb.Append(c);
 			}
-			if (sb.ToString() != "")
-			{
+			if (sb.Length > 0)
 				parameters.Add(sb.ToString());
-			}
 
 			this.parameters = parameters;
 		}

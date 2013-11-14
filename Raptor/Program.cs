@@ -39,7 +39,7 @@ namespace Raptor
 				return;
 			}
 
-			string path = (string)Registry.LocalMachine.OpenSubKey(REGISTRY).GetValue("Install_Path", null);
+			string path = (string)rk.GetValue("Install_Path", null);
 
 			#region Piracy checks
 			if (path == null || !File.Exists(Path.Combine(path, "Terraria.exe")))
@@ -475,7 +475,6 @@ namespace Raptor
 					Instruction.Create(OpCodes.Ret));
 			}
 			#endregion
-
 			// Force everything public
 			foreach (var type in mod.Types)
 			{

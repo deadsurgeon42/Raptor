@@ -118,7 +118,7 @@ namespace Raptor.Api.Hooks
 		}
 		#endregion
 
-		#region Load
+		#region Loaded
 		/// <summary>
 		/// Event arguments for Load hooks.
 		/// </summary>

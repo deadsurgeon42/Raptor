@@ -142,8 +142,8 @@
     <Compile Include="Api\Commands\CommandEventArgs.cs" />
     <Compile Include="Api\Commands\Commands.cs" />
     <Compile Include="Config.cs" />
-    <Compile Include="Extensions\GuiExtensions.cs" />
-    <Compile Include="Extensions\ILExtensions.cs" />
+    <Compile Include="GuiExtensions.cs" />
+    <Compile Include="ILExtensions.cs" />
     <Compile Include="Input.cs" />
     <Compile Include="Log.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -153,12 +153,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Game.ico" />
-    <Content Include="lua52.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="msvcr110.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\RaptorContent\RaptorContent.contentproj">
