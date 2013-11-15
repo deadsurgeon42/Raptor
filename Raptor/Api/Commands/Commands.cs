@@ -288,7 +288,7 @@ namespace Raptor.Api.Commands
 						Utils.NewInfoText("Key \"{0}\": {1}", kv.Key, kv.Value);
 					return;
 				default:
-					Utils.NewErrorText("Syntax: /{0} <add | clr | del | list> [arguments...]");
+					Utils.NewErrorText("Syntax: /{0} <add | clr | del | list> [arguments...]", e[-1]);
 					return;
 			}
 		}

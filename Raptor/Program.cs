@@ -24,6 +24,9 @@ namespace Raptor
 			{ "DrawMenu", "Menu" },
 			{ "DrawChat", "NPCChat" },
 			{ "DrawPlayerChat", "PlayerChat" },
+			{ "DrawTiles", "Tiles" },
+			{ "DrawWalls", "Walls" },
+			{ "DrawWires", "Wires" },
 		};
 		static Assembly terraria;
 		const string PIRACY_MSG = "You do not appear to have a legitimate copy of Terraria. If this is not the case, perhaps try re-installing.";

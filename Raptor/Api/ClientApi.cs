@@ -20,11 +20,7 @@ namespace Raptor.Api
 		/// <summary>
 		/// Gets the Terraria.Main instance.
 		/// </summary>
-		public static Main Main
-		{
-			get;
-			internal set;
-		}
+		public static Main Main { get; internal set; }
 		internal static List<TerrariaPlugin> plugins = new List<TerrariaPlugin>();
 
 		/// <summary>
@@ -110,12 +106,11 @@ namespace Raptor.Api
 			}
 			#endregion
 			#region Initialize plugins
-			var orderedPluginSelector =
-				from p in Plugins
-				orderby p.Order, p.Name
-				select p;
+			var orderPlugins = from p in Plugins
+							   orderby p.Order, p.Name
+							   select p;
 
-			foreach (TerrariaPlugin plugin in orderedPluginSelector)
+			foreach (TerrariaPlugin plugin in orderPlugins)
 			{
 				try
 				{
