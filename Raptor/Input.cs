@@ -184,7 +184,7 @@ namespace Raptor
 		}
 		internal static void Form_KeyPress(object o, System.Windows.Forms.KeyPressEventArgs e)
 		{
-			if (e.KeyChar >= 20 && e.KeyChar != 127)
+			if (e.KeyChar >= 32 && e.KeyChar != 127)
 				charCodes.Add(e.KeyChar);
 		}
 		internal static string GetInputText(string text)
