@@ -20,11 +20,7 @@ namespace Raptor.Api.Commands
 		/// <summary>
 		/// Gets or sets the command's help text.
 		/// </summary>
-		public string[] HelpText
-		{
-			get;
-			set;
-		}
+		public string[] HelpText { get; set; }
 		/// <summary>
 		/// Gets the command's primary name.
 		/// </summary>

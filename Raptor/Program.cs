@@ -18,6 +18,7 @@ namespace Raptor
 		const BindingFlags FLAGS = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static;
 		static Dictionary<string, string> drawHooks = new Dictionary<string, string>
 		{
+			{ "Draw", "" },
 			{ "DrawInterface", "Interface" },
 			{ "DrawInventory", "Inventory" },
 			{ "DrawMap", "Map" },
@@ -29,7 +30,7 @@ namespace Raptor
 			{ "DrawWires", "Wires" },
 		};
 		static Assembly terraria;
-		const string PIRACY_MSG = "You do not appear to have a legitimate copy of Terraria. If this is not the case, perhaps try re-installing.";
+		const string PIRACY_MSG = "You do not appear to have a legitimate copy of Terraria. If this is not the case, perhaps try re-installing it.";
 		const string REGISTRY = @"SOFTWARE\Re-Logic\Terraria";
 		
 		[STAThread]
@@ -125,7 +126,8 @@ namespace Raptor
 			#region keyBoardInput
 			{
 				// Input.FilterMessage(m); return false;
-				asm.GetType("keyBoardInput").NestedTypes[0].Methods[0].InsertStart(
+				var filterMessage = asm.GetType("keyBoardInput").NestedTypes[0].Methods[0];
+				filterMessage.InsertStart(
 					Instruction.Create(OpCodes.Ldarg_1),
 					Instruction.Create(OpCodes.Call, mod.Import(typeof(Input).GetMethod("FilterMessage", FLAGS))),
 					Instruction.Create(OpCodes.Ldc_I4_0),
@@ -191,25 +193,6 @@ namespace Raptor
 			#endregion
 			#region Main
 			{
-				var draw = asm.GetMethod("Main", "Draw");
-				// if (GameHooks.InvokeDraw(this.spriteBatch, "")) { base.Draw(gameTime); return; }
-				draw.InsertStart(
-					Instruction.Create(OpCodes.Ldarg_0),
-					Instruction.Create(OpCodes.Ldfld, asm.GetField("Main", "spriteBatch")),
-					Instruction.Create(OpCodes.Ldstr, ""),
-					Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeDraw", FLAGS))),
-					Instruction.Create(OpCodes.Brfalse_S, draw.Body.Instructions[0]),
-					Instruction.Create(OpCodes.Ldarg_0),
-					Instruction.Create(OpCodes.Ldarg_1),
-					Instruction.Create(OpCodes.Call, mod.Import(typeof(Game).GetMethod("Draw", FLAGS))),
-					Instruction.Create(OpCodes.Ret));
-				// GameHooks.InvokeDrawn(this.spriteBatch, "");
-				draw.InsertEnd(
-					Instruction.Create(OpCodes.Ldarg_0),
-					Instruction.Create(OpCodes.Ldfld, asm.GetField("Main", "spriteBatch")),
-					Instruction.Create(OpCodes.Ldstr, ""),
-					Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeDrawn", FLAGS))));
-
 				var drawInterface = asm.GetMethod("Main", "DrawInterface");
 				for (int i = drawInterface.Body.Instructions.Count - 1; i >= 0; i--)
 				{

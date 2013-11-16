@@ -20,11 +20,11 @@ namespace Raptor
 		[Flags]
 		public enum SpecialKeys
 		{
-			Up = 1,
-			Down = 2,
-			Backspace = 4,
-			V = 8,
-			Enter = 16,
+			Up = 0x01,
+			Down = 0x02,
+			Backspace = 0x04,
+			V = 0x08,
+			Enter = 0x10,
 		}
 
 		static List<char> charCodes = new List<char>();
@@ -46,14 +46,7 @@ namespace Raptor
 		{
 			get { return Keyboard.IsKeyDown(Keys.LeftAlt) || Keyboard.IsKeyDown(Keys.RightAlt); }
 		}
-		/// <summary>
-		/// Gets or sets the cursor type (normal, move, resize, etc).
-		/// </summary>
-		public static int CursorType
-		{
-			get;
-			set;
-		}
+		internal static int CursorType { get; set; }
 		/// <summary>
 		/// Gets if a control key is down.
 		/// </summary>
@@ -163,11 +156,7 @@ namespace Raptor
 		/// <summary>
 		/// Gets the string formed from the most recent WM_CHAR messages.
 		/// </summary>
-		public static string TypedString
-		{
-			get;
-			private set;
-		}
+		public static string TypedString { get; private set; }
 
 		internal static void FilterMessage(ref System.Windows.Forms.Message m)
 		{
@@ -179,7 +168,7 @@ namespace Raptor
 				// Translate message
 				IntPtr ptr = Marshal.AllocHGlobal(Marshal.SizeOf(m));
 				Marshal.StructureToPtr(m, ptr, true);
-				TranslateMessage(ptr);
+				keyBoardInput.TranslateMessage(ptr);
 			}
 		}
 		internal static void Form_KeyPress(object o, System.Windows.Forms.KeyPressEventArgs e)
@@ -194,25 +183,20 @@ namespace Raptor
 
 			Main.inputTextEnter = ActiveSpecialKeys.HasFlag(SpecialKeys.Enter);
 			
-			string newText = text;
-			if (ActiveSpecialKeys.HasFlag(SpecialKeys.Backspace) && newText.Length != 0)
+			if (ActiveSpecialKeys.HasFlag(SpecialKeys.Backspace) && text.Length != 0)
 			{
 				if (Control)
 				{
-					string[] words = newText.Split(' ');
-					newText = String.Join(" ", words, 0, words.Length - 1);
+					string[] words = text.Split(' ');
+					return String.Join(" ", words, 0, words.Length - 1);
 				}
 				else
-					newText = newText.Substring(0, newText.Length - 1);
+					return text.Substring(0, text.Length - 1);
 			}
 			else if (Control && ActiveSpecialKeys.HasFlag(SpecialKeys.V) && Clipboard.ContainsText())
-			{
-				newText += Clipboard.GetText();
-			}
+				return text + Clipboard.GetText();
 			else
-				newText += TypedString;
-
-			return newText;
+				return text + TypedString;
 		}
 		/// <summary>
 		/// Gets if a key is down.
@@ -235,8 +219,6 @@ namespace Raptor
 		{
 			return Keyboard.IsKeyDown(key) && LastKeyboard.IsKeyUp(key);
 		}
-		[DllImport("user32.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-		static extern bool TranslateMessage(IntPtr message);
 		internal static void Update()
 		{
 			LastKeyboard = Keyboard;

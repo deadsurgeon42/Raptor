@@ -10,10 +10,17 @@ using Terraria;
 namespace Raptor
 {
 	/// <summary>
-	/// Contains various utility methods.
+	/// Contains various utility getters/setters and methods.
 	/// </summary>
 	public static class Utils
 	{
+		/// <summary>
+		/// Gets the local player.
+		/// </summary>
+		public static Player LocalPlayer
+		{
+			get { return Main.player[Main.myPlayer]; }
+		}
 		/// <summary>
 		/// Gets whether the client has the specified TShock permission.
 		/// </summary>
@@ -55,7 +62,8 @@ namespace Raptor
 		/// <param name="args">The arguments.</param>
 		public static void NewErrorText(string format, params object[] args)
 		{
-			Main.NewText(String.Format(format, args), 255, 0, 0);
+			if (!Main.gameMenu)
+				Main.NewText(String.Format(format, args), 255, 0, 0);
 		}
 		/// <summary>
 		/// Prints an info message.
@@ -64,7 +72,8 @@ namespace Raptor
 		/// <param name="args">The arguments.</param>
 		public static void NewInfoText(string format, params object[] args)
 		{
-			Main.NewText(String.Format(format, args), 255, 255, 0);
+			if (!Main.gameMenu)
+				Main.NewText(String.Format(format, args), 255, 255, 0);
 		}
 		/// <summary>
 		/// Prints a success message.
@@ -73,7 +82,8 @@ namespace Raptor
 		/// <param name="args">The arguments.</param>
 		public static void NewSuccessText(string format, params object[] args)
 		{
-			Main.NewText(String.Format(format, args), 0, 128, 0);
+			if (!Main.gameMenu)
+				Main.NewText(String.Format(format, args), 0, 128, 0);
 		}
 		/// <summary>
 		/// Sends the Acknowledge packet.

@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
@@ -126,8 +127,24 @@ namespace Raptor
 				File.WriteAllText(configPath, JsonConvert.SerializeObject(Config = new Config(), Formatting.Indented));
 			else
 				Config = JsonConvert.DeserializeObject<Config>(File.ReadAllText(configPath));
+
 			Lua = new Lua();
 			Lua.LoadCLRPackage();
+			if (File.Exists(Path.Combine("Scripts", "startup.lua")))
+			{
+				Task.Factory.StartNew(() =>
+				{
+					try
+					{
+						Lua.DoFile(Path.Combine("Scripts", "startup.lua"));
+					}
+					catch (Exception ex)
+					{
+						Log.LogError("Startup script error:");
+						Log.LogError(ex.ToString());
+					}
+				});
+			}
 
 			Main.showSplash = Config.ShowSplashScreen;
 			

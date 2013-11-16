@@ -36,48 +36,11 @@ namespace Raptor.Api.Commands
 		}
 
 		/// <summary>
-		/// Creates new command event arguments from a string.
+		/// Creates new command event arguments from a list of parameters.
 		/// </summary>
-		/// <param name="str">The string.</param>
-		public CommandEventArgs(string str)
+		/// <param name="parameters">The parameters.</param>
+		public CommandEventArgs(List<string> parameters)
 		{
-			var parameters = new List<string>();
-			var sb = new StringBuilder();
-
-			bool quote = false;
-			for (int i = 0; i < str.Length; i++)
-			{
-				char c = str[i];
-
-				if (c == '\\' && ++i < str.Length)
-				{
-					if (str[i] != '"' && str[i] != ' ' && str[i] != '\\')
-						sb.Append('\\');
-					sb.Append(str[i]);
-				}
-				else if (c == '"')
-				{
-					quote = !quote;
-					if (!quote || sb.Length > 0)
-					{
-						parameters.Add(sb.ToString());
-						sb.Clear();
-					}
-				}
-				else if (Char.IsWhiteSpace(c) && !quote)
-				{
-					if (sb.Length > 0)
-					{
-						parameters.Add(sb.ToString());
-						sb.Clear();
-					}
-				}
-				else
-					sb.Append(c);
-			}
-			if (sb.Length > 0)
-				parameters.Add(sb.ToString());
-
 			this.parameters = parameters;
 		}
 

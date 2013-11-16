@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 using Microsoft.Xna.Framework.Input;
 using Newtonsoft.Json;
@@ -33,7 +34,7 @@ namespace Raptor.Api.Commands
 		/// <param name="text">The command text.</param>
 		public static void Execute(string text)
 		{
-			var args = new CommandEventArgs(text);
+			var args = new CommandEventArgs(ParseParameters(text));
 			
 			foreach (Command c in ChatCommands.Concat(LuaCommands))
 			{
@@ -117,6 +118,9 @@ namespace Raptor.Api.Commands
 		{
 			foreach (string path in Directory.EnumerateFiles("Scripts", "*.lua"))
 			{
+				if (path.EndsWith("startup.lua", StringComparison.OrdinalIgnoreCase))
+					continue;
+
 				List<string> lines = File.ReadAllLines(path).ToList();
 				var names = new List<string> { Path.GetFileNameWithoutExtension(path) };
 
@@ -136,6 +140,51 @@ namespace Raptor.Api.Commands
 
 				LuaCommands.Add(command);
 			}
+		}
+		/// <summary>
+		/// Parses parameters from an input string.
+		/// </summary>
+		/// <param name="str">The input.</param>
+		/// <returns>The parsed parameters.</returns>
+		public static List<string> ParseParameters(string str)
+		{
+			var parameters = new List<string>();
+			var sb = new StringBuilder();
+
+			bool quote = false;
+			for (int i = 0; i < str.Length; i++)
+			{
+				char c = str[i];
+
+				if (c == '\\' && ++i < str.Length)
+				{
+					if (str[i] != '"' && str[i] != ' ' && str[i] != '\\')
+						sb.Append('\\');
+					sb.Append(str[i]);
+				}
+				else if (c == '"')
+				{
+					quote = !quote;
+					if (!quote || sb.Length > 0)
+					{
+						parameters.Add(sb.ToString());
+						sb.Clear();
+					}
+				}
+				else if (Char.IsWhiteSpace(c) && !quote)
+				{
+					if (sb.Length > 0)
+					{
+						parameters.Add(sb.ToString());
+						sb.Clear();
+					}
+				}
+				else
+					sb.Append(c);
+			}
+			if (sb.Length > 0)
+				parameters.Add(sb.ToString());
+			return parameters;
 		}
 		/// <summary>
 		/// Registers a command.
@@ -328,7 +377,7 @@ namespace Raptor.Api.Commands
 			if (Main.netMode == 1)
 				NetMessage.SendData(25, -1, -1, e.Eol(0));
 			else
-				Main.NewText("<" + Main.player[Main.myPlayer].name + "> " + e.Eol(0));
+				Main.NewText(String.Format("<{0}> {1}", Main.player[Main.myPlayer].name, e.Eol(0)));
 		}
 		static void Set(object o, CommandEventArgs e)
 		{
