@@ -11,6 +11,25 @@ namespace Raptor
 	/// </summary>
 	public static class ILExtensions
 	{
+		static readonly Dictionary<OpCode, OpCode> shortToLong = new Dictionary<OpCode, OpCode>
+		{
+			{ OpCodes.Beq_S, OpCodes.Beq },
+			{ OpCodes.Bge_S, OpCodes.Bge },
+			{ OpCodes.Bge_Un_S, OpCodes.Bge_Un },
+			{ OpCodes.Bgt_S, OpCodes.Bgt },
+			{ OpCodes.Bgt_Un_S, OpCodes.Bgt_Un },
+			{ OpCodes.Ble_S, OpCodes.Ble },
+			{ OpCodes.Ble_Un_S, OpCodes.Ble_Un },
+			{ OpCodes.Blt_S, OpCodes.Blt },
+			{ OpCodes.Blt_Un_S, OpCodes.Blt_Un },
+			{ OpCodes.Bne_Un_S, OpCodes.Bne_Un },
+			{ OpCodes.Br_S, OpCodes.Br },
+			{ OpCodes.Brfalse_S, OpCodes.Brfalse },
+			{ OpCodes.Brtrue_S, OpCodes.Brtrue },
+			{ OpCodes.Leave_S, OpCodes.Leave }
+		};
+		internal static List<MethodDefinition> shortToLongMethods = new List<MethodDefinition>();
+
 		/// <summary>
 		/// Creates a shallow copy of an instruction.
 		/// </summary>
@@ -61,52 +80,24 @@ namespace Raptor
 			}
 			return null;
 		}
-		static Dictionary<OpCode, OpCode> shortToLong = new Dictionary<OpCode,OpCode>
+		/// <summary>
+		/// Fixes all short branches.
+		/// </summary>
+		public static void FixShortBranches()
 		{
-			{ OpCodes.Beq_S, OpCodes.Beq },
-			{ OpCodes.Bge_S, OpCodes.Bge },
-			{ OpCodes.Bge_Un_S, OpCodes.Bge_Un },
-			{ OpCodes.Bgt_S, OpCodes.Bgt },
-			{ OpCodes.Bgt_Un_S, OpCodes.Bgt_Un },
-			{ OpCodes.Ble_S, OpCodes.Ble },
-			{ OpCodes.Ble_Un_S, OpCodes.Ble_Un },
-			{ OpCodes.Blt_S, OpCodes.Blt },
-			{ OpCodes.Blt_Un_S, OpCodes.Blt_Un },
-			{ OpCodes.Bne_Un_S, OpCodes.Bne_Un },
-			{ OpCodes.Br_S, OpCodes.Br },
-			{ OpCodes.Brfalse_S, OpCodes.Brfalse },
-			{ OpCodes.Brtrue_S, OpCodes.Brtrue },
-			{ OpCodes.Leave_S, OpCodes.Leave }
-		};
+			foreach (MethodDefinition md in shortToLongMethods)
+				md.FixShortBranches();
+		}
 		/// <summary>
 		/// Fixes short branches in a method.
 		/// </summary>
 		/// <param name="md">The method.</param>
 		public static void FixShortBranches(this MethodDefinition md)
 		{
-			for (int i = 0; i < md.Body.Instructions.Count; i++)
+			foreach (Instruction instr in md.Body.Instructions)
 			{
-				var instr = md.Body.Instructions[i];
 				if (instr.OpCode.OperandType == OperandType.ShortInlineBrTarget)
-				{
-					int offset = 0;
-					int target = md.Body.Instructions.IndexOf((Instruction)instr.Operand);
-
-					if (target > i)
-					{
-						for (int j = i + 1; j < target; j++)
-							offset += md.Body.Instructions[j].GetSize();
-					}
-					else
-					{
-						for (int j = i; j >= target; j--)
-							offset -= md.Body.Instructions[j].GetSize();
-					}
-
-					// Short branches can only go 127 positive and 128 negative.
-					if (offset < -128 || offset > 127)
-						instr.OpCode = shortToLong[instr.OpCode];
-				}
+					instr.OpCode = shortToLong[instr.OpCode];
 			}
 		}
 		/// <summary>
@@ -172,7 +163,8 @@ namespace Raptor
 			for (int j = instructions.Length - 1; j >= 0; j--)
 				ilp.InsertAfter(target, instructions[j]);
 
-			md.FixShortBranches();
+			if (!shortToLongMethods.Contains(md))
+				shortToLongMethods.Add(md);
 		}
 		/// <summary>
 		/// Inserts instructions before a target in a method.
@@ -190,7 +182,8 @@ namespace Raptor
 			for (int i = instructions.Length - 1; i >= 0; i--)
 				ilp.InsertAfter(target, instructions[i]);
 
-			md.FixShortBranches();
+			if (!shortToLongMethods.Contains(md))
+				shortToLongMethods.Add(md);
 		}
 		/// <summary>
 		/// Inserts instructions at the end(s) of a method.
@@ -212,7 +205,8 @@ namespace Raptor
 				}
 			}
 
-			md.FixShortBranches();
+			if (!shortToLongMethods.Contains(md))
+				shortToLongMethods.Add(md);
 		}
 		/// <summary>
 		/// Inserts instructions at the start of a method.

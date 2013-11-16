@@ -130,6 +130,7 @@ namespace Raptor
 
 			Lua = new Lua();
 			Lua.LoadCLRPackage();
+			
 			if (File.Exists(Path.Combine("Scripts", "startup.lua")))
 			{
 				Task.Factory.StartNew(() =>

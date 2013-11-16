@@ -461,6 +461,9 @@ namespace Raptor
 					Instruction.Create(OpCodes.Ret));
 			}
 			#endregion
+
+			ILExtensions.FixShortBranches();
+
 			// Force everything public
 			foreach (var type in mod.Types)
 			{
