@@ -35,17 +35,13 @@ namespace Raptor.Api.Commands
 		public static void Execute(string text)
 		{
 			var args = new CommandEventArgs(ParseParameters(text));
-			
-			foreach (Command c in ChatCommands.Concat(LuaCommands))
-			{
-				if (c.Names.Contains(args[-1].ToLower()))
-				{
-					c.Invoke(args);
-					return;
-				}
-			}
 
-			Utils.NewErrorText("Invalid command.");
+			string commandName = args[-1].ToLowerInvariant();
+			Command command = ChatCommands.Concat(LuaCommands).FirstOrDefault(c => c.Names.Contains(commandName));
+			if (command != null)
+				command.Invoke(args);
+			else
+				Utils.NewErrorText("Invalid command.");
 		}
 		/// <summary>
 		/// Finds a command.
@@ -58,6 +54,14 @@ namespace Raptor.Api.Commands
 		}
 		internal static void Init()
 		{
+			ChatCommands.Add(new Command(Aliases, "aliases")
+			{
+				HelpText = new[]
+				{
+					"Syntax: /aliases <command name>",
+					"Prints a list of a command's aliases.",
+				}
+			});
 			ChatCommands.Add(new Command(Edit, "edit")
 			{
 				HelpText = new[]
@@ -70,7 +74,7 @@ namespace Raptor.Api.Commands
 			{
 				HelpText = new[]
 				{
-					"Syntax: /help (command)",
+					"Syntax: /help (command name)",
 					"Prints a list of commands or help about a specific command."
 				}
 			});
@@ -197,12 +201,31 @@ namespace Raptor.Api.Commands
 
 			ChatCommands.Add(command);
 		}
-		
+
+		static void Aliases(object o, CommandEventArgs e)
+		{
+			if (e.Length == 0)
+			{
+				Utils.NewErrorText("Syntax: /{0} <command name>", e[-1]);
+				return;
+			}
+
+			string commandName = e[0].ToLowerInvariant();
+			Command command = ChatCommands.Concat(LuaCommands).FirstOrDefault(c => c.Names.Contains(commandName));
+
+			if (command != null)
+			{
+				Utils.NewSuccessText("/{0} aliases:", command.Name);
+				Utils.NewInfoText(String.Join(", ", command.Names.Select(s => "/" + s)));
+			}
+			else
+				Utils.NewErrorText("Invalid command \"{0}\".", commandName);
+		}
 		static void Edit(object o, CommandEventArgs e)
 		{
 			if (e.Length != 1)
 			{
-				Utils.NewErrorText("Syntax: /edit <regions | warps>");
+				Utils.NewErrorText("Syntax: /{0} <regions | warps>", e[-1]);
 				return;
 			}
 			if (Raptor.Permissions.Count == 0)
@@ -211,7 +234,7 @@ namespace Raptor.Api.Commands
 				return;
 			}
 
-			switch (e[0].ToLower())
+			switch (e[0].ToLowerInvariant())
 			{
 				case "regions":
 					if (!Utils.HasTShockPermission("tshock.admin.region"))
@@ -249,33 +272,28 @@ namespace Raptor.Api.Commands
 			}
 
 			string commandName = e[0].ToLowerInvariant();
-			foreach (Command command in ChatCommands.Concat(LuaCommands))
+			Command command = ChatCommands.Concat(LuaCommands).FirstOrDefault(c => c.Names.Contains(commandName));
+
+			if (command != null)
 			{
-				if (command.Names.Contains(commandName))
-				{
-					Utils.NewSuccessText("/{0} help:", command.Name);
-					foreach (string line in command.HelpText)
-						Utils.NewInfoText("{0}", line);
-					return;
-				}
+				Utils.NewSuccessText("/{0} help:", command.Name);
+				foreach (string line in command.HelpText)
+					Utils.NewInfoText("{0}", line);
 			}
-			Utils.NewErrorText("Invalid command \"{0}\".", commandName);
+			else
+				Utils.NewErrorText("Invalid command \"{0}\".", commandName);
 		}
 		static void Keybind(object o, CommandEventArgs e)
 		{
-			if (e.Length == 0)
-			{
-				Utils.NewErrorText("Syntax: /{0} <add | clr | del | list> [arguments...]", e[-1]);
-				return;
-			}
+			string subcommand = e.Length > 0 ? e[0].ToLowerInvariant() : "help";
 
-			switch (e[0].ToLower())
+			switch (subcommand)
 			{
 				case "add":
 					{
 						if (e.Length < 3)
 						{
-							Utils.NewErrorText("Syntax: /{0} add <key> <command>", e[-1]);
+							Utils.NewErrorText("Syntax: /{0} {1} <key> <command>", e[-1], e[0]);
 							return;
 						}
 
@@ -299,6 +317,7 @@ namespace Raptor.Api.Commands
 					}
 					return;
 				case "clr":
+				case "clear":
 					{
 						Raptor.Config.KeyBindings.Clear();
 						string configPath = "raptor.config";
@@ -307,10 +326,12 @@ namespace Raptor.Api.Commands
 					}
 					return;
 				case "del":
+				case "delete":
+				case "remove":
 					{
 						if (e.Length == 1)
 						{
-							Utils.NewErrorText("Syntax: /{0} del <key>", e[0]);
+							Utils.NewErrorText("Syntax: /{0} {1} <key>", e[-1], e[0]);
 							return;
 						}
 
@@ -336,8 +357,13 @@ namespace Raptor.Api.Commands
 					foreach (KeyValuePair<Keys, string> kv in Raptor.Config.KeyBindings)
 						Utils.NewInfoText("Key \"{0}\": {1}", kv.Key, kv.Value);
 					return;
+				case "help":
 				default:
-					Utils.NewErrorText("Syntax: /{0} <add | clr | del | list> [arguments...]", e[-1]);
+					Utils.NewSuccessText("/{0} help:", e[-1]);
+					Utils.NewInfoText("/{0} add <key> <command> - Adds a key binding.", e[-1]);
+					Utils.NewInfoText("/{0} clr/clear - Clears all key bindings.", e[-1]);
+					Utils.NewInfoText("/{0} del/delete/remove <key> - Deletes a key binding.", e[-1]);
+					Utils.NewInfoText("/{0} list - Lists all key bindings.", e[-1]);
 					return;
 			}
 		}
@@ -370,7 +396,7 @@ namespace Raptor.Api.Commands
 		{
 			if (e.Length == 0)
 			{
-				Utils.NewSuccessText("Syntax: /say <message>");
+				Utils.NewSuccessText("Syntax: /{0} <message>", e[-1]);
 				return;
 			}
 
@@ -389,7 +415,7 @@ namespace Raptor.Api.Commands
 					Type t = fi.FieldType;
 					if (t != typeof(bool) && t != typeof(int) && t != typeof(string))
 						continue;
-
+					
 					Utils.NewInfoText("{0}: {1} ({2})",
 						fi.Name, fi.GetValue(Raptor.Config), ((DescriptionAttribute)fi.GetCustomAttributes(false)[0]).Description);
 				}
@@ -414,11 +440,11 @@ namespace Raptor.Api.Commands
 				if (e.Length == 1)
 				{
 					if (t == typeof(bool))
-						Utils.NewErrorText("Syntax: /set {0} <boolean>", fi.Name);
+						Utils.NewErrorText("Syntax: /{0} {1} <boolean>", e[-1], fi.Name);
 					else if (t == typeof(int))
-						Utils.NewErrorText("Syntax: /set {0} <integer>", fi.Name);
+						Utils.NewErrorText("Syntax: /{0} {1} <integer>", e[-1], fi.Name);
 					else
-						Utils.NewErrorText("Syntax: /set {0} <string>", fi.Name);
+						Utils.NewErrorText("Syntax: /{0} {1} <string>", e[-1], fi.Name);
 					return;
 				}
 

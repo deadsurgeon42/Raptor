@@ -863,7 +863,7 @@ namespace Raptor
 				Input.DisabledKeyboard = true;
 				Main.chatText = Main.GetInputText(Main.chatText);
 
-				if (Input.IsKeyTapped(Keys.Escape))
+				if (Input.IsKeyTapped(Keys.Escape) || (Input.IsKeyTapped(Keys.Enter) && Main.chatText == ""))
 				{
 					chatMode = 0;
 					chatViewOffset = chat.Count;
@@ -873,7 +873,7 @@ namespace Raptor
 					Main.chatText = "";
 					Main.PlaySound(11);
 				}
-				else if (Input.IsKeyTapped(Keys.Enter) && Main.chatText != "")
+				else if (Input.IsKeyTapped(Keys.Enter))
 				{
 					if (chatMode == 1)
 					{
