@@ -145,6 +145,8 @@ namespace Raptor
 					}
 				});
 			}
+			else
+				File.Create(Path.Combine("Scripts", "startup.lua"));
 
 			Main.showSplash = Config.ShowSplashScreen;
 			
