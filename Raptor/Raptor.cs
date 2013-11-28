@@ -154,6 +154,7 @@ namespace Raptor
 			Form form = (Form)Form.FromHandle(ClientApi.Main.Window.Handle);
 			form.ClientSizeChanged += Form_ClientSizeChanged;
 			form.KeyPress += Input.Form_KeyPress;
+			form.MinimumSize = new System.Drawing.Size(816, 638);
 		}
 
 		internal static void Draw(SpriteBatch sb)
@@ -317,7 +318,7 @@ namespace Raptor
 				float length = Main.fontMouseText.MeasureString(word).X + spaceLength;
 				lineLength += length;
 
-				if (lineLength > Main.screenWidth - 338f)
+				if (lineLength > Main.screenWidth - 338f && lineBuilder.Length > 0)
 				{
 					chat.Add(new Chat { color = new Color(r, g, b), text = lineBuilder.ToString(), timeOut = 600 });
 					lineLength = 4 * spaceLength + length;
@@ -356,9 +357,13 @@ namespace Raptor
 				{
 					chat.Clear();
 					rawChat.Clear();
+					chatViewOffset = 0;
 				}
+				typedChat.Clear();
+				typedCommands.Clear();
+				typedChatOffset = 0;
+				typedCommandOffset = 0;
 				chatMode = 0;
-				chatViewOffset = 0;
 				Main.chatText = "";
 
 				isEditingRegions = false;
@@ -367,6 +372,8 @@ namespace Raptor
 				negatedPermissions.Clear();
 				regions.Clear();
 				regionsToDraw.Clear();
+				warps.Clear();
+				warpsToDraw.Clear();
 				return;
 			}
 
@@ -815,6 +822,11 @@ namespace Raptor
 					}
 				}
 
+				Input.DisabledKeyboard = true;
+				Main.chatText = Main.GetInputText(Main.chatText);
+				while (Main.fontMouseText.MeasureString(Main.chatText).X > Main.screenWidth - 324)
+					Main.chatText = Main.chatText.Substring(0, Main.chatText.Length - 1);
+
 				if (Input.ActiveSpecialKeys.HasFlag(Input.SpecialKeys.Up))
 				{
 					if (chatMode == 1 && typedChat.Count != 0)
@@ -859,11 +871,7 @@ namespace Raptor
 							Main.chatText = typedCommands[typedCommandOffset];
 					}
 				}
-
-				Input.DisabledKeyboard = true;
-				Main.chatText = Main.GetInputText(Main.chatText);
-
-				if (Input.IsKeyTapped(Keys.Escape) || (Input.IsKeyTapped(Keys.Enter) && Main.chatText == ""))
+				else if (Input.IsKeyTapped(Keys.Escape) || (Input.IsKeyTapped(Keys.Enter) && Main.chatText == ""))
 				{
 					chatMode = 0;
 					chatViewOffset = chat.Count;

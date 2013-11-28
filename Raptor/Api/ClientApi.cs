@@ -33,8 +33,6 @@ namespace Raptor.Api
 
 		internal static void DeInitialize()
 		{
-			Log.LogInfo("Raptor v{0} stopped.\n", ApiVersion);
-
 			foreach (TerrariaPlugin plugin in plugins)
 			{
 				try
@@ -50,8 +48,6 @@ namespace Raptor.Api
 		}
 		internal static void Initialize()
 		{
-			Log.LogInfo("Raptor v{0} started.", ApiVersion);
-
 			#region Load plugins
 			var loadedAssemblies = new Dictionary<string, Assembly>();
 			foreach (string path in Directory.EnumerateFiles("Plugins", "*.dll"))

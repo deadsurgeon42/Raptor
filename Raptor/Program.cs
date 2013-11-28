@@ -506,10 +506,12 @@ namespace Raptor
 			Directory.CreateDirectory("Scripts");
 
 			Log.Initialize();
+			Log.LogInfo("Raptor v{0} stopped.\n", ClientApi.ApiVersion);
 			ClientApi.Initialize();
 			Run(path);
 			Raptor.DeInitialize();
 			ClientApi.DeInitialize();
+			Log.LogInfo("Raptor v{0} stopped.\n", ClientApi.ApiVersion);
 			Log.DeInitialize();
 		}
 		static void Run(string path)
