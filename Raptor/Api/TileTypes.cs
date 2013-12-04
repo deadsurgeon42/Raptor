@@ -199,6 +199,7 @@
 		Slime,
 		Bone,
 		Flesh,
+		RainCloud,
 		FrozenSlime,
 		Asphalt,
 		CrimsonGrass,
