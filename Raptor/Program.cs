@@ -343,7 +343,10 @@ namespace Raptor
 				asm.GetMethod("NPC", "AI").InsertStart(
 					Instruction.Create(OpCodes.Ldarg_0),
 					Instruction.Create(OpCodes.Call, mod.Import(typeof(NpcHooks).GetMethod("InvokeProcessAI", FLAGS))));
-
+				// if (NpcHooks.InvokeDropLoot(this)) return;
+				asm.GetMethod("NPC", "NPCLoot").InsertStart(
+					Instruction.Create(OpCodes.Ldarg_0),
+					Instruction.Create(OpCodes.Call, mod.Import(typeof(NpcHooks).GetMethod("InvokeDropLoot", FLAGS))));
 				var setDefaults = asm.GetMethod("NPC", "SetDefaults", new[] { "Int32", "Single" });
 				// NpcHooks.InvokeSetDefaults(this);
 				setDefaults.InsertEnd(

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using Terraria;
 
 namespace Raptor.Api.Hooks
@@ -8,6 +9,31 @@ namespace Raptor.Api.Hooks
 	/// </summary>
 	public static class NpcHooks
 	{
+		#region DropLoot
+		/// <summary>
+		/// Event arguments for DropLoot hooks.
+		/// </summary>
+		public class DropLootEventArgs : HandledEventArgs
+		{
+			/// <summary>
+			/// Gets the NPC instance.
+			/// </summary>
+			public NPC Npc { get; private set; }
+			internal DropLootEventArgs(NPC npc)
+			{
+				Npc = npc;
+			}
+		}
+		/// <summary>
+		/// The event that runs when an NPC drops loot.
+		/// </summary>
+		public static event EventHandler<DropLootEventArgs> DropLoot;
+		internal static void InvokeDropLoot(object npc)
+		{
+			if (DropLoot != null)
+				DropLoot(null, new DropLootEventArgs((NPC)npc));
+		}
+		#endregion
 		#region ProcessAI
 		/// <summary>
 		/// Event arguments for ProcessAI hooks.
@@ -33,7 +59,6 @@ namespace Raptor.Api.Hooks
 				ProcessAI(null, new ProcessAIEventArgs((NPC)npc));
 		}
 		#endregion
-
 		#region SetDefaults
 		/// <summary>
 		/// Event arguments for SetDefaults hooks.
