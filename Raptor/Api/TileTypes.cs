@@ -183,15 +183,17 @@
 		TinBrick,
 		TungstenBrick,
 		PlatinumBrick,
-		Amber,
-
-
-
-
-
-
-
-		CactusBlock = 188,
+		Gem,
+		GreenMossyStone,
+		YellowMossyStone,
+		RedMossyStone,
+		BlueMossyStone,
+		PurpleMossyStone,
+		Moss,
+		CaveDoodads,
+		CaveDoodads2,
+		CaveDoodads3,
+		CactusBlock,
 		Cloud,
 		GlowingMushroomBlock,
 		LivingWood,
@@ -204,12 +206,12 @@
 		Asphalt,
 		CrimsonGrass,
 		CrimsonIceBlock,
-
-		Sunplate = 202,
+		CrimsonGrassPlants,
+		Sunplate,
 		Crimstone,
 		CrimtaneOre,
-
-		IceBrick = 206,
+		CrimsonVines,
+		IceBrick,
 		WaterFountain,
 		Shadewood,
 		Cannon,
@@ -236,8 +238,8 @@
 		CrispyHoney,
 		Larva,
 		WoodenSpike,
-
-		Crimsand = 234,
+		JungleDoodads,
+		Crimsand,
 		Teleporter,
 		LifeFruit,
 		LihzahrdAltar,
