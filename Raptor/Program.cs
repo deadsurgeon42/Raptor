@@ -30,7 +30,7 @@ namespace Raptor
 			{ "DrawWires", "Wires" },
 		};
 		static Assembly terraria;
-		const string PIRACY_MSG = "You do not appear to have a legitimate copy of Terraria. If this is not the case, perhaps try re-installing it.";
+		const string PIRACY_MSG = "You do not appear to have a legitimate copy of Terraria. If this is not the case, then try re-installing it and then running it";
 		const string REGISTRY = @"SOFTWARE\Re-Logic\Terraria";
 		
 		[STAThread]

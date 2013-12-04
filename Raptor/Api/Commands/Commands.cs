@@ -196,8 +196,10 @@ namespace Raptor.Api.Commands
 		/// <param name="command">The command.</param>
 		public static void Register(Command command)
 		{
+			if (command == null)
+				throw new ArgumentNullException("command");
 			if (ChatCommands.Any(c => String.Equals(c.Name, command.Name, StringComparison.OrdinalIgnoreCase)))
-				throw new InvalidOperationException("Cannot register another command with the same name.");
+				throw new ArgumentException("Can't register another command with the same name.");
 
 			ChatCommands.Add(command);
 		}

@@ -145,6 +145,7 @@
 		DartTrap,
 		Boulder,
 		MusicBox,
+		DemoniteBrick,
 		Explosives,
 		InletPump,
 		OutletPump,
