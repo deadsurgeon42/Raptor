@@ -339,14 +339,20 @@ namespace Raptor
 			#endregion
 			#region NPC
 			{
-				// NpcHooks.InvokeProcessAI(this);
-				asm.GetMethod("NPC", "AI").InsertStart(
+				var ai = asm.GetMethod("NPC", "AI");
+				// if (NPCHooks.InvokeProcessAI(this)) return;
+				ai.InsertStart(
 					Instruction.Create(OpCodes.Ldarg_0),
-					Instruction.Create(OpCodes.Call, mod.Import(typeof(NpcHooks).GetMethod("InvokeProcessAI", FLAGS))));
-				// if (NpcHooks.InvokeDropLoot(this)) return;
-				asm.GetMethod("NPC", "NPCLoot").InsertStart(
+					Instruction.Create(OpCodes.Call, mod.Import(typeof(NpcHooks).GetMethod("InvokeProcessAI", FLAGS))),
+					Instruction.Create(OpCodes.Brfalse_S, ai.Body.Instructions[0]),
+					Instruction.Create(OpCodes.Ret));
+				var npcLoot = asm.GetMethod("NPC", "NPCLoot");
+				// if (NPCHooks.InvokeDropLoot(this)) return;
+				npcLoot.InsertStart(
 					Instruction.Create(OpCodes.Ldarg_0),
-					Instruction.Create(OpCodes.Call, mod.Import(typeof(NpcHooks).GetMethod("InvokeDropLoot", FLAGS))));
+					Instruction.Create(OpCodes.Call, mod.Import(typeof(NpcHooks).GetMethod("InvokeDropLoot", FLAGS))),
+					Instruction.Create(OpCodes.Brfalse_S, npcLoot.Body.Instructions[0]),
+					Instruction.Create(OpCodes.Ret));
 				var setDefaults = asm.GetMethod("NPC", "SetDefaults", new[] { "Int32", "Single" });
 				// NpcHooks.InvokeSetDefaults(this);
 				setDefaults.InsertEnd(
@@ -441,10 +447,13 @@ namespace Raptor
 			#endregion
 			#region Projectile
 			{
-				// ProjectileHooks.InvokeProcessAI(this);
-				asm.GetMethod("Projectile", "AI").InsertStart(
+				var ai = asm.GetMethod("Projectile", "AI");
+				// if (ProjectileHooks.InvokeProcessAI(this)) return;
+				ai.InsertStart(
 					Instruction.Create(OpCodes.Ldarg_0),
-					Instruction.Create(OpCodes.Call, mod.Import(typeof(ProjectileHooks).GetMethod("InvokeProcessAI", FLAGS))));
+					Instruction.Create(OpCodes.Call, mod.Import(typeof(ProjectileHooks).GetMethod("InvokeProcessAI", FLAGS))),
+					Instruction.Create(OpCodes.Brfalse_S, ai.Body.Instructions[0]),
+					Instruction.Create(OpCodes.Ret));
 
 				// ProjectileHooks.InvokeKill(this);
 				asm.GetMethod("Projectile", "Kill").InsertEnd(

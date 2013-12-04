@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using Terraria;
@@ -15,7 +16,7 @@ namespace Raptor.Api.Hooks
 		/// <summary>
 		/// Event arguments for ProcessAI hooks.
 		/// </summary>
-		public class ProcessAIEventArgs : EventArgs
+		public class ProcessAIEventArgs : HandledEventArgs
 		{
 			/// <summary>
 			/// Gets the NPC instance.
@@ -30,10 +31,15 @@ namespace Raptor.Api.Hooks
 		/// The event that runs when an projectile's AI is processed.
 		/// </summary>
 		public static event EventHandler<ProcessAIEventArgs> ProcessAI;
-		internal static void InvokeProcessAI(object projectile)
+		internal static bool InvokeProcessAI(object projectile)
 		{
 			if (ProcessAI != null)
-				ProcessAI(null, new ProcessAIEventArgs((Projectile)projectile));
+			{
+				var args = new ProcessAIEventArgs((Projectile)projectile);
+				ProcessAI(null, args);
+				return args.Handled;
+			}
+			return false;
 		}
 		#endregion
 		#region Kill

@@ -28,17 +28,22 @@ namespace Raptor.Api.Hooks
 		/// The event that runs when an NPC drops loot.
 		/// </summary>
 		public static event EventHandler<DropLootEventArgs> DropLoot;
-		internal static void InvokeDropLoot(object npc)
+		internal static bool InvokeDropLoot(object npc)
 		{
 			if (DropLoot != null)
-				DropLoot(null, new DropLootEventArgs((NPC)npc));
+			{
+				var args = new DropLootEventArgs((NPC)npc);
+				DropLoot(null, args);
+				return args.Handled;
+			}
+			return false;
 		}
 		#endregion
 		#region ProcessAI
 		/// <summary>
 		/// Event arguments for ProcessAI hooks.
 		/// </summary>
-		public class ProcessAIEventArgs : EventArgs
+		public class ProcessAIEventArgs : HandledEventArgs
 		{
 			/// <summary>
 			/// Gets the NPC instance.
@@ -53,10 +58,15 @@ namespace Raptor.Api.Hooks
 		/// The event that runs when an NPC's AI is processed.
 		/// </summary>
 		public static event EventHandler<ProcessAIEventArgs> ProcessAI;
-		internal static void InvokeProcessAI(object npc)
+		internal static bool InvokeProcessAI(object npc)
 		{
 			if (ProcessAI != null)
-				ProcessAI(null, new ProcessAIEventArgs((NPC)npc));
+			{
+				var args = new ProcessAIEventArgs((NPC)npc);
+				ProcessAI(null, args);
+				return args.Handled;
+			}
+			return false;
 		}
 		#endregion
 		#region SetDefaults
