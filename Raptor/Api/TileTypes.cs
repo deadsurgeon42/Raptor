@@ -45,7 +45,7 @@
 		MeteoriteOre,
 		GrayBrick,
 		RedBrick,
-		ClayBrick,
+		Clay,
 		BlueBrick,
 		ChainLantern,
 		GreenBrick,
@@ -170,8 +170,8 @@
 		ThinIce,
 		CorruptIceBlock,
 		HallowedIceBlock,
-
-		TinOre = 166,
+		Stalactite,
+		TinOre,
 		LeadOre,
 		TungstenOre,
 		PlatinumOre,
@@ -255,6 +255,10 @@
 		AutoHammer,
 		PalladiumColumn,
 		Bubblegum,
-		Titanstone
+		Titanstone,
+		Pumpkin,
+		Hay,
+		SpookyWood,
+		PumpkinPlant
 	}
 }
