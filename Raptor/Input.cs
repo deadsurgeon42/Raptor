@@ -235,6 +235,13 @@ namespace Raptor
 		{
 			return Keyboard.IsKeyDown(key) && LastKeyboard.IsKeyUp(key);
 		}
+        /// <summary>
+        /// Gets all keys that are currently pressed down on the keyboard.
+        /// </summary>
+	    public static Keys[] GetPressedKeys()
+	    {
+	        return Keyboard.GetPressedKeys();
+	    }
 		internal static void Update()
 		{
 			LastKeyboard = Keyboard;
