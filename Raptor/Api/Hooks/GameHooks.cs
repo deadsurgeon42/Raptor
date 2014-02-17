@@ -65,6 +65,9 @@ namespace Raptor.Api.Hooks
 		};
 		internal static bool InvokeDraw(SpriteBatch spriteBatch, string type)
 		{
+			if (!ClientApi.Main.IsActive)
+				return false;
+
 			switch (type)
 			{
 				case "":

@@ -308,7 +308,7 @@ namespace Raptor
 
 			Texture2D invBack = content.Load<Texture2D>(Path.Combine(dir, "UI", "InvBack"));
 			Main.inventoryBackTexture = invBack;
-			for (int i = 2; i <= 12; i++)
+			for (int i = 2; i <= 14; i++)
 				typeof(Main).GetField("inventoryBack" + i + "Texture").SetValue(null, invBack);
 
 			Main.chatBackTexture = content.Load<Texture2D>(Path.Combine(dir, "UI", "NpcChatBack"));
