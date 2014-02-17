@@ -34,7 +34,7 @@ namespace Raptor.Api.Hooks
 			/// <summary>
 			/// Gets the message buffer.
 			/// </summary>
-			public messageBuffer Msg { get; private set; }
+			public MessageBuffer Msg { get; private set; }
 			/// <summary>
 			/// Gets the message packet type.
 			/// </summary>
@@ -83,7 +83,7 @@ namespace Raptor.Api.Hooks
 			/// <summary>
 			/// Gets the message buffer.
 			/// </summary>
-			public messageBuffer Msg { get; private set; }
+			public MessageBuffer Msg { get; private set; }
 			/// <summary>
 			/// Gets the message packet type.
 			/// </summary>

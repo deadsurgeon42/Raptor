@@ -150,63 +150,6 @@ namespace Raptor
 					Instruction.Create(OpCodes.Ret));
 			}
 			#endregion
-			#region Lighting
-			{
-				var doColors = asm.GetMethod("Lighting", "doColors");
-				for (int i = doColors.Body.Instructions.Count - 1; i >= 0; i--)
-				{
-					var instr = doColors.Body.Instructions[i];
-					if (instr.OpCode == OpCodes.Callvirt && ((MethodReference)instr.Operand).Name == "Restart")
-					{
-						doColors.InsertAfter(instr,
-							Instruction.Create(OpCodes.Call, mod.Import(typeof(LightingHooks).GetMethod("InvokeColor", FLAGS))));
-					}
-				}
-
-				var colorR = asm.GetMethod("Lighting", "LightColor");
-				colorR.InsertStart(
-					Instruction.Create(OpCodes.Ldarg_0),
-					Instruction.Create(OpCodes.Ldarg_1),
-					Instruction.Create(OpCodes.Call, mod.Import(typeof(LightingHooks).GetMethod("InvokeColorR", FLAGS))),
-					Instruction.Create(OpCodes.Brfalse_S, colorR.Body.Instructions[0]),
-					Instruction.Create(OpCodes.Ret));
-				var colorR2 = asm.GetMethod("Lighting", "LightColor2");
-				colorR2.InsertStart(
-					Instruction.Create(OpCodes.Ldarg_0),
-					Instruction.Create(OpCodes.Ldarg_1),
-					Instruction.Create(OpCodes.Call, mod.Import(typeof(LightingHooks).GetMethod("InvokeColorR", FLAGS))),
-					Instruction.Create(OpCodes.Brfalse_S, colorR2.Body.Instructions[0]),
-					Instruction.Create(OpCodes.Ret));
-				var colorG = asm.GetMethod("Lighting", "LightColorG");
-				colorG.InsertStart(
-					Instruction.Create(OpCodes.Ldarg_0),
-					Instruction.Create(OpCodes.Ldarg_1),
-					Instruction.Create(OpCodes.Call, mod.Import(typeof(LightingHooks).GetMethod("InvokeColorG", FLAGS))),
-					Instruction.Create(OpCodes.Brfalse_S, colorG.Body.Instructions[0]),
-					Instruction.Create(OpCodes.Ret));
-				var colorG2 = asm.GetMethod("Lighting", "LightColorG2");
-				colorG2.InsertStart(
-					Instruction.Create(OpCodes.Ldarg_0),
-					Instruction.Create(OpCodes.Ldarg_1),
-					Instruction.Create(OpCodes.Call, mod.Import(typeof(LightingHooks).GetMethod("InvokeColorG", FLAGS))),
-					Instruction.Create(OpCodes.Brfalse_S, colorG2.Body.Instructions[0]),
-					Instruction.Create(OpCodes.Ret));
-				var colorB = asm.GetMethod("Lighting", "LightColorB");
-				colorB.InsertStart(
-					Instruction.Create(OpCodes.Ldarg_0),
-					Instruction.Create(OpCodes.Ldarg_1),
-					Instruction.Create(OpCodes.Call, mod.Import(typeof(LightingHooks).GetMethod("InvokeColorB", FLAGS))),
-					Instruction.Create(OpCodes.Brfalse_S, colorB.Body.Instructions[0]),
-					Instruction.Create(OpCodes.Ret));
-				var colorB2 = asm.GetMethod("Lighting", "LightColorB2");
-				colorB2.InsertStart(
-					Instruction.Create(OpCodes.Ldarg_0),
-					Instruction.Create(OpCodes.Ldarg_1),
-					Instruction.Create(OpCodes.Call, mod.Import(typeof(LightingHooks).GetMethod("InvokeColorB", FLAGS))),
-					Instruction.Create(OpCodes.Brfalse_S, colorB2.Body.Instructions[0]),
-					Instruction.Create(OpCodes.Ret));
-			}
-			#endregion
 			#region Main
 			{
 				var drawInterface = asm.GetMethod("Main", "DrawInterface");
@@ -307,9 +250,9 @@ namespace Raptor
 					Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeUpdated", FLAGS))));
 			}
 			#endregion
-			#region messageBuffer
+			#region MessageBuffer
 			{
-				var getData = asm.GetMethod("messageBuffer", "GetData");
+				var getData = asm.GetMethod("MessageBuffer", "GetData");
 				// if (NetHooks.InvokeGetData(start, length)) return;
 				getData.InsertStart(
 					Instruction.Create(OpCodes.Ldarg_1),
