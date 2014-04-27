@@ -267,5 +267,18 @@ namespace Raptor.Api.Hooks
 				Updated(null, new UpdatedEventArgs(gt));
 		}
 		#endregion
+
+		#region Camera
+		/// <summary>
+		/// The event that runs after the game has already calculated screenPosition,
+		/// but didn't start drawing anything yet.
+		/// </summary>
+		public static event EventHandler<EventArgs> Camera;
+		internal static void InvokeCamera()
+		{
+			if (Camera != null)
+				Camera(null, new EventArgs());
+		}
+		#endregion
 	}
 }

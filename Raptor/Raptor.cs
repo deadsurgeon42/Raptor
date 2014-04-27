@@ -170,7 +170,11 @@ namespace Raptor
 			Form form = (Form)Form.FromHandle(ClientApi.Main.Window.Handle);
 			form.ClientSizeChanged += Form_ClientSizeChanged;
 			form.KeyPress += Input.Form_KeyPress;
-			form.MinimumSize = new System.Drawing.Size(816, 638);
+
+			var State = form.WindowState;
+			form.MinimumSize = new System.Drawing.Size(816, 638); 
+			// ^ This resets WindowState for some reason, breaking Terraria's window memory
+			form.WindowState = State;
 		}
 
 		internal static void Draw(SpriteBatch sb)
