@@ -157,7 +157,7 @@ namespace Raptor
 				{
 					var instr = drawInterface.Body.Instructions[i];
 
-					if (instr.OpCode == OpCodes.Ldfld && ((FieldReference)instr.Operand).Name == "spriteBatch" &&
+					if (instr.OpCode == OpCodes.Ldsfld && ((FieldReference)instr.Operand).Name == "spriteBatch" &&
 						instr.Next.OpCode == OpCodes.Ldsfld && ((FieldReference)instr.Next.Operand).Name == "cursorTexture")
 					{
 						var target = drawInterface.Body.Instructions[i];
@@ -212,6 +212,13 @@ namespace Raptor
 					Instruction.Create(OpCodes.Ldarg_3),
 					Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeNewText", FLAGS))),
 					Instruction.Create(OpCodes.Ret));
+
+				// I know this is weird, but FindWaterfalls() is called in the perfectly...
+				// ... right spot to manipulate Main.screenPosition.
+				// Simon311.
+				asm.GetMethod("WaterfallManager", "FindWaterfalls").InsertStart( 
+					Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeCamera", FLAGS)))
+				);
 
 				var update = asm.GetMethod("Main", "Update");
 				// GameHooks.InvokeUpdate();
