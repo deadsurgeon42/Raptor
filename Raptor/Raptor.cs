@@ -222,10 +222,10 @@ namespace Raptor
 				int scrollbarSize = (int)(Config.ChatShow * (Config.ChatShow * 19.0 - 4.0) / chat.Count);
 				int scrollbarOffset = (int)((chatViewOffset - Config.ChatShow) * (Config.ChatShow * 19.0 - 4.0) / chat.Count);
 
-				sb.Draw(Main.inventoryBackTexture,
+				sb.Draw(rectBackTexture,
 					new Rectangle(Main.screenWidth - 232, chatRectangle.Y + scrollbarOffset + 6, 6, scrollbarSize),
 					new Rectangle(8, 8, 36, 36),
-					new Color(20, 20, 20, 200));
+					new Color(220, 220, 220, 200));
 			}
 		}
 		internal static void LoadedContent(ContentManager content)
