@@ -38,40 +38,6 @@ namespace Raptor
 			get { return Main.player[Main.myPlayer]; }
 		}
 		/// <summary>
-		/// Gets whether the client has the specified TShock permission.
-		/// </summary>
-		/// <param name="permission">The permission.</param>
-		/// <returns>Whether the client has the permission.</returns>
-		public static bool HasTShockPermission(string permission)
-		{
-			var permissions = new List<string> { permission };
-			string[] nodes = permission.Split('.');
-			for (int i = nodes.Length - 1; i >= 0; i--)
-			{
-				nodes[i] = "*";
-				permissions.Add(String.Join(".", nodes, 0, i + 1));
-			}
-
-			foreach (string p in Raptor.NegatedPermissions)
-			{
-				foreach (string p2 in permissions)
-				{
-					if (String.Equals(p, p2, StringComparison.OrdinalIgnoreCase))
-						return false;
-				}
-			}
-
-			foreach (string p in Raptor.Permissions)
-			{
-				foreach (string p2 in permissions)
-				{
-					if (String.Equals(p, p2, StringComparison.OrdinalIgnoreCase))
-						return true;
-				}				
-			}
-			return false;
-		}
-		/// <summary>
 		/// Prints an error message.
 		/// </summary>
 		/// <param name="format">The message format.</param>

@@ -62,9 +62,6 @@ namespace Raptor.Api.Hooks
 		public static event EventHandler<GetDataEventArgs> GetData;
 		internal static bool InvokeGetData(int index, int length)
 		{
-			if (Raptor.GetData(index, length))
-				return true;
-
 			if (GetData != null)
 			{
 				var args = new GetDataEventArgs(index, length);
@@ -111,8 +108,6 @@ namespace Raptor.Api.Hooks
 		public static event EventHandler<GetDataEventArgs> GotData;
 		internal static void InvokeGotData(int index, int length)
 		{
-			Raptor.GotData(index, length);
-
 			if (GotData != null)
 			{
 				var args = new GetDataEventArgs(index, length);
