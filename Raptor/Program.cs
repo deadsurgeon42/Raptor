@@ -363,6 +363,12 @@ namespace Raptor
 					}
 				}
 
+				var resetEffects = asm.GetMethod("Player", "ResetEffects");
+				// PlayerHooks.InvokeUpdateVars();
+				resetEffects.InsertEnd(
+					Instruction.Create(OpCodes.Ldarg_0),
+					Instruction.Create(OpCodes.Call, mod.Import(typeof(PlayerHooks).GetMethod("InvokeUpdateVars", FLAGS))));
+
 				var save = asm.GetMethod("Player", "SavePlayer");
 				// PlayerHooks.InvokeSave();
 				save.InsertStart(
@@ -385,30 +391,15 @@ namespace Raptor
 				update.InsertStart(
 					Instruction.Create(OpCodes.Ldarg_0),
 					Instruction.Create(OpCodes.Call, mod.Import(typeof(PlayerHooks).GetMethod("InvokeUpdate", FLAGS))));
-				for (int i = 0; i < update.Body.Instructions.Count; i++)
-				{
-					var instr = update.Body.Instructions[i];
-					if (instr.OpCode == OpCodes.Stfld && ((FieldReference)instr.Operand).Name == "rangedCrit" &&
-						instr.Previous.OpCode == OpCodes.Add)
-					{
-						// PlayerHooks.InvokeUpdateVars(this);
-						update.InsertAfter(instr,
-							Instruction.Create(OpCodes.Ldarg_0),
-							Instruction.Create(OpCodes.Call, mod.Import(typeof(PlayerHooks).GetMethod("InvokeUpdateVars", FLAGS))));
-					}
-					if (instr.OpCode == OpCodes.Stfld && ((FieldReference)instr.Operand).Name == "lifeRegenCount")
-					{
-						// PlayerHooks.InvokeUpdatedVars(this);
-						update.InsertAfter(instr,
-							Instruction.Create(OpCodes.Ldarg_0),
-							Instruction.Create(OpCodes.Call, mod.Import(typeof(PlayerHooks).GetMethod("InvokeUpdatedVars", FLAGS))));
-						break;
-					}
-				}
 				// PlayerHooks.InvokeUpdated(this);
 				update.InsertEnd(
 					Instruction.Create(OpCodes.Ldarg_0),
 					Instruction.Create(OpCodes.Call, mod.Import(typeof(PlayerHooks).GetMethod("InvokeUpdated", FLAGS))));
+
+				var updateJumpHeight = asm.GetMethod("Player", "UpdateJumpHeight");
+				updateJumpHeight.InsertEnd(
+					Instruction.Create(OpCodes.Ldarg_0),
+					Instruction.Create(OpCodes.Call, mod.Import(typeof(PlayerHooks).GetMethod("InvokeUpdatedVars", FLAGS))));
 			}
 			#endregion
 			#region Projectile

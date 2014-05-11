@@ -29,7 +29,6 @@ using Newtonsoft.Json;
 using NLua;
 using Raptor.Api;
 using Raptor.Api.Commands;
-using Raptor.Api.TShock;
 using Terraria;
 
 using Form = System.Windows.Forms.Form;

@@ -127,7 +127,6 @@
     <Compile Include="Api\ClientApi.cs" />
     <Compile Include="Api\Hooks\PlayerHooks.cs" />
     <Compile Include="Api\Hooks\ProjectileHooks.cs" />
-    <Compile Include="Api\TShock\RaptorPacketTypes.cs" />
     <Compile Include="Api\Hooks\GameHooks.cs" />
     <Compile Include="Api\Hooks\ItemHooks.cs" />
     <Compile Include="Api\Hooks\NetHooks.cs" />
@@ -135,8 +134,6 @@
     <Compile Include="Api\PacketTypes.cs" />
     <Compile Include="Api\TerrariaPlugin.cs" />
     <Compile Include="Api\TileTypes.cs" />
-    <Compile Include="Api\TShock\Region.cs" />
-    <Compile Include="Api\TShock\Warp.cs" />
     <Compile Include="Api\WallTypes.cs" />
     <Compile Include="Api\Commands\Command.cs" />
     <Compile Include="Api\Commands\CommandEventArgs.cs" />
