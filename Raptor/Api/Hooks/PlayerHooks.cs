@@ -246,15 +246,6 @@ namespace Raptor.Api.Hooks
 		public static event EventHandler<UpdateEventArgs> UpdatedVars;
 		internal static void InvokeUpdatedVars(object player)
 		{
-			var plr = (Player)player;
-
-			if (plr.whoAmi == Main.myPlayer)
-			{
-				plr.runAcceleration = 10f;
-				plr.maxRunSpeed = 10f;
-				plr.jumpAgain = true;
-			}
-
 			if (UpdatedVars != null)
 				UpdatedVars(null, new UpdateEventArgs((Player)player));
 		}
