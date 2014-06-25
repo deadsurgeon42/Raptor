@@ -133,8 +133,6 @@
     <Compile Include="Api\Hooks\NpcHooks.cs" />
     <Compile Include="Api\PacketTypes.cs" />
     <Compile Include="Api\TerrariaPlugin.cs" />
-    <Compile Include="Api\TileTypes.cs" />
-    <Compile Include="Api\WallTypes.cs" />
     <Compile Include="Api\Commands\Command.cs" />
     <Compile Include="Api\Commands\CommandEventArgs.cs" />
     <Compile Include="Api\Commands\Commands.cs" />
