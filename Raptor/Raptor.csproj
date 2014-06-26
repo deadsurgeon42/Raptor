@@ -137,6 +137,8 @@
     <Compile Include="Api\Commands\Command.cs" />
     <Compile Include="Api\Commands\CommandEventArgs.cs" />
     <Compile Include="Api\Commands\Commands.cs" />
+    <Compile Include="Api\TileTypes.cs" />
+    <Compile Include="Api\WallTypes.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="GuiExtensions.cs" />
     <Compile Include="ILExtensions.cs" />
