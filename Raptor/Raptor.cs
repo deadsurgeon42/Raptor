@@ -78,22 +78,6 @@ namespace Raptor
 		/// Gets the lua instance.
 		/// </summary>
 		public static Lua Lua { get; internal set; }
-		static List<string> negatedPermissions = new List<string>();
-		/// <summary>
-		/// Gets the list of negated TShock permissions.
-		/// </summary>
-		public static ReadOnlyCollection<string> NegatedPermissions
-		{
-			get { return new ReadOnlyCollection<string>(negatedPermissions); }
-		}
-		static List<string> permissions = new List<string>();
-		/// <summary>
-		/// Gets the list of TShock permissions.
-		/// </summary>
-		public static ReadOnlyCollection<string> Permissions
-		{
-			get { return new ReadOnlyCollection<string>(permissions); }
-		}
 
 		internal static void DeInitialize()
 		{

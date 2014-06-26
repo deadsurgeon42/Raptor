@@ -125,6 +125,7 @@
   <ItemGroup>
     <Compile Include="Api\ApiVersionAttribute.cs" />
     <Compile Include="Api\ClientApi.cs" />
+    <Compile Include="Api\Hooks\LightingHooks.cs" />
     <Compile Include="Api\Hooks\PlayerHooks.cs" />
     <Compile Include="Api\Hooks\ProjectileHooks.cs" />
     <Compile Include="Api\Hooks\GameHooks.cs" />

@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
 using Microsoft.Win32;
@@ -148,6 +149,22 @@ namespace Raptor
 					Instruction.Create(OpCodes.Call, mod.Import(typeof(Input).GetMethod("FilterMessage", FLAGS))),
 					Instruction.Create(OpCodes.Ldc_I4_0),
 					Instruction.Create(OpCodes.Ret));
+			}
+			#endregion
+			#region Lighting
+			{
+				var doColors = asm.GetMethod("Lighting", "doColors");
+				for (int i = doColors.Body.Instructions.Count - 1; i >= 0; i--)
+				{
+					var instr = doColors.Body.Instructions[i];
+					if (instr.OpCode == OpCodes.Callvirt && ((MethodReference)instr.Operand).Name == "Invoke")
+					{
+						// LightingHooks.InvokeColored(Lighting.swipe);
+						doColors.InsertAfter(instr,
+							Instruction.Create(OpCodes.Ldsfld, asm.GetField("Lighting", "swipe")),
+							Instruction.Create(OpCodes.Call, mod.Import(typeof(LightingHooks).GetMethod("InvokeColored", FLAGS))));
+					}
+				}
 			}
 			#endregion
 			#region Main
@@ -434,13 +451,29 @@ namespace Raptor
 			ILExtensions.FixShortBranches();
 
 			// Force everything public
-			foreach (var type in mod.Types)
+			var types = new Queue<TypeDefinition>(mod.Types);
+			while (types.Count > 0)
 			{
-				type.IsPublic = true;
-				foreach (var field in type.Fields)
-					field.IsPublic = true;
-				foreach (var method in type.Methods)
-					method.IsPublic = true;
+				var type = types.Dequeue();
+				if (type.IsNested)
+				{
+					type.IsNestedPublic = true;
+					foreach (var field in type.Fields)
+						field.IsPublic = true;
+					foreach (var method in type.Methods)
+						method.IsPublic = true;
+				}
+				else
+				{
+					type.IsPublic = true;
+					foreach (var field in type.Fields)
+						field.IsPublic = true;
+					foreach (var method in type.Methods)
+						method.IsPublic = true;
+				}
+
+				foreach (var type2 in type.NestedTypes)
+					types.Enqueue(type2);
 			}
 
 			using (var ms = new MemoryStream())
