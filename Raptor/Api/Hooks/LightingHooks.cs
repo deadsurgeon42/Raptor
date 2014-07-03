@@ -36,7 +36,7 @@ namespace Raptor.Api.Hooks
 		/// <summary>
 		/// Event arguments for Colored hooks.
 		/// </summary>
-		public class ColoredEventArgs : HandledEventArgs
+		public class ColoredEventArgs : EventArgs
 		{
 			/// <summary>
 			/// Gets the lighting state for the adjacent block.
