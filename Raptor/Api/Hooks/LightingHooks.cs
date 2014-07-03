@@ -34,28 +34,41 @@ namespace Raptor.Api.Hooks
 	{
 		#region Colored
 		/// <summary>
-		/// Event arguments for Colored hooks.
+		/// Event arguments for Color hooks.
 		/// </summary>
-		public class ColoredEventArgs : EventArgs
+		public class ColorEventArgs : EventArgs
 		{
 			/// <summary>
 			/// Gets the lighting state for the adjacent block.
 			/// </summary>
 			public Lighting.LightingSwipeData SwipeData { get; private set; }
 
-			internal ColoredEventArgs(Lighting.LightingSwipeData swipeData)
+			internal ColorEventArgs(Lighting.LightingSwipeData swipeData)
 			{
 				SwipeData = swipeData;
 			}
 		}
 		/// <summary>
-		/// The event that runs when colors are calculated
+		/// The event that runs before colors are calculated.
 		/// </summary>
-		public static event EventHandler<ColoredEventArgs> Colored;
-		internal static void InvokeColored(object swipeData)
+		public static event EventHandler<ColorEventArgs> Color;
+		internal static void InvokeColor(object swipeData)
 		{
-			if (Colored != null)
-				Colored(null, new ColoredEventArgs((Lighting.LightingSwipeData)swipeData));
+			var SwipeData = (Lighting.LightingSwipeData)swipeData;
+
+			SwipeData.function = s =>
+				{
+					foreach (var array in s.jaggedArray)
+					{
+						foreach (var state in array)
+						{
+							state.r = state.g = state.b = state.r2 = state.g2 = state.b2 = 1;
+						}
+					}
+				};
+
+			if (Color != null)
+				Color(null, new ColorEventArgs((Lighting.LightingSwipeData)swipeData));
 		}
 		#endregion
 	}

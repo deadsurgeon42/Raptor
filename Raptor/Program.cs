@@ -153,16 +153,41 @@ namespace Raptor
 			#endregion
 			#region Lighting
 			{
+				// Single core lighting
 				var doColors = asm.GetMethod("Lighting", "doColors");
 				for (int i = doColors.Body.Instructions.Count - 1; i >= 0; i--)
 				{
 					var instr = doColors.Body.Instructions[i];
 					if (instr.OpCode == OpCodes.Callvirt && ((MethodReference)instr.Operand).Name == "Invoke")
 					{
-						// LightingHooks.InvokeColored(Lighting.swipe);
-						doColors.InsertAfter(instr,
-							Instruction.Create(OpCodes.Ldsfld, asm.GetField("Lighting", "swipe")),
-							Instruction.Create(OpCodes.Call, mod.Import(typeof(LightingHooks).GetMethod("InvokeColored", FLAGS))));
+						var target = instr;
+						while (target.OpCode != OpCodes.Ldfld || ((FieldReference)target.Operand).Name != "function")
+							target = target.Previous;
+						
+						// LightingHooks.InvokeColor(Lighting.swipe);
+						doColors.InsertBefore(target,
+							Instruction.Create(OpCodes.Dup),
+							Instruction.Create(OpCodes.Call, mod.Import(typeof(LightingHooks).GetMethod("InvokeColor", FLAGS))));
+						break;
+					}
+				}
+
+				// Multicore lighting
+				var callback = asm.GetMethod("Lighting", "callback_LightingSwipe");
+				for (int i = callback.Body.Instructions.Count - 1; i >= 0; i--)
+				{
+					var instr = callback.Body.Instructions[i];
+					if (instr.OpCode == OpCodes.Callvirt && ((MethodReference)instr.Operand).Name == "Invoke")
+					{
+						var target = instr;
+						while (target.OpCode != OpCodes.Ldfld || ((FieldReference)target.Operand).Name != "function")
+							target = target.Previous;
+
+						// LightingHooks.InvokeColor(Lighting.swipe);
+						callback.InsertBefore(target,
+							Instruction.Create(OpCodes.Dup),
+							Instruction.Create(OpCodes.Call, mod.Import(typeof(LightingHooks).GetMethod("InvokeColor", FLAGS))));
+						break;
 					}
 				}
 			}
@@ -177,7 +202,7 @@ namespace Raptor
 					if (instr.OpCode == OpCodes.Ldsfld && ((FieldReference)instr.Operand).Name == "spriteBatch" &&
 						instr.Next.OpCode == OpCodes.Ldsfld && ((FieldReference)instr.Next.Operand).Name == "cursorTexture")
 					{
-						var target = drawInterface.Body.Instructions[i];
+						var target = instr;
 						while (target.OpCode != OpCodes.Callvirt || ((MethodReference)target.Operand).Name != "Draw")
 							target = target.Next;
 
