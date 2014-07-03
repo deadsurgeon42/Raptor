@@ -54,19 +54,6 @@ namespace Raptor.Api.Hooks
 		public static event EventHandler<ColorEventArgs> Color;
 		internal static void InvokeColor(object swipeData)
 		{
-			var SwipeData = (Lighting.LightingSwipeData)swipeData;
-
-			SwipeData.function = s =>
-				{
-					foreach (var array in s.jaggedArray)
-					{
-						foreach (var state in array)
-						{
-							state.r = state.g = state.b = state.r2 = state.g2 = state.b2 = 1;
-						}
-					}
-				};
-
 			if (Color != null)
 				Color(null, new ColorEventArgs((Lighting.LightingSwipeData)swipeData));
 		}
