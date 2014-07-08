@@ -1,5 +1,5 @@
 ﻿//  Raptor - a client API for Terraria
-//  Copyright (C) 2013 MarioE
+//  Copyright (C) 2013-2014 MarioE
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -41,7 +41,6 @@ namespace Raptor
 	public static class Raptor
 	{
 		static Texture2D[] cursorTextures = new Texture2D[6];
-		static string mouseText = "";
 		internal static Texture2D rectBackTexture;
 
 		class Chat
@@ -50,15 +49,7 @@ namespace Raptor
 			public string text;
 			public int timeOut;
 		}
-		[Flags]
-		enum Resize
-		{
-			Left = 1,
-			Right = 2,
-			Up = 4,
-			Down = 8
-		}
-
+		
 		static List<string> typedChat = new List<string>();
 		static int typedChatOffset;
 		static List<string> typedCommands = new List<string>();
@@ -128,11 +119,6 @@ namespace Raptor
 			form.WindowState = State;
 		}
 
-		internal static void Draw(SpriteBatch sb)
-		{
-			Main.mouseTextColor = 255;
-			Main.mouseTextColorChange = 0;
-		}
 		internal static void DrawCursor(SpriteBatch sb)
 		{
 			if (Input.CursorType == 0)
@@ -155,11 +141,6 @@ namespace Raptor
 					new Rectangle(Input.MouseX - cursor.Width / 2, Input.MouseY - cursor.Height / 2, (int)(Main.cursorScale * 14.0f), (int)(Main.cursorScale * 14.0f)),
 					Main.cursorColor);
 			}
-		}
-		internal static void DrawInterface(SpriteBatch sb)
-		{
-			sb.DrawGuiMouseText(mouseText, Color.White);
-			mouseText = "";
 		}
 		internal static void DrawPlayerChat(SpriteBatch sb)
 		{
@@ -185,10 +166,7 @@ namespace Raptor
 					sb.DrawGuiText("/" + text, new Vector2(98, Main.screenHeight - 30), Color.Orange);
 				}
 
-				sb.DrawGuiRectangle(
-					chatRectangle,
-					new Color(100, 100, 100, 200),
-					Main.inventoryBackTexture);
+				sb.DrawGuiRectangle(chatRectangle, new Color(100, 100, 100, 200), Main.inventoryBackTexture);
 			}
 
 			int linesShown = 0;
@@ -205,17 +183,17 @@ namespace Raptor
 				int scrollbarSize = (int)(Config.ChatShow * (Config.ChatShow * 19.0 - 4.0) / chat.Count);
 				int scrollbarOffset = (int)((chatViewOffset - Config.ChatShow) * (Config.ChatShow * 19.0 - 4.0) / chat.Count);
 
-				sb.Draw(rectBackTexture,
+				sb.Draw(Main.inventoryBackTexture,
 					new Rectangle(Main.screenWidth - 232, chatRectangle.Y + scrollbarOffset + 6, 6, scrollbarSize),
 					new Rectangle(8, 8, 36, 36),
-					new Color(220, 220, 220, 200));
+					new Color(150, 150, 150, 200));
 			}
 		}
 		internal static void LoadedContent(ContentManager content)
 		{
 			string dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Content", "Raptor");
 
-			Main.cursorTexture = cursorTextures[0] = content.Load<Texture2D>(Path.Combine(dir, "Cursors", "Normal"));
+			Main.cursorTexture = Main.cursor2Texture = cursorTextures[0] = content.Load<Texture2D>(Path.Combine(dir, "Cursors", "Normal"));
 			cursorTextures[1] = content.Load<Texture2D>(Path.Combine(dir, "Cursors", "Move"));
 			cursorTextures[2] = content.Load<Texture2D>(Path.Combine(dir, "Cursors", "HorzResize"));
 			cursorTextures[3] = content.Load<Texture2D>(Path.Combine(dir, "Cursors", "VertResize"));
@@ -226,13 +204,6 @@ namespace Raptor
 			Main.fontItemStack = Main.fontMouseText = content.Load<SpriteFont>(Path.Combine(dir, "Fonts", "Regular"));
 			Main.fontDeathText = content.Load<SpriteFont>(Path.Combine(dir, "Fonts", "Title"));
 
-			Texture2D invBack = content.Load<Texture2D>(Path.Combine(dir, "UI", "InvBack"));
-			Main.inventoryBackTexture = invBack;
-			for (int i = 2; i <= 14; i++)
-				typeof(Main).GetField("inventoryBack" + i + "Texture").SetValue(null, invBack);
-
-			Main.chatBackTexture = content.Load<Texture2D>(Path.Combine(dir, "UI", "NpcChatBack"));
-
 			rectBackTexture = content.Load<Texture2D>(Path.Combine(dir, "UI", "RectBack"));
 		}
 		internal static void NewText(string text, byte r, byte g, byte b)
@@ -241,7 +212,7 @@ namespace Raptor
 				Log.LogInfo("Chat: {0}", text);
 
 			rawChat.Add(new Chat { color = new Color(r, g, b), text = text });
-			if (rawChat.Count > 1000)
+			if (rawChat.Count > 500)
 				rawChat.RemoveAt(0);
 
 			var lineBuilder = new StringBuilder();
@@ -258,16 +229,15 @@ namespace Raptor
 				{
 					chat.Add(new Chat { color = new Color(r, g, b), text = lineBuilder.ToString(), timeOut = 600 });
 					lineLength = 4 * spaceLength + length;
-					lineBuilder.Clear().Append("    " + word + " ");
+					lineBuilder.Clear().Append("    ").Append(word).Append(" ");
 					linesAdded++;
 				}
 				else
-					lineBuilder.Append(word + " ");
+					lineBuilder.Append(word).Append(" ");
 			}
-			if (lineBuilder.ToString() != "")
+			if (lineBuilder.Length > 0)
 			{
 				chat.Add(new Chat { color = new Color(r, g, b), text = lineBuilder.ToString(), timeOut = 600 });
-				lineBuilder.Clear();
 				linesAdded++;
 			}
 
@@ -464,12 +434,12 @@ namespace Raptor
 						{
 							chat.Add(new Chat { color = rawChat[i].color, text = lineBuilder.ToString(), timeOut = rawChat[i].timeOut });
 							lineLength = 4 * spaceLength + length;
-							lineBuilder.Clear().Append("    " + word + " ");
+							lineBuilder.Clear().Append("    ").Append(word).Append(" ");
 						}
 						else
-							lineBuilder.Append(word + " ");
+							lineBuilder.Append(word).Append(" ");
 					}
-					if (lineBuilder.ToString() != "")
+					if (lineBuilder.Length > 0)
 					{
 						chat.Add(new Chat { color = rawChat[i].color, text = lineBuilder.ToString(), timeOut = rawChat[i].timeOut });
 						lineBuilder.Clear();

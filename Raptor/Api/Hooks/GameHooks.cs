@@ -1,5 +1,5 @@
 ﻿//  Raptor - a client API for Terraria
-//  Copyright (C) 2013 MarioE
+//  Copyright (C) 2013-2014 MarioE
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -32,6 +32,19 @@ namespace Raptor.Api.Hooks
 	/// </summary>
 	public static class GameHooks
 	{
+		#region Camera
+		/// <summary>
+		/// The event that runs after the game has already calculated screenPosition,
+		/// but didn't start drawing anything yet.
+		/// </summary>
+		public static event EventHandler<EventArgs> Camera;
+		internal static void InvokeCamera()
+		{
+			if (Camera != null)
+				Camera(null, new EventArgs());
+		}
+		#endregion
+
 		#region Draw
 		/// <summary>
 		/// Event arguments for Draw hooks.
@@ -68,10 +81,8 @@ namespace Raptor.Api.Hooks
 			switch (type)
 			{
 				case "":
-					Raptor.Draw(spriteBatch);
-					break;
-				case "Interface":
-					Raptor.DrawInterface(spriteBatch);
+					Main.mouseTextColor = 255;
+					Main.mouseTextColorChange = 0;
 					break;
 				case "PlayerChat":
 					Raptor.DrawPlayerChat(spriteBatch);
@@ -265,19 +276,6 @@ namespace Raptor.Api.Hooks
 		{
 			if (Updated != null)
 				Updated(null, new UpdatedEventArgs(gt));
-		}
-		#endregion
-
-		#region Camera
-		/// <summary>
-		/// The event that runs after the game has already calculated screenPosition,
-		/// but didn't start drawing anything yet.
-		/// </summary>
-		public static event EventHandler<EventArgs> Camera;
-		internal static void InvokeCamera()
-		{
-			if (Camera != null)
-				Camera(null, new EventArgs());
 		}
 		#endregion
 	}

@@ -1,5 +1,5 @@
 ﻿//  Raptor - a client API for Terraria
-//  Copyright (C) 2013 MarioE
+//  Copyright (C) 2013-2014 MarioE
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -16,6 +16,7 @@
 
 using System;
 using System.ComponentModel;
+using System.IO;
 using Terraria;
 
 namespace Raptor.Api.Hooks
@@ -47,6 +48,8 @@ namespace Raptor.Api.Hooks
 			/// Gets the length of the data in the data buffer.
 			/// </summary>
 			public int Length { get; private set; }
+			private BinaryReader reader;
+
 			internal GetDataEventArgs(int index, int length)
 			{
 				MsgID = (PacketTypes)NetMessage.buffer[256].readBuffer[index];
@@ -54,6 +57,45 @@ namespace Raptor.Api.Hooks
 
 				Index = index;
 				Length = length;
+				reader = new BinaryReader(new MemoryStream(NetMessage.buffer[256].readBuffer, index + 1, length - 1));
+			}
+
+			~GetDataEventArgs()
+			{
+				reader.Dispose();
+			}
+
+			/// <summary>
+			/// Reads a byte.
+			/// </summary>
+			/// <returns>The byte.</returns>
+			public byte ReadByte()
+			{
+				return reader.ReadByte();
+			}
+			/// <summary>
+			/// Reads a short.
+			/// </summary>
+			/// <returns>The short.</returns>
+			public short ReadInt16()
+			{
+				return reader.ReadInt16();
+			}
+			/// <summary>
+			/// Reads an int.
+			/// </summary>
+			/// <returns>The int.</returns>
+			public int ReadInt32()
+			{
+				return reader.ReadInt32();
+			}
+			/// <summary>
+			/// Reads a string.
+			/// </summary>
+			/// <returns>The string.</returns>
+			public string ReadString()
+			{
+				return reader.ReadString();
 			}
 		}
 		/// <summary>
@@ -93,6 +135,11 @@ namespace Raptor.Api.Hooks
 			/// Gets the length of the data in the data buffer.
 			/// </summary>
 			public int Length { get; private set; }
+			/// <summary>
+			/// Gets the BinaryReader for the data buffer.
+			/// </summary>
+			public BinaryReader Reader { get; private set; }
+
 			internal GotDataEventArgs(int index, int length)
 			{
 				MsgID = (PacketTypes)NetMessage.buffer[256].readBuffer[index];
@@ -100,6 +147,12 @@ namespace Raptor.Api.Hooks
 
 				Index = index;
 				Length = length;
+				Reader = new BinaryReader(new MemoryStream(NetMessage.buffer[256].readBuffer, index, length));
+			}
+
+			~GotDataEventArgs()
+			{
+				Reader.Dispose();
 			}
 		}
 		/// <summary>
@@ -167,12 +220,13 @@ namespace Raptor.Api.Hooks
 		public static event EventHandler<SendDataEventArgs> SendData;
 		internal static bool InvokeSendData(int msgId, string text, int n1, float n2, float n3, float n4, int n5)
 		{
-			if (SendData == null)
-				return false;
-
-			var args = new SendDataEventArgs(msgId, text, n1, n2, n3, n4, n5);
-			SendData(null, args);
-			return args.Handled;
+			if (SendData != null)
+			{
+				var args = new SendDataEventArgs(msgId, text, n1, n2, n3, n4, n5);
+				SendData(null, args);
+				return args.Handled;
+			}
+			return false;
 		}
 		#endregion
 		#region SentData
@@ -226,11 +280,11 @@ namespace Raptor.Api.Hooks
 		public static event EventHandler<SentDataEventArgs> SentData;
 		internal static void InvokeSentData(int msgId, string text, int n1, float n2, float n3, float n4, int n5)
 		{
-			if (SentData == null)
-				return;
-
-			var args = new SentDataEventArgs(msgId, text, n1, n2, n3, n4, n5);
-			SentData(null, args);
+			if (SentData != null)
+			{
+				var args = new SentDataEventArgs(msgId, text, n1, n2, n3, n4, n5);
+				SentData(null, args);
+			}
 		}
 		#endregion
 	}

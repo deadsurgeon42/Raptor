@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyProduct("Raptor")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyCompany("MarioE")]
-[assembly: AssemblyCopyright("Copyright © MarioE 2013")]
+[assembly: AssemblyCopyright("Copyright © MarioE 2013-2014")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: InternalsVisibleTo("Terraria")]

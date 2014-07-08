@@ -1,5 +1,5 @@
 //  Raptor - a client API for Terraria
-//  Copyright (C) 2013 MarioE
+//  Copyright (C) 2013-2014 MarioE
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -200,7 +200,7 @@ namespace Raptor
 					var instr = drawInterface.Body.Instructions[i];
 
 					if (instr.OpCode == OpCodes.Ldsfld && ((FieldReference)instr.Operand).Name == "spriteBatch" &&
-						instr.Next.OpCode == OpCodes.Ldsfld && ((FieldReference)instr.Next.Operand).Name == "cursorTexture")
+						instr.Next.OpCode == OpCodes.Ldsfld && (((FieldReference)instr.Next.Operand).Name == "cursorTexture" || ((FieldReference)instr.Next.Operand).Name == "cursor2Texture"))
 					{
 						var target = instr;
 						while (target.OpCode != OpCodes.Callvirt || ((MethodReference)target.Operand).Name != "Draw")

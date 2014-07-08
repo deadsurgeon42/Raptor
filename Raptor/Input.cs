@@ -1,5 +1,5 @@
 ﻿//  Raptor - a client API for Terraria
-//  Copyright (C) 2013 MarioE
+//  Copyright (C) 2013-2014 MarioE
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -46,10 +46,10 @@ namespace Raptor
 		static List<char> charCodes = new List<char>();
 		static List<byte> vkCodes = new List<byte>();
 		
-		static KeyboardState LastKeyboard = Microsoft.Xna.Framework.Input.Keyboard.GetState();
-		static MouseState LastMouse = Microsoft.Xna.Framework.Input.Mouse.GetState();
-		static KeyboardState Keyboard = Microsoft.Xna.Framework.Input.Keyboard.GetState();
-		static MouseState Mouse = Microsoft.Xna.Framework.Input.Mouse.GetState();
+		static KeyboardState lastKeyboard = Microsoft.Xna.Framework.Input.Keyboard.GetState();
+		static MouseState lastMouse = Microsoft.Xna.Framework.Input.Mouse.GetState();
+		static KeyboardState keyboard = Microsoft.Xna.Framework.Input.Keyboard.GetState();
+		static MouseState mouse = Microsoft.Xna.Framework.Input.Mouse.GetState();
 
 		/// <summary>
 		/// Gets the active special keys.
@@ -60,7 +60,7 @@ namespace Raptor
 		/// </summary>
 		public static bool Alt
 		{
-			get { return Keyboard.IsKeyDown(Keys.LeftAlt) || Keyboard.IsKeyDown(Keys.RightAlt); }
+			get { return keyboard.IsKeyDown(Keys.LeftAlt) || keyboard.IsKeyDown(Keys.RightAlt); }
 		}
 		internal static int CursorType { get; set; }
 		/// <summary>
@@ -68,7 +68,7 @@ namespace Raptor
 		/// </summary>
 		public static bool Control
 		{
-			get { return Keyboard.IsKeyDown(Keys.LeftControl) || Keyboard.IsKeyDown(Keys.RightControl); }
+			get { return keyboard.IsKeyDown(Keys.LeftControl) || keyboard.IsKeyDown(Keys.RightControl); }
 		}
 		/// <summary>
 		/// Whether or not the keyboard for Terraria should be disabled.
@@ -83,91 +83,91 @@ namespace Raptor
 		/// </summary>
 		public static int MouseDScroll
 		{
-			get { return Mouse.ScrollWheelValue - LastMouse.ScrollWheelValue; }
+			get { return mouse.ScrollWheelValue - lastMouse.ScrollWheelValue; }
 		}
 		/// <summary>
 		/// Gets the mouse delta X position.
 		/// </summary>
 		public static int MouseDX
 		{
-			get { return Mouse.X - LastMouse.X; }
+			get { return mouse.X - lastMouse.X; }
 		}
 		/// <summary>
 		/// Gets the mouse delta Y position.
 		/// </summary>
 		public static int MouseDY
 		{
-			get { return Mouse.Y - LastMouse.Y; }
+			get { return mouse.Y - lastMouse.Y; }
 		}
 		/// <summary>
 		/// Gets if the LMB is clicked.
 		/// </summary>
 		public static bool MouseLeftClick
 		{
-			get { return Mouse.LeftButton == ButtonState.Pressed && LastMouse.LeftButton == ButtonState.Released; }
+			get { return mouse.LeftButton == ButtonState.Pressed && lastMouse.LeftButton == ButtonState.Released; }
 		}
 		/// <summary>
 		/// Gets if the LMB is pressed.
 		/// </summary>
 		public static bool MouseLeftDown
 		{
-			get { return Mouse.LeftButton == ButtonState.Pressed; }
+			get { return mouse.LeftButton == ButtonState.Pressed; }
 		}
 		/// <summary>
 		/// Gets if the LMB is released.
 		/// </summary>
 		public static bool MouseLeftRelease
 		{
-			get { return Mouse.LeftButton != ButtonState.Pressed && LastMouse.LeftButton == ButtonState.Pressed; }
+			get { return mouse.LeftButton != ButtonState.Pressed && lastMouse.LeftButton == ButtonState.Pressed; }
 		}
 		/// <summary>
 		/// Gets if the RMB is clicked.
 		/// </summary>
 		public static bool MouseRightClick
 		{
-			get { return Mouse.RightButton == ButtonState.Pressed && LastMouse.RightButton == ButtonState.Released; }
+			get { return mouse.RightButton == ButtonState.Pressed && lastMouse.RightButton == ButtonState.Released; }
 		}
 		/// <summary>
 		/// Gets if the RMB is pressed.
 		/// </summary>
 		public static bool MouseRightDown
 		{
-			get { return Mouse.RightButton == ButtonState.Pressed; }
+			get { return mouse.RightButton == ButtonState.Pressed; }
 		}
 		/// <summary>
 		/// Gets if the RMB is released.
 		/// </summary>
 		public static bool MouseRightRelease
 		{
-			get { return Mouse.RightButton != ButtonState.Pressed && LastMouse.RightButton == ButtonState.Pressed; }
+			get { return mouse.RightButton != ButtonState.Pressed && lastMouse.RightButton == ButtonState.Pressed; }
 		}
 		/// <summary>
 		/// Gets the mouse scroll wheel value.
 		/// </summary>
 		public static int MouseScroll
 		{
-			get { return Mouse.ScrollWheelValue; }
+			get { return mouse.ScrollWheelValue; }
 		}
 		/// <summary>
 		/// Gets the mouse X position.
 		/// </summary>
 		public static int MouseX
 		{
-			get { return Mouse.X; }
+			get { return mouse.X; }
 		}
 		/// <summary>
 		/// Gets the mouse Y position.
 		/// </summary>
 		public static int MouseY
 		{
-			get { return Mouse.Y; }
+			get { return mouse.Y; }
 		}
 		/// <summary>
 		/// Gets if a shift key is down.
 		/// </summary>
 		public static bool Shift
 		{
-			get { return Keyboard.IsKeyDown(Keys.LeftShift) || Keyboard.IsKeyDown(Keys.RightShift); }
+			get { return keyboard.IsKeyDown(Keys.LeftShift) || keyboard.IsKeyDown(Keys.RightShift); }
 		}
 		/// <summary>
 		/// Gets the string formed from the most recent WM_CHAR messages.
@@ -219,35 +219,35 @@ namespace Raptor
 		/// </summary>
 		public static bool IsKeyDown(Keys key)
 		{
-			return Keyboard.IsKeyDown(key);
+			return keyboard.IsKeyDown(key);
 		}
 		/// <summary>
 		/// Gets if a key was released; that is, if the key is currently depressed but was pressed before.
 		/// </summary>
 		public static bool IsKeyReleased(Keys key)
 		{
-			return Keyboard.IsKeyUp(key) && LastKeyboard.IsKeyDown(key);
+			return keyboard.IsKeyUp(key) && lastKeyboard.IsKeyDown(key);
 		}
 		/// <summary>
 		/// Gets if a key was tapped; that is, if the key is currently pressed but was depressed before.
 		/// </summary>
 		public static bool IsKeyTapped(Keys key)
 		{
-			return Keyboard.IsKeyDown(key) && LastKeyboard.IsKeyUp(key);
+			return keyboard.IsKeyDown(key) && lastKeyboard.IsKeyUp(key);
 		}
         /// <summary>
         /// Gets all keys that are currently pressed down on the keyboard.
         /// </summary>
 	    public static Keys[] GetPressedKeys()
 	    {
-	        return Keyboard.GetPressedKeys();
+	        return keyboard.GetPressedKeys();
 	    }
 		internal static void Update()
 		{
-			LastKeyboard = Keyboard;
-			Keyboard = Microsoft.Xna.Framework.Input.Keyboard.GetState();
-			LastMouse = Mouse;
-			Mouse = Microsoft.Xna.Framework.Input.Mouse.GetState();
+			lastKeyboard = keyboard;
+			keyboard = Microsoft.Xna.Framework.Input.Keyboard.GetState();
+			lastMouse = mouse;
+			mouse = Microsoft.Xna.Framework.Input.Mouse.GetState();
 
 			TypedString = "";
 			for (int i = 0; i < charCodes.Count; i++)
