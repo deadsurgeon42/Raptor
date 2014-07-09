@@ -296,7 +296,7 @@ namespace Raptor
 				}
 
 				Input.DisabledKeyboard = true;
-				Main.chatText = Main.GetInputText(Main.chatText);
+				Main.chatText = Input.GetInputText(Main.chatText);
 				while (Main.fontMouseText.MeasureString(Main.chatText).X > Main.screenWidth - 324)
 					Main.chatText = Main.chatText.Substring(0, Main.chatText.Length - 1);
 
