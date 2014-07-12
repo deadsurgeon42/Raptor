@@ -31,6 +31,33 @@ namespace Raptor
 	public static class Input
 	{
 		/// <summary>
+		/// A key combination.
+		/// </summary>
+		public struct Keybind
+		{
+			public bool Alt;
+			public bool Control;
+			public Keys Key;
+			public bool Shift;
+
+			public override bool Equals(object obj)
+			{
+				return obj is Keybind && (Keybind)obj == this;
+			}
+			public override int GetHashCode()
+			{
+				return 0;
+			}
+			public static bool operator ==(Keybind kb1, Keybind kb2)
+			{
+				return kb1.Key == kb2.Key && kb1.Alt == kb2.Alt && kb1.Control == kb2.Control && kb1.Shift == kb2.Shift;
+			}
+			public static bool operator !=(Keybind kb1, Keybind kb2)
+			{
+				return kb1.Key != kb2.Key || kb1.Alt != kb2.Alt || kb1.Control != kb2.Control || kb1.Shift != kb2.Shift;
+			}
+		}
+		/// <summary>
 		/// Represents special keys.
 		/// </summary>
 		[Flags]

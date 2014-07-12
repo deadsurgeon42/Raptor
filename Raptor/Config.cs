@@ -37,10 +37,10 @@ namespace Raptor
 		[Description("The speed to scroll chat with the mouse wheel.")]
 		public int ChatScrollSpeed = 6;
 		/// <summary>
-		/// The key bindings to commands.
+		/// The keybinds.
 		/// </summary>
-		[Description("The key bindings to commands.")]
-		public Dictionary<Keys, string> KeyBindings = new Dictionary<Keys, string>();
+		[Description("The keybinds.")]
+		public Dictionary<Input.Keybind, List<string>> Keybinds = new Dictionary<Input.Keybind, List<string>>();
 		/// <summary>
 		/// Whether to log chat.
 		/// </summary>

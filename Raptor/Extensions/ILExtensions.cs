@@ -20,7 +20,7 @@ using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 
-namespace Raptor
+namespace Raptor.Extensions
 {
 	/// <summary>
 	/// Contains IL extensions.

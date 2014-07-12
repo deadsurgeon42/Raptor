@@ -140,8 +140,8 @@
     <Compile Include="Api\TileTypes.cs" />
     <Compile Include="Api\WallTypes.cs" />
     <Compile Include="Config.cs" />
-    <Compile Include="GuiExtensions.cs" />
-    <Compile Include="ILExtensions.cs" />
+    <Compile Include="Extensions\GuiExtensions.cs" />
+    <Compile Include="Extensions\ILExtensions.cs" />
     <Compile Include="Input.cs" />
     <Compile Include="Log.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

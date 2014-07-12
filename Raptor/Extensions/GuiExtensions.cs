@@ -22,7 +22,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
 
-namespace Raptor
+namespace Raptor.Extensions
 {
 	/// <summary>
 	/// Terraria GUI-related sprite batch extensions.

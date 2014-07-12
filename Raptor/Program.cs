@@ -27,6 +27,7 @@ using Mono.Cecil.Cil;
 using Terraria;
 using Raptor.Api;
 using Raptor.Api.Hooks;
+using Raptor.Extensions;
 
 namespace Raptor
 {

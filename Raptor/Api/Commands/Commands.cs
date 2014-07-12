@@ -57,7 +57,7 @@ namespace Raptor.Api.Commands
 			if (command != null)
 				command.Invoke(args);
 			else
-				Utils.NewErrorText("Invalid command.");
+				Utils.ErrorMessage("Invalid command.");
 		}
 		/// <summary>
 		/// Finds a command.
@@ -68,7 +68,7 @@ namespace Raptor.Api.Commands
 		{
 			return ChatCommands.FirstOrDefault(c => String.Equals(c.Name, commandName, StringComparison.OrdinalIgnoreCase));
 		}
-		internal static void Init()
+		internal static void Initialize()
 		{
 			ChatCommands.Add(new Command(Aliases, "aliases")
 			{
@@ -216,7 +216,7 @@ namespace Raptor.Api.Commands
 		{
 			if (e.Length == 0)
 			{
-				Utils.NewErrorText("Syntax: /{0} <command name>", e[-1]);
+				Utils.ErrorMessage("Syntax: /{0} <command name>", e[-1]);
 				return;
 			}
 
@@ -225,18 +225,18 @@ namespace Raptor.Api.Commands
 
 			if (command != null)
 			{
-				Utils.NewSuccessText("/{0} aliases:", command.Name);
-				Utils.NewInfoText(String.Join(", ", command.Names.Select(s => "/" + s)));
+				Utils.SuccessMessage("/{0} aliases:", command.Name);
+				Utils.InfoMessage(String.Join(", ", command.Names.Select(s => "/" + s)));
 			}
 			else
-				Utils.NewErrorText("Invalid command \"{0}\".", commandName);
+				Utils.ErrorMessage("Invalid command \"{0}\".", commandName);
 		}
 		static void Help(object o, CommandEventArgs e)
 		{
 			if (e.Length == 0)
 			{
-				Utils.NewSuccessText("Raptor commands: ");
-				Utils.NewInfoText(String.Join(", ", ChatCommands.Concat(LuaCommands).Select(c => "/" + c.Name)));
+				Utils.SuccessMessage("Raptor commands: ");
+				Utils.InfoMessage(String.Join(", ", ChatCommands.Concat(LuaCommands).Select(c => "/" + c.Name)));
 				return;
 			}
 
@@ -245,12 +245,12 @@ namespace Raptor.Api.Commands
 
 			if (command != null)
 			{
-				Utils.NewSuccessText("/{0} help:", command.Name);
+				Utils.SuccessMessage("/{0} help:", command.Name);
 				foreach (string line in command.HelpText)
-					Utils.NewInfoText("{0}", line);
+					Utils.InfoMessage("{0}", line);
 			}
 			else
-				Utils.NewErrorText("Invalid command \"{0}\".", commandName);
+				Utils.ErrorMessage("Invalid command \"{0}\".", commandName);
 		}
 		static void Keybind(object o, CommandEventArgs e)
 		{
@@ -262,36 +262,54 @@ namespace Raptor.Api.Commands
 					{
 						if (e.Length < 3)
 						{
-							Utils.NewErrorText("Syntax: /{0} {1} <key> <command>", e[-1], e[0]);
+							Utils.ErrorMessage("Syntax: /{0} {1} <key combination> <command>", e[-1], e[0]);
 							return;
 						}
 
-						Keys key;
-						if (!Enum.TryParse<Keys>(e[1], true, out key))
+						string key = e[1];
+						var keybind = new Input.Keybind();
+						while (!Utils.TryParseXNAKey(key, out keybind.Key))
 						{
-							Utils.NewErrorText("Invalid key \"{0}\".", e[1]);
-							return;
+							if (String.IsNullOrEmpty(key))
+							{
+								Utils.ErrorMessage("Invalid keybind '{0}'!", e[0]);
+								return;
+							}
+
+							switch (key[0])
+							{
+								case '!':
+									keybind.Alt = true;
+									break;
+								case '^':
+									keybind.Control = true;
+									break;
+								case '+':
+									keybind.Shift = true;
+									break;
+								default:
+									Utils.ErrorMessage("Invalid keybind modifier '{0}'!", key[0]);
+									return;
+							}
+							key = key.Substring(1);
 						}
 
-						if (Raptor.Config.KeyBindings.ContainsKey(key))
-						{
-							Utils.NewErrorText("The key \"{0}\" is already bound.", key);
-							return;
-						}
-
-						Raptor.Config.KeyBindings.Add(key, e.Eol(2));
+						if (Raptor.Config.Keybinds.ContainsKey(keybind))
+							Raptor.Config.Keybinds[keybind].Add(e.Eol(2));
+						else
+							Raptor.Config.Keybinds.Add(keybind, new List<string> { e.Eol(2) });
 						string configPath = "raptor.config";
 						File.WriteAllText(configPath, JsonConvert.SerializeObject(Raptor.Config, Formatting.Indented));
-						Utils.NewSuccessText("Bound the key \"{0}\" to \"{1}\".", key, e.Eol(2));
+						Utils.SuccessMessage("Bound the key '{0}' to '{1}'.", e.Eol(2), e[1]);
 					}
 					return;
 				case "clr":
 				case "clear":
 					{
-						Raptor.Config.KeyBindings.Clear();
+						Raptor.Config.Keybinds.Clear();
 						string configPath = "raptor.config";
 						File.WriteAllText(configPath, JsonConvert.SerializeObject(Raptor.Config, Formatting.Indented));
-						Utils.NewSuccessText("Cleared all key bindings.");
+						Utils.SuccessMessage("Cleared all key bindings.");
 					}
 					return;
 				case "del":
@@ -300,39 +318,60 @@ namespace Raptor.Api.Commands
 					{
 						if (e.Length == 1)
 						{
-							Utils.NewErrorText("Syntax: /{0} {1} <key>", e[-1], e[0]);
+							Utils.ErrorMessage("Syntax: /{0} {1} <key>", e[-1], e[0]);
 							return;
 						}
 
-						Keys key;
-						if (!Enum.TryParse<Keys>(e[1], true, out key))
+						string key = e[1];
+						var keybind = new Input.Keybind();
+						while (!Utils.TryParseXNAKey(key, out keybind.Key))
 						{
-							Utils.NewErrorText("Invalid key \"{0}\".", e[1]);
-							return;
+							if (String.IsNullOrEmpty(key))
+							{
+								Utils.ErrorMessage("Invalid keybind '{0}'!", e[0]);
+								return;
+							}
+
+							switch (key[0])
+							{
+								case '!':
+									keybind.Alt = true;
+									break;
+								case '^':
+									keybind.Control = true;
+									break;
+								case '+':
+									keybind.Shift = true;
+									break;
+								default:
+									Utils.ErrorMessage("Invalid keybind modifier '{0}'!", key[0]);
+									return;
+							}
+							key = key.Substring(1);
 						}
-						if (!Raptor.Config.KeyBindings.ContainsKey(key))
-						{
-							Utils.NewErrorText("The key \"{0}\" is not bound.", key);
-							return;
-						}
-						Raptor.Config.KeyBindings.Remove(key);
+
+						Raptor.Config.Keybinds.Remove(keybind);
 						string configPath = "raptor.config";
 						File.WriteAllText(configPath, JsonConvert.SerializeObject(Raptor.Config, Formatting.Indented));
-						Utils.NewSuccessText("Unbound the key \"{0}\".", key);
+						Utils.SuccessMessage("Removed all bindings to '{0}'.", e[1]);
 					}
 					return;
 				case "list":
-					Utils.NewSuccessText("Key Bindings:");
-					foreach (KeyValuePair<Keys, string> kv in Raptor.Config.KeyBindings)
-						Utils.NewInfoText("Key \"{0}\": {1}", kv.Key, kv.Value);
+					Utils.SuccessMessage("Key Bindings:");
+					foreach (var kv in Raptor.Config.Keybinds)
+					{
+						Utils.InfoMessage("Keybind '{0}':", Utils.ConvertToString(kv.Key.Key));
+						foreach (var command in kv.Value)
+							Utils.InfoMessage("  {0}", command);
+					}
 					return;
 				case "help":
 				default:
-					Utils.NewSuccessText("/{0} help:", e[-1]);
-					Utils.NewInfoText("/{0} add <key> <command> - Adds a key binding.", e[-1]);
-					Utils.NewInfoText("/{0} clr/clear - Clears all key bindings.", e[-1]);
-					Utils.NewInfoText("/{0} del/delete/remove <key> - Deletes a key binding.", e[-1]);
-					Utils.NewInfoText("/{0} list - Lists all key bindings.", e[-1]);
+					Utils.SuccessMessage("/{0} help:", e[-1]);
+					Utils.InfoMessage("/{0} add <key combination> <command> - Adds to a keybind.", e[-1]);
+					Utils.InfoMessage("/{0} clr/clear - Clears all keybinds.", e[-1]);
+					Utils.InfoMessage("/{0} del/delete/remove <key combination> - Deletes a keybind.", e[-1]);
+					Utils.InfoMessage("/{0} list - Lists all keybinds.", e[-1]);
 					return;
 			}
 		}
@@ -347,7 +386,7 @@ namespace Raptor.Api.Commands
 				}
 				catch (Exception ex)
 				{
-					Utils.NewErrorText(ex.ToString());
+					Utils.ErrorMessage(ex.ToString());
 				}
 			});
 		}
@@ -359,13 +398,13 @@ namespace Raptor.Api.Commands
 			LuaCommands.Clear();
 			LoadLuaCommands();
 
-			Utils.NewSuccessText("Reloaded configuration file & scripts.");
+			Utils.SuccessMessage("Reloaded configuration file & scripts.");
 		}
 		static void Say(object o, CommandEventArgs e)
 		{
 			if (e.Length == 0)
 			{
-				Utils.NewSuccessText("Syntax: /{0} <message>", e[-1]);
+				Utils.SuccessMessage("Syntax: /{0} <message>", e[-1]);
 				return;
 			}
 
@@ -378,14 +417,14 @@ namespace Raptor.Api.Commands
 		{
 			if (e.Length == 0 || String.Equals(e[0], "list", StringComparison.OrdinalIgnoreCase))
 			{
-				Utils.NewSuccessText("Config options:");
+				Utils.SuccessMessage("Config options:");
 				foreach (FieldInfo fi in typeof(Config).GetFields(BindingFlags.Instance | BindingFlags.Public))
 				{
 					Type t = fi.FieldType;
 					if (t != typeof(bool) && t != typeof(int) && t != typeof(string))
 						continue;
 					
-					Utils.NewInfoText("{0}: {1} ({2})",
+					Utils.InfoMessage("{0}: {1} ({2})",
 						fi.Name, fi.GetValue(Raptor.Config), ((DescriptionAttribute)fi.GetCustomAttributes(false)[0]).Description);
 				}
 			}
@@ -395,25 +434,25 @@ namespace Raptor.Api.Commands
 
 				if (fi == null)
 				{
-					Utils.NewErrorText("Invalid option \"{0}\".", e[0]);
+					Utils.ErrorMessage("Invalid option \"{0}\".", e[0]);
 					return;
 				}
 
 				Type t = fi.FieldType;
 				if (t != typeof(bool) && t != typeof(int) && t != typeof(string))
 				{
-					Utils.NewErrorText("Invalid option \"{0}\".", e[0]);
+					Utils.ErrorMessage("Invalid option \"{0}\".", e[0]);
 					return;
 				}
 
 				if (e.Length == 1)
 				{
 					if (t == typeof(bool))
-						Utils.NewErrorText("Syntax: /{0} {1} <boolean>", e[-1], fi.Name);
+						Utils.ErrorMessage("Syntax: /{0} {1} <boolean>", e[-1], fi.Name);
 					else if (t == typeof(int))
-						Utils.NewErrorText("Syntax: /{0} {1} <integer>", e[-1], fi.Name);
+						Utils.ErrorMessage("Syntax: /{0} {1} <integer>", e[-1], fi.Name);
 					else
-						Utils.NewErrorText("Syntax: /{0} {1} <string>", e[-1], fi.Name);
+						Utils.ErrorMessage("Syntax: /{0} {1} <string>", e[-1], fi.Name);
 					return;
 				}
 
@@ -422,30 +461,30 @@ namespace Raptor.Api.Commands
 					bool value;
 					if (!bool.TryParse(e[1], out value))
 					{
-						Utils.NewErrorText("Invalid value for option \"{0}\".", fi.Name);
+						Utils.ErrorMessage("Invalid value for option \"{0}\".", fi.Name);
 						return;
 					}
 
 					fi.SetValue(Raptor.Config, value);
-					Utils.NewSuccessText("Set option \"{0}\" to value \"{1}\".", fi.Name, value);
+					Utils.SuccessMessage("Set option \"{0}\" to value \"{1}\".", fi.Name, value);
 				}
 				else if (t == typeof(int))
 				{
 					int value;
 					if (!int.TryParse(e[1], out value) || value <= 0)
 					{
-						Utils.NewErrorText("Invalid value for option \"{0}\".", fi.Name);
+						Utils.ErrorMessage("Invalid value for option \"{0}\".", fi.Name);
 						return;
 					}
 
 					fi.SetValue(Raptor.Config, value);
-					Utils.NewSuccessText("Set option \"{0}\" to value \"{1}\".", fi.Name, value);
+					Utils.SuccessMessage("Set option \"{0}\" to value \"{1}\".", fi.Name, value);
 				}
 				else
 				{
 					string value = e.Eol(1);
 					fi.SetValue(Raptor.Config, value);
-					Utils.NewSuccessText("Set option \"{0}\" to value \"{1}\".", fi.Name, value);
+					Utils.SuccessMessage("Set option \"{0}\" to value \"{1}\".", fi.Name, value);
 				}
 
 				string configPath = "raptor.config";

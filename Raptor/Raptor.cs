@@ -29,6 +29,7 @@ using Newtonsoft.Json;
 using NLua;
 using Raptor.Api;
 using Raptor.Api.Commands;
+using Raptor.Extensions;
 using Terraria;
 
 using Form = System.Windows.Forms.Form;
@@ -79,7 +80,8 @@ namespace Raptor
 			Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
 			Main.versionNumber = "Terraria " + Main.versionNumber + "\nRaptor v" + ClientApi.ApiVersion;
 
-			Commands.Init();
+			Commands.Initialize();
+			Utils.Initialize();
 			string configPath = "raptor.config";
 			if (!File.Exists(configPath))
 				File.WriteAllText(configPath, JsonConvert.SerializeObject(Config = new Config(), Formatting.Indented));
@@ -115,7 +117,6 @@ namespace Raptor
 
 			var State = form.WindowState;
 			form.MinimumSize = new System.Drawing.Size(816, 638); 
-			// ^ This resets WindowState for some reason, breaking Terraria's window memory
 			form.WindowState = State;
 		}
 
@@ -395,10 +396,14 @@ namespace Raptor
 			#region Key bindings
 			if (chatMode == 0 && !Main.editSign && !Main.gameMenu && !Input.DisabledKeyboard)
 			{
-				foreach (KeyValuePair<Keys, string> kvp in Config.KeyBindings)
+				foreach (var kvp in Config.Keybinds)
 				{
-					if (Input.IsKeyTapped(kvp.Key))
-						Commands.Execute(kvp.Value);
+					if (Input.IsKeyTapped(kvp.Key.Key) &&
+						Input.Alt == kvp.Key.Alt && Input.Control == kvp.Key.Control && Input.Shift == kvp.Key.Shift)
+					{
+						foreach (var command in kvp.Value)
+							Commands.Execute(command);
+					}
 				}
 			}
 			#endregion
