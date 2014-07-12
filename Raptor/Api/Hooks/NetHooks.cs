@@ -17,6 +17,7 @@
 using System;
 using System.ComponentModel;
 using System.IO;
+using Microsoft.Xna.Framework;
 using Terraria;
 
 namespace Raptor.Api.Hooks
@@ -74,6 +75,22 @@ namespace Raptor.Api.Hooks
 				return reader.ReadByte();
 			}
 			/// <summary>
+			/// Reads an XNA Color.
+			/// </summary>
+			/// <returns>The XNA Color.</returns>
+			public Color ReadColor()
+			{
+				return new Color(reader.ReadByte(), reader.ReadByte(), reader.ReadByte());
+			}
+			/// <summary>
+			/// Reads a double.
+			/// </summary>
+			/// <returns>The double.</returns>
+			public double ReadDouble()
+			{
+				return reader.ReadDouble();
+			}
+			/// <summary>
 			/// Reads a short.
 			/// </summary>
 			/// <returns>The short.</returns>
@@ -90,12 +107,28 @@ namespace Raptor.Api.Hooks
 				return reader.ReadInt32();
 			}
 			/// <summary>
+			/// Reads a single (float).
+			/// </summary>
+			/// <returns>The single (float).</returns>
+			public float ReadSingle()
+			{
+				return reader.ReadSingle();
+			}
+			/// <summary>
 			/// Reads a string.
 			/// </summary>
 			/// <returns>The string.</returns>
 			public string ReadString()
 			{
 				return reader.ReadString();
+			}
+			/// <summary>
+			/// Reads a Vector2.
+			/// </summary>
+			/// <returns>The Vector2.</returns>
+			public Vector2 ReadVector2()
+			{
+				return new Vector2(reader.ReadSingle(), reader.ReadSingle());
 			}
 		}
 		/// <summary>
@@ -135,10 +168,7 @@ namespace Raptor.Api.Hooks
 			/// Gets the length of the data in the data buffer.
 			/// </summary>
 			public int Length { get; private set; }
-			/// <summary>
-			/// Gets the BinaryReader for the data buffer.
-			/// </summary>
-			public BinaryReader Reader { get; private set; }
+			private BinaryReader reader;
 
 			internal GotDataEventArgs(int index, int length)
 			{
@@ -147,12 +177,77 @@ namespace Raptor.Api.Hooks
 
 				Index = index;
 				Length = length;
-				Reader = new BinaryReader(new MemoryStream(NetMessage.buffer[256].readBuffer, index, length));
+				reader = new BinaryReader(new MemoryStream(NetMessage.buffer[256].readBuffer, index, length));
 			}
 
 			~GotDataEventArgs()
 			{
-				Reader.Dispose();
+				reader.Dispose();
+			}
+
+			/// <summary>
+			/// Reads a byte.
+			/// </summary>
+			/// <returns>The byte.</returns>
+			public byte ReadByte()
+			{
+				return reader.ReadByte();
+			}
+			/// <summary>
+			/// Reads an XNA Color.
+			/// </summary>
+			/// <returns>The XNA Color.</returns>
+			public Color ReadColor()
+			{
+				return new Color(reader.ReadByte(), reader.ReadByte(), reader.ReadByte());
+			}
+			/// <summary>
+			/// Reads a double.
+			/// </summary>
+			/// <returns>The double.</returns>
+			public double ReadDouble()
+			{
+				return reader.ReadDouble();
+			}
+			/// <summary>
+			/// Reads a short.
+			/// </summary>
+			/// <returns>The short.</returns>
+			public short ReadInt16()
+			{
+				return reader.ReadInt16();
+			}
+			/// <summary>
+			/// Reads an int.
+			/// </summary>
+			/// <returns>The int.</returns>
+			public int ReadInt32()
+			{
+				return reader.ReadInt32();
+			}
+			/// <summary>
+			/// Reads a single (float).
+			/// </summary>
+			/// <returns>The single (float).</returns>
+			public float ReadSingle()
+			{
+				return reader.ReadSingle();
+			}
+			/// <summary>
+			/// Reads a string.
+			/// </summary>
+			/// <returns>The string.</returns>
+			public string ReadString()
+			{
+				return reader.ReadString();
+			}
+			/// <summary>
+			/// Reads a Vector2.
+			/// </summary>
+			/// <returns>The Vector2.</returns>
+			public Vector2 ReadVector2()
+			{
+				return new Vector2(reader.ReadSingle(), reader.ReadSingle());
 			}
 		}
 		/// <summary>

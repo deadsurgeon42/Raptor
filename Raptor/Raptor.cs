@@ -393,13 +393,32 @@ namespace Raptor
 					rawChat[i].timeOut = 0;
 			}
 			#endregion
-			#region Key bindings
+			#region Keybinds
 			if (chatMode == 0 && !Main.editSign && !Main.gameMenu && !Input.DisabledKeyboard)
 			{
 				foreach (var kvp in Config.Keybinds)
 				{
-					if (Input.IsKeyTapped(kvp.Key.Key) &&
-						Input.Alt == kvp.Key.Alt && Input.Control == kvp.Key.Control && Input.Shift == kvp.Key.Shift)
+					string key = kvp.Key;
+					var keybind = new Input.Keybind();
+					while (!Utils.TryParseXNAKey(key, out keybind.Key))
+					{
+						switch (key[0])
+						{
+							case '!':
+								keybind.Alt = true;
+								break;
+							case '^':
+								keybind.Control = true;
+								break;
+							case '+':
+								keybind.Shift = true;
+								break;
+						}
+						key = key.Substring(1);
+					}
+
+					if (Input.IsKeyTapped(keybind.Key) &&
+						Input.Alt == keybind.Alt && Input.Control == keybind.Control && Input.Shift == keybind.Shift)
 					{
 						foreach (var command in kvp.Value)
 							Commands.Execute(command);

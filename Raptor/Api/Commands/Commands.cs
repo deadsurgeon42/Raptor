@@ -91,11 +91,11 @@ namespace Raptor.Api.Commands
 				HelpText = new[]
 				{
 					"Syntax: /keybind <add | clr | del | list> [arguments...]",
-					"Manages key bindings, which are keys that, when pressed, execute a command.",
-					"To add a key binding, use /kb add <key> <command>, without the first /.",
-					"To clear all key bindings, use /kb clr.",
-					"To delete a key binding, use /kb del <key>.",
-					"To list all key bindings, use /kb list.",
+					"Manages keybinds, which are keys that, when pressed, execute commands. A keybind is a combination of the alt, ctrl, or shift modifiers and a key. To specify modifiers, append !, ^, and + to the key, respectively. For example, ^s would correspond to CTRL + S, and ^!a would correspond to CTRL + ALT + A.",
+					"To add or append to a keybind, use /kb add <keybind> <command>, without the first /.",
+					"To clear all keybind, use /kb clr.",
+					"To delete a keybind, use /kb del <keybind>.",
+					"To list all keybind, use /kb list.",
 				}
 			});
 			ChatCommands.Add(new Command(Reload, "reload")
@@ -262,7 +262,7 @@ namespace Raptor.Api.Commands
 					{
 						if (e.Length < 3)
 						{
-							Utils.ErrorMessage("Syntax: /{0} {1} <key combination> <command>", e[-1], e[0]);
+							Utils.ErrorMessage("Syntax: /{0} {1} <keybind> <command>", e[-1], e[0]);
 							return;
 						}
 
@@ -279,13 +279,10 @@ namespace Raptor.Api.Commands
 							switch (key[0])
 							{
 								case '!':
-									keybind.Alt = true;
 									break;
 								case '^':
-									keybind.Control = true;
 									break;
 								case '+':
-									keybind.Shift = true;
 									break;
 								default:
 									Utils.ErrorMessage("Invalid keybind modifier '{0}'!", key[0]);
@@ -294,12 +291,12 @@ namespace Raptor.Api.Commands
 							key = key.Substring(1);
 						}
 
-						if (Raptor.Config.Keybinds.ContainsKey(keybind))
-							Raptor.Config.Keybinds[keybind].Add(e.Eol(2));
+						if (Raptor.Config.Keybinds.ContainsKey(e[0]))
+							Raptor.Config.Keybinds[e[1]].Add(e.Eol(2));
 						else
-							Raptor.Config.Keybinds.Add(keybind, new List<string> { e.Eol(2) });
-						string configPath = "raptor.config";
-						File.WriteAllText(configPath, JsonConvert.SerializeObject(Raptor.Config, Formatting.Indented));
+							Raptor.Config.Keybinds.Add(e[1], new List<string> { e.Eol(2) });
+
+						File.WriteAllText("raptor.config", JsonConvert.SerializeObject(Raptor.Config, Formatting.Indented));
 						Utils.SuccessMessage("Bound the key '{0}' to '{1}'.", e.Eol(2), e[1]);
 					}
 					return;
@@ -318,7 +315,7 @@ namespace Raptor.Api.Commands
 					{
 						if (e.Length == 1)
 						{
-							Utils.ErrorMessage("Syntax: /{0} {1} <key>", e[-1], e[0]);
+							Utils.ErrorMessage("Syntax: /{0} {1} <keybind>", e[-1], e[0]);
 							return;
 						}
 
@@ -326,22 +323,13 @@ namespace Raptor.Api.Commands
 						var keybind = new Input.Keybind();
 						while (!Utils.TryParseXNAKey(key, out keybind.Key))
 						{
-							if (String.IsNullOrEmpty(key))
-							{
-								Utils.ErrorMessage("Invalid keybind '{0}'!", e[0]);
-								return;
-							}
-
 							switch (key[0])
 							{
 								case '!':
-									keybind.Alt = true;
 									break;
 								case '^':
-									keybind.Control = true;
 									break;
 								case '+':
-									keybind.Shift = true;
 									break;
 								default:
 									Utils.ErrorMessage("Invalid keybind modifier '{0}'!", key[0]);
@@ -350,9 +338,8 @@ namespace Raptor.Api.Commands
 							key = key.Substring(1);
 						}
 
-						Raptor.Config.Keybinds.Remove(keybind);
-						string configPath = "raptor.config";
-						File.WriteAllText(configPath, JsonConvert.SerializeObject(Raptor.Config, Formatting.Indented));
+						Raptor.Config.Keybinds.Remove(e[0]);
+						File.WriteAllText("raptor.config", JsonConvert.SerializeObject(Raptor.Config, Formatting.Indented));
 						Utils.SuccessMessage("Removed all bindings to '{0}'.", e[1]);
 					}
 					return;
@@ -360,7 +347,7 @@ namespace Raptor.Api.Commands
 					Utils.SuccessMessage("Key Bindings:");
 					foreach (var kv in Raptor.Config.Keybinds)
 					{
-						Utils.InfoMessage("Keybind '{0}':", Utils.ConvertToString(kv.Key.Key));
+						Utils.InfoMessage("Keybind '{0}':", kv.Key);
 						foreach (var command in kv.Value)
 							Utils.InfoMessage("  {0}", command);
 					}
@@ -487,8 +474,7 @@ namespace Raptor.Api.Commands
 					Utils.SuccessMessage("Set option \"{0}\" to value \"{1}\".", fi.Name, value);
 				}
 
-				string configPath = "raptor.config";
-				File.WriteAllText(configPath, JsonConvert.SerializeObject(Raptor.Config, Formatting.Indented));
+				File.WriteAllText("raptor.config", JsonConvert.SerializeObject(Raptor.Config, Formatting.Indented));
 			}
 		}
 	}

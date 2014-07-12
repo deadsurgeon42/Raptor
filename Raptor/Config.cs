@@ -40,7 +40,7 @@ namespace Raptor
 		/// The keybinds.
 		/// </summary>
 		[Description("The keybinds.")]
-		public Dictionary<Input.Keybind, List<string>> Keybinds = new Dictionary<Input.Keybind, List<string>>();
+		public Dictionary<string, List<string>> Keybinds = new Dictionary<string, List<string>>();
 		/// <summary>
 		/// Whether to log chat.
 		/// </summary>
