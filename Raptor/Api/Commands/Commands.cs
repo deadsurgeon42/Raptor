@@ -291,10 +291,11 @@ namespace Raptor.Api.Commands
 							key = key.Substring(1);
 						}
 
-						if (Raptor.Config.Keybinds.ContainsKey(e[0]))
-							Raptor.Config.Keybinds[e[1]].Add(e.Eol(2));
+						string keyString = e[1].ToLower();
+						if (Raptor.Config.Keybinds.ContainsKey(keyString))
+							Raptor.Config.Keybinds[keyString].Add(e.Eol(2));
 						else
-							Raptor.Config.Keybinds.Add(e[1], new List<string> { e.Eol(2) });
+							Raptor.Config.Keybinds.Add(keyString, new List<string> { e.Eol(2) });
 
 						File.WriteAllText("raptor.config", JsonConvert.SerializeObject(Raptor.Config, Formatting.Indented));
 						Utils.SuccessMessage("Bound the key '{0}' to '{1}'.", e.Eol(2), e[1]);
@@ -338,9 +339,9 @@ namespace Raptor.Api.Commands
 							key = key.Substring(1);
 						}
 
-						Raptor.Config.Keybinds.Remove(e[1]);
+						Raptor.Config.Keybinds.Remove(e[1].ToLower());
 						File.WriteAllText("raptor.config", JsonConvert.SerializeObject(Raptor.Config, Formatting.Indented));
-						Utils.SuccessMessage("Removed all bindings to '{0}'.", e[1]);
+						Utils.SuccessMessage("Removed keybind '{0}'.", e[1]);
 					}
 					return;
 				case "list":
