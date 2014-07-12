@@ -338,7 +338,7 @@ namespace Raptor.Api.Commands
 							key = key.Substring(1);
 						}
 
-						Raptor.Config.Keybinds.Remove(e[0]);
+						Raptor.Config.Keybinds.Remove(e[1]);
 						File.WriteAllText("raptor.config", JsonConvert.SerializeObject(Raptor.Config, Formatting.Indented));
 						Utils.SuccessMessage("Removed all bindings to '{0}'.", e[1]);
 					}
