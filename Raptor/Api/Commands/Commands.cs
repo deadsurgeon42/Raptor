@@ -123,35 +123,6 @@ namespace Raptor.Api.Commands
 					"To edit the config file's options, use /set <option> <value>."
 				}
 			});
-
-			LoadLuaCommands();
-		}
-		static void LoadLuaCommands()
-		{
-			foreach (string path in Directory.EnumerateFiles("Scripts", "*.lua"))
-			{
-				if (path.EndsWith("startup.lua", StringComparison.OrdinalIgnoreCase))
-					continue;
-
-				List<string> lines = File.ReadAllLines(path).ToList();
-				var names = new List<string> { Path.GetFileNameWithoutExtension(path) };
-
-				var aliases = from s in lines
-							  where s.StartsWith("-- Aliases: ")
-							  select s.Substring(12);
-				if (aliases.Any())
-					names.AddRange(aliases.ElementAt(0).Split(','));
-
-				var command = new Command(LuaCommand, names.ToArray());
-
-				var helpTexts = from s in lines
-								where s.StartsWith("-- HelpText: ")
-								select s.Substring(13);
-				if (helpTexts.Any())
-					command.HelpText = helpTexts.ToArray();
-
-				LuaCommands.Add(command);
-			}
 		}
 		/// <summary>
 		/// Parses parameters from an input string.
@@ -363,28 +334,10 @@ namespace Raptor.Api.Commands
 					return;
 			}
 		}
-		static void LuaCommand(object o, CommandEventArgs e)
-		{
-			Raptor.Lua["args"] = e;
-			ThreadPool.QueueUserWorkItem(c =>
-			{
-				try
-				{
-					Raptor.Lua.DoFile(Path.Combine("Scripts", ((Command)o).Name + ".lua"));
-				}
-				catch (Exception ex)
-				{
-					Utils.ErrorMessage(ex.ToString());
-				}
-			});
-		}
 		static void Reload(object o, CommandEventArgs e)
 		{
 			string configPath = "raptor.config";
 			Raptor.Config = JsonConvert.DeserializeObject<Config>(File.ReadAllText(configPath));
-
-			LuaCommands.Clear();
-			LoadLuaCommands();
 
 			Utils.SuccessMessage("Reloaded configuration file & scripts.");
 		}

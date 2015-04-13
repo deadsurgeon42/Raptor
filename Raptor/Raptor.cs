@@ -26,7 +26,6 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Newtonsoft.Json;
-using NLua;
 using Raptor.Api;
 using Raptor.Api.Commands;
 using Raptor.Extensions;
@@ -66,14 +65,9 @@ namespace Raptor
 		/// Gets the configuration file.
 		/// </summary>
 		public static Config Config { get; internal set; }
-		/// <summary>
-		/// Gets the lua instance.
-		/// </summary>
-		public static Lua Lua { get; internal set; }
 
 		internal static void DeInitialize()
 		{
-			Lua.Dispose();
 		}
 		internal static void Initialize()
 		{
@@ -87,27 +81,6 @@ namespace Raptor
 				File.WriteAllText(configPath, JsonConvert.SerializeObject(Config = new Config(), Formatting.Indented));
 			else
 				Config = JsonConvert.DeserializeObject<Config>(File.ReadAllText(configPath));
-
-			Lua = new Lua();
-			Lua.LoadCLRPackage();
-			
-			if (File.Exists(Path.Combine("Scripts", "startup.lua")))
-			{
-				Task.Factory.StartNew(() =>
-				{
-					try
-					{
-						Lua.DoFile(Path.Combine("Scripts", "startup.lua"));
-					}
-					catch (Exception ex)
-					{
-						Log.LogError("Startup script error:");
-						Log.LogError(ex.ToString());
-					}
-				});
-			}
-			else
-				File.Create(Path.Combine("Scripts", "startup.lua"));
 
 			Main.showSplash = Config.ShowSplashScreen;
 			

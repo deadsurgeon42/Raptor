@@ -62,10 +62,6 @@
     <DocumentationFile>..\bin\Raptor.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="KeraLua, Version=1.0.0.0, Culture=neutral, PublicKeyToken=04d04586786c6f34, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>References\KeraLua.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.Xna.Framework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
       <Private>False</Private>
     </Reference>
@@ -87,18 +83,16 @@
     <Reference Include="Microsoft.Xna.Framework.Storage, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
       <Private>False</Private>
     </Reference>
-    <Reference Include="Mono.Cecil">
-      <HintPath>References\Mono.Cecil.dll</HintPath>
+    <Reference Include="Mono.Cecil, Version=0.9.5.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\References\Mono.Cecil.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib">
       <Private>False</Private>
     </Reference>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>References\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="NLua, Version=1.1.0.0, Culture=neutral, PublicKeyToken=8df2ab518030ea95, processorArchitecture=MSIL">
+    <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>References\NLua.dll</HintPath>
+      <HintPath>..\References\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System">
       <Private>False</Private>
@@ -118,8 +112,7 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="Terraria">
-      <HintPath>References\Terraria.exe</HintPath>
-      <Private>False</Private>
+      <HintPath>..\References\Terraria.exe</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -151,12 +144,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Game.ico" />
-    <Content Include="lua52.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="msvcr110.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\RaptorContent\RaptorContent.contentproj">
