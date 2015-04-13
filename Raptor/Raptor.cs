@@ -40,7 +40,6 @@ namespace Raptor
 	/// </summary>
 	public static class Raptor
 	{
-		static Texture2D[] cursorTextures = new Texture2D[6];
 		internal static Texture2D rectBackTexture;
 
 		class Chat
@@ -93,29 +92,6 @@ namespace Raptor
 			form.WindowState = State;
 		}
 
-		internal static void DrawCursor(SpriteBatch sb)
-		{
-			if (Input.CursorType == 0)
-			{
-				Texture2D cursor = cursorTextures[Input.CursorType];
-				sb.Draw(cursor,
-					new Rectangle(Input.MouseX + 1, Input.MouseY + 1, (int)(Main.cursorScale * 15.4f), (int)(Main.cursorScale * 15.4f)),
-					new Color((int)(Main.cursorColor.R * 0.2f), (int)(Main.cursorColor.G * 0.2f), (int)(Main.cursorColor.B * 0.2f), (int)(Main.cursorColor.A * 0.5f)));
-				sb.Draw(cursor,
-					new Rectangle(Input.MouseX, Input.MouseY, (int)(Main.cursorScale * 14.0f), (int)(Main.cursorScale * 14.0f)),
-					Main.cursorColor);
-			}
-			else
-			{
-				Texture2D cursor = cursorTextures[Input.CursorType];
-				sb.Draw(cursor,
-					new Rectangle(Input.MouseX + 1 - cursor.Width / 2, Input.MouseY + 1 - cursor.Height / 2, (int)(Main.cursorScale * 15.4f), (int)(Main.cursorScale * 15.4f)),
-					new Color((int)(Main.cursorColor.R * 0.2f), (int)(Main.cursorColor.G * 0.2f), (int)(Main.cursorColor.B * 0.2f), (int)(Main.cursorColor.A * 0.5f)));
-				sb.Draw(cursor,
-					new Rectangle(Input.MouseX - cursor.Width / 2, Input.MouseY - cursor.Height / 2, (int)(Main.cursorScale * 14.0f), (int)(Main.cursorScale * 14.0f)),
-					Main.cursorColor);
-			}
-		}
 		internal static void DrawPlayerChat(SpriteBatch sb)
 		{
 			var chatRectangle = new Rectangle(92, Main.screenHeight - 51 - Config.ChatShow * 19, Main.screenWidth - 312, Config.ChatShow * 19 + 12);
@@ -126,8 +102,7 @@ namespace Raptor
 				sb.DrawGuiRectangle(
 					new Rectangle(92, Main.screenHeight - 33,
 					Main.screenWidth - 312, 28),
-					new Color(100, 100, 100, 200),
-					Main.inventoryBackTexture);
+					new Color(100, 100, 100, 200));
 
 				if (chatMode == 1)
 				{
@@ -140,7 +115,7 @@ namespace Raptor
 					sb.DrawGuiText("/" + text, new Vector2(98, Main.screenHeight - 30), Color.Orange);
 				}
 
-				sb.DrawGuiRectangle(chatRectangle, new Color(100, 100, 100, 200), Main.inventoryBackTexture);
+				sb.DrawGuiRectangle(chatRectangle, new Color(100, 100, 100, 200));
 			}
 
 			int linesShown = 0;
@@ -148,8 +123,7 @@ namespace Raptor
 			{
 				sb.DrawGuiText(chat[i + chatViewOffset].text,
 					new Vector2(98, Main.screenHeight - 64 - linesShown++ * 19),
-					chat[i + chatViewOffset].color,
-					Main.fontMouseText);
+					chat[i + chatViewOffset].color);
 			}
 
 			if (chatMode > 0 && chat.Count > Config.ChatShow)
@@ -157,7 +131,7 @@ namespace Raptor
 				int scrollbarSize = (int)(Config.ChatShow * (Config.ChatShow * 19.0 - 4.0) / chat.Count);
 				int scrollbarOffset = (int)((chatViewOffset - Config.ChatShow) * (Config.ChatShow * 19.0 - 4.0) / chat.Count);
 
-				sb.Draw(Main.inventoryBackTexture,
+				sb.Draw(rectBackTexture,
 					new Rectangle(Main.screenWidth - 232, chatRectangle.Y + scrollbarOffset + 6, 6, scrollbarSize),
 					new Rectangle(8, 8, 36, 36),
 					new Color(150, 150, 150, 200));
@@ -167,17 +141,14 @@ namespace Raptor
 		{
 			string dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Content", "Raptor");
 
-			Main.cursorTexture = Main.cursor2Texture = cursorTextures[0] = content.Load<Texture2D>(Path.Combine(dir, "Cursors", "Normal"));
-			cursorTextures[1] = content.Load<Texture2D>(Path.Combine(dir, "Cursors", "Move"));
-			cursorTextures[2] = content.Load<Texture2D>(Path.Combine(dir, "Cursors", "HorzResize"));
-			cursorTextures[3] = content.Load<Texture2D>(Path.Combine(dir, "Cursors", "VertResize"));
-			cursorTextures[4] = content.Load<Texture2D>(Path.Combine(dir, "Cursors", "DiagResize"));
-			// it's easier to do this than to just flip the texture
-			cursorTextures[5] = content.Load<Texture2D>(Path.Combine(dir, "Cursors", "DiagResize2"));
-
 			Main.fontItemStack = Main.fontMouseText = content.Load<SpriteFont>(Path.Combine(dir, "Fonts", "Regular"));
 			Main.fontDeathText = content.Load<SpriteFont>(Path.Combine(dir, "Fonts", "Title"));
 
+			var invBack = content.Load<Texture2D>(Path.Combine(dir, "UI", "InvBack"));
+			Main.inventoryBackTexture = invBack;
+			for (int i = 2; i <= 14; i++)
+				typeof(Main).GetField("inventoryBack" + i + "Texture").SetValue(null, invBack);
+			Main.chatBackTexture = content.Load<Texture2D>(Path.Combine(dir, "UI", "NpcChatBack"));
 			rectBackTexture = content.Load<Texture2D>(Path.Combine(dir, "UI", "RectBack"));
 		}
 		internal static void NewText(string text, byte r, byte g, byte b)
@@ -222,7 +193,6 @@ namespace Raptor
 			if (!Main.hasFocus)
 				return;
 
-			Input.CursorType = 0;
 			Input.DisabledMouse = false;
 			Input.DisabledKeyboard = false;
 			Input.Update();

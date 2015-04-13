@@ -103,7 +103,7 @@ namespace Raptor.Api.Commands
 				HelpText = new[]
 				{
 					"Syntax: /reload",
-					"Reloads various objects such as the configuration file and Lua script commands."
+					"Reloads various objects such as the configuration file."
 				}
 			});
 			ChatCommands.Add(new Command(Say, "say")
@@ -339,7 +339,7 @@ namespace Raptor.Api.Commands
 			string configPath = "raptor.config";
 			Raptor.Config = JsonConvert.DeserializeObject<Config>(File.ReadAllText(configPath));
 
-			Utils.SuccessMessage("Reloaded configuration file & scripts.");
+			Utils.SuccessMessage("Reloaded configuration file.");
 		}
 		static void Say(object o, CommandEventArgs e)
 		{

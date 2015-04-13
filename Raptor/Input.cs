@@ -35,9 +35,21 @@ namespace Raptor
 		/// </summary>
 		public struct Keybind
 		{
+			/// <summary>
+			/// Whether the Alt key must be held.
+			/// </summary>
 			public bool Alt;
+			/// <summary>
+			/// Whether the Ctrl key must be held.
+			/// </summary>
 			public bool Control;
+			/// <summary>
+			/// The key.
+			/// </summary>
 			public Keys Key;
+			/// <summary>
+			/// Whether the Shift key must be held.
+			/// </summary>
 			public bool Shift;
 
 			public override bool Equals(object obj)
@@ -46,7 +58,7 @@ namespace Raptor
 			}
 			public override int GetHashCode()
 			{
-				return 0;
+				return (int)Key;
 			}
 			public static bool operator ==(Keybind kb1, Keybind kb2)
 			{
@@ -71,7 +83,7 @@ namespace Raptor
 		}
 
 		static List<char> charCodes = new List<char>();
-		static List<byte> vkCodes = new List<byte>();
+		static List<byte> keyCodes = new List<byte>();
 		
 		static KeyboardState lastKeyboard = Microsoft.Xna.Framework.Input.Keyboard.GetState();
 		static MouseState lastMouse = Microsoft.Xna.Framework.Input.Mouse.GetState();
@@ -83,15 +95,14 @@ namespace Raptor
 		/// </summary>
 		public static SpecialKeys ActiveSpecialKeys { get; private set; }
 		/// <summary>
-		/// Gets if an alt key is down.
+		/// Gets whether an alt key is down.
 		/// </summary>
 		public static bool Alt
 		{
 			get { return keyboard.IsKeyDown(Keys.LeftAlt) || keyboard.IsKeyDown(Keys.RightAlt); }
 		}
-		internal static int CursorType { get; set; }
 		/// <summary>
-		/// Gets if a control key is down.
+		/// Gets whether a control key is down.
 		/// </summary>
 		public static bool Control
 		{
@@ -206,7 +217,7 @@ namespace Raptor
 			// WM_KEYDOWN
 			if (m.Msg == 0x100)
 			{
-				vkCodes.Add((byte)m.WParam);
+				keyCodes.Add((byte)m.WParam);
 
 				// Translate message
 				IntPtr ptr = Marshal.AllocHGlobal(Marshal.SizeOf(m));
@@ -277,14 +288,14 @@ namespace Raptor
 			mouse = Microsoft.Xna.Framework.Input.Mouse.GetState();
 
 			TypedString = "";
-			for (int i = 0; i < charCodes.Count; i++)
-				TypedString += charCodes[i];
+			foreach (char c in charCodes)
+				TypedString += c;
 			charCodes.Clear();
 
 			ActiveSpecialKeys = 0;
-			for (int i = 0; i < vkCodes.Count; i++)
+			for (int i = 0; i < keyCodes.Count; i++)
 			{
-				switch (vkCodes[i])
+				switch (keyCodes[i])
 				{
 					case 0x08:
 						ActiveSpecialKeys |= SpecialKeys.Backspace;
@@ -303,7 +314,7 @@ namespace Raptor
 						break;
 				}
 			}
-			vkCodes.Clear();
+			keyCodes.Clear();
 		}
 	}
 }

@@ -195,25 +195,6 @@ namespace Raptor
 			#endregion
 			#region Main
 			{
-				var drawInterface = asm.GetMethod("Main", "DrawInterface");
-				for (int i = drawInterface.Body.Instructions.Count - 1; i >= 0; i--)
-				{
-					var instr = drawInterface.Body.Instructions[i];
-
-					if (instr.OpCode == OpCodes.Ldsfld && ((FieldReference)instr.Operand).Name == "spriteBatch" &&
-						instr.Next.OpCode == OpCodes.Ldsfld && (((FieldReference)instr.Next.Operand).Name == "cursorTexture" || ((FieldReference)instr.Next.Operand).Name == "cursor2Texture"))
-					{
-						var target = instr;
-						while (target.OpCode != OpCodes.Callvirt || ((MethodReference)target.Operand).Name != "Draw")
-							target = target.Next;
-
-						// Raptor.DrawCursor();
-						drawInterface.InsertAfter(instr,
-							Instruction.Create(OpCodes.Call, mod.Import(typeof(Raptor).GetMethod("DrawCursor", FLAGS))),
-							Instruction.Create(OpCodes.Br_S, target.Next));
-					}
-				}
-
 				foreach (KeyValuePair<string, string> kvp in drawHooks)
 				{
 					var method = asm.GetMethod("Main", kvp.Key);
@@ -531,7 +512,6 @@ namespace Raptor
 
 			Directory.CreateDirectory("Logs");
 			Directory.CreateDirectory("Plugins");
-			Directory.CreateDirectory("Scripts");
 
 			Log.Initialize();
 			Log.LogInfo("Raptor v{0} stopped.\n", ClientApi.ApiVersion);

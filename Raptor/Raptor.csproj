@@ -113,6 +113,7 @@
     </Reference>
     <Reference Include="Terraria">
       <HintPath>..\References\Terraria.exe</HintPath>
+      <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
