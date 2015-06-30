@@ -122,6 +122,11 @@ namespace Raptor
 		            Main.PlaySound(10);
 		        }
 		    }
+		    if (Input.IsKeyTapped(Keys.Escape) && Main.chatMode)
+		    {
+		        Main.chatText = "";
+		        Main.PlaySound(11);
+		    }
 
 			#region Keybinds
 			if (!Main.chatMode && !Main.editSign && !Main.gameMenu && !Input.DisabledKeyboard)
