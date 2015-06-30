@@ -107,7 +107,7 @@ namespace Raptor
 		            else
 		            {
 		                if (Main.netMode == 0)
-		                    Main.NewText(String.Format("<{0}> {1}", Utils.LocalPlayer.name, Main.chatText), 255, 255, 255, true);
+		                    Main.NewText(String.Format("<{0}> {1}", Utils.LocalPlayer.name, Main.chatText));
 		                else
 		                    NetMessage.SendData((int)PacketTypes.Chat, -1, -1, Main.chatText);
 		            }

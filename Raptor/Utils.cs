@@ -103,7 +103,7 @@ namespace Raptor
 		public static void ErrorMessage(string format, params object[] args)
 		{
 			if (!Main.gameMenu)
-                Main.NewText(String.Format(format, args), 255, 0, 0, true);
+                Main.NewText(String.Format(format, args), 255, 0, 0);
 		}
 		/// <summary>
 		/// Gets a list of matching items.
@@ -221,7 +221,7 @@ namespace Raptor
 		public static void InfoMessage(string format, params object[] args)
 		{
 			if (!Main.gameMenu)
-				Main.NewText(String.Format(format, args), 255, 255, 0, true);
+				Main.NewText(String.Format(format, args), 255, 255, 0);
 		}
 		/// <summary>
 		/// Prints a success message.
@@ -231,7 +231,7 @@ namespace Raptor
 		public static void SuccessMessage(string format, params object[] args)
 		{
 			if (!Main.gameMenu)
-                Main.NewText(String.Format(format, args), 0, 128, 0, true);
+                Main.NewText(String.Format(format, args), 0, 128, 0);
 		}
 		/// <summary>
 		/// Trys to convert a string to an XNA key.

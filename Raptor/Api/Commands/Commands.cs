@@ -189,7 +189,7 @@ namespace Raptor.Api.Commands
 		{
 			if (e.Length == 0)
 			{
-				Utils.ErrorMessage("Syntax: /{0} <command name>", e[-1]);
+				Utils.ErrorMessage("Syntax: .{0} <command name>", e[-1]);
 				return;
 			}
 
@@ -198,8 +198,8 @@ namespace Raptor.Api.Commands
 
 			if (command != null)
 			{
-				Utils.SuccessMessage("/{0} aliases:", command.Name);
-				Utils.InfoMessage(String.Join(", ", command.Names.Select(s => "/" + s)));
+				Utils.SuccessMessage(".{0} aliases:", command.Name);
+				Utils.InfoMessage(String.Join(", ", command.Names.Select(s => "." + s)));
 			}
 			else
 				Utils.ErrorMessage("Invalid command \"{0}\".", commandName);
@@ -209,7 +209,7 @@ namespace Raptor.Api.Commands
 			if (e.Length == 0)
 			{
 				Utils.SuccessMessage("Raptor commands: ");
-				Utils.InfoMessage(String.Join(", ", ChatCommands.Select(c => "/" + c.Name)));
+				Utils.InfoMessage(String.Join(", ", ChatCommands.Select(c => "." + c.Name)));
 				return;
 			}
 
@@ -218,7 +218,7 @@ namespace Raptor.Api.Commands
 
 			if (command != null)
 			{
-				Utils.SuccessMessage("/{0} help:", command.Name);
+				Utils.SuccessMessage(".{0} help:", command.Name);
 				foreach (string line in command.HelpText)
 					Utils.InfoMessage("{0}", line);
 			}
@@ -235,7 +235,7 @@ namespace Raptor.Api.Commands
 					{
 						if (e.Length < 3)
 						{
-							Utils.ErrorMessage("Syntax: /{0} {1} <keybind> <command>", e[-1], e[0]);
+							Utils.ErrorMessage("Syntax: .{0} {1} <keybind> <command>", e[-1], e[0]);
 							return;
 						}
 
@@ -289,7 +289,7 @@ namespace Raptor.Api.Commands
 					{
 						if (e.Length == 1)
 						{
-							Utils.ErrorMessage("Syntax: /{0} {1} <keybind>", e[-1], e[0]);
+							Utils.ErrorMessage("Syntax: .{0} {1} <keybind>", e[-1], e[0]);
 							return;
 						}
 
@@ -328,11 +328,11 @@ namespace Raptor.Api.Commands
 					return;
 				case "help":
 				default:
-					Utils.SuccessMessage("/{0} help:", e[-1]);
-					Utils.InfoMessage("/{0} add <key combination> <command> - Adds to a keybind.", e[-1]);
-					Utils.InfoMessage("/{0} clr/clear - Clears all keybinds.", e[-1]);
-					Utils.InfoMessage("/{0} del/delete/remove <key combination> - Deletes a keybind.", e[-1]);
-					Utils.InfoMessage("/{0} list - Lists all keybinds.", e[-1]);
+					Utils.SuccessMessage(".{0} help:", e[-1]);
+					Utils.InfoMessage(".{0} add <key combination> <command> - Adds to a keybind.", e[-1]);
+					Utils.InfoMessage(".{0} clr/clear - Clears all keybinds.", e[-1]);
+					Utils.InfoMessage(".{0} del/delete/remove <key combination> - Deletes a keybind.", e[-1]);
+					Utils.InfoMessage(".{0} list - Lists all keybinds.", e[-1]);
 					return;
 			}
 		}
@@ -347,7 +347,7 @@ namespace Raptor.Api.Commands
 		{
 			if (e.Length == 0)
 			{
-				Utils.SuccessMessage("Syntax: /{0} <message>", e[-1]);
+				Utils.SuccessMessage("Syntax: .{0} <message>", e[-1]);
 				return;
 			}
 
@@ -391,11 +391,11 @@ namespace Raptor.Api.Commands
 				if (e.Length == 1)
 				{
 					if (t == typeof(bool))
-						Utils.ErrorMessage("Syntax: /{0} {1} <boolean>", e[-1], fi.Name);
+						Utils.ErrorMessage("Syntax: .{0} {1} <boolean>", e[-1], fi.Name);
 					else if (t == typeof(int))
-						Utils.ErrorMessage("Syntax: /{0} {1} <integer>", e[-1], fi.Name);
+						Utils.ErrorMessage("Syntax: .{0} {1} <integer>", e[-1], fi.Name);
 					else
-						Utils.ErrorMessage("Syntax: /{0} {1} <string>", e[-1], fi.Name);
+						Utils.ErrorMessage("Syntax: .{0} {1} <string>", e[-1], fi.Name);
 					return;
 				}
 
