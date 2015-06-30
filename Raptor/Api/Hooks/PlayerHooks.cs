@@ -48,7 +48,7 @@ namespace Raptor.Api.Hooks
 			/// </summary>
 			public bool IsLocal
 			{
-				get { return Main.myPlayer == Player.whoAmi; }
+                get { return Main.myPlayer == Player.whoAmI; }
 			}
 			/// <summary>
 			/// Gets whether the damage was dealt via PvP.
@@ -100,7 +100,7 @@ namespace Raptor.Api.Hooks
 			/// </summary>
 			public bool IsLocal
 			{
-				get { return Main.myPlayer == Player.whoAmi; }
+				get { return Main.myPlayer == Player.whoAmI; }
 			}
 			/// <summary>
 			/// Gets whether the kill was dealt via PvP.
@@ -207,7 +207,7 @@ namespace Raptor.Api.Hooks
 			/// </summary>
 			public bool IsLocal
 			{
-				get { return Main.myPlayer == Player.whoAmi; }
+                get { return Main.myPlayer == Player.whoAmI; }
 			}
 			/// <summary>
 			/// Gets the player.

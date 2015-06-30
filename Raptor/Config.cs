@@ -27,16 +27,6 @@ namespace Raptor
 	public class Config
 	{
 		/// <summary>
-		/// The number of chat lines to show.
-		/// </summary>
-		[Description("The number of chat lines to show.")]
-		public int ChatShow = 16;
-		/// <summary>
-		/// The speed to scroll chat with the mouse wheel.
-		/// </summary>
-		[Description("The speed to scroll chat with the mouse wheel.")]
-		public int ChatScrollSpeed = 6;
-		/// <summary>
 		/// The keybinds.
 		/// </summary>
 		[Description("The keybinds.")]

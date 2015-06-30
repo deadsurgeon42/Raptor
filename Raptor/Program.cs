@@ -34,19 +34,6 @@ namespace Raptor
 	class Program
 	{
 		const BindingFlags FLAGS = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static;
-		static Dictionary<string, string> drawHooks = new Dictionary<string, string>
-		{
-			{ "Draw", "" },
-			{ "DrawInterface", "Interface" },
-			{ "DrawInventory", "Inventory" },
-			{ "DrawMap", "Map" },
-			{ "DrawMenu", "Menu" },
-			{ "DrawChat", "NPCChat" },
-			{ "DrawPlayerChat", "PlayerChat" },
-			{ "DrawTiles", "Tiles" },
-			{ "DrawWalls", "Walls" },
-			{ "DrawWires", "Wires" },
-		};
 		static Assembly terraria;
 		const string PIRACY_MSG = "You do not appear to have a legitimate copy of Terraria. If this is not the case, then try re-installing it and then running it";
 		const string REGISTRY = @"SOFTWARE\Re-Logic\Terraria";
@@ -63,7 +50,6 @@ namespace Raptor
 
 			string path = (string)rk.GetValue("Install_Path", null);
 
-			#region Piracy checks
 			if (path == null || !File.Exists(Path.Combine(path, "Terraria.exe")))
 			{
 				MessageBox.Show(PIRACY_MSG, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -78,59 +64,6 @@ namespace Raptor
 
 			var asm = AssemblyDefinition.ReadAssembly(Path.Combine(path, "Terraria.exe"));
 			var mod = asm.MainModule;
-
-			try
-			{
-				// Steam.SteamAPI_Init() check.
-				var steamApiInit = asm.GetMethod("Steam", "SteamAPI_Init");
-				if (!steamApiInit.IsPInvokeImpl || steamApiInit.PInvokeInfo.Module.Name != "steam_api.dll")
-				{
-					MessageBox.Show(PIRACY_MSG, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-					return;
-				}
-
-				// Steam.Init() check.
-				var steamInit = asm.GetMethod("Steam", "Init");
-				if (!steamInit.HasSameInstructions(0,
-					Instruction.Create(OpCodes.Call, steamApiInit),
-					Instruction.Create(OpCodes.Stsfld, asm.GetField("Steam", "SteamInit")),
-					Instruction.Create(OpCodes.Ret)))
-				{
-					MessageBox.Show(PIRACY_MSG, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-					return;
-				}
-
-				// Program.Main() check.
-				bool foundCheck = false;
-				var programMain = asm.GetMethod("Program", "Main");
-				for (int i = 0; i < programMain.Body.Instructions.Count; i++)
-				{
-					var instr = programMain.Body.Instructions[i];
-					if (instr.OpCode == OpCodes.Call &&
-						((MethodReference)instr.Operand).FullName == "System.Void Terraria.Steam::Init()" &&
-
-						instr.Next.OpCode == OpCodes.Ldsfld &&
-						((FieldReference)instr.Next.Operand).FullName == "System.Boolean Terraria.Steam::SteamInit" &&
-
-						instr.Next.Next.OpCode == OpCodes.Brfalse_S && ((Instruction)instr.Next.Next.Operand).Next.OpCode == OpCodes.Ldstr)
-					{
-						foundCheck = true;
-					}
-				}
-
-				if (!foundCheck)
-				{
-					MessageBox.Show(PIRACY_MSG, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-					return;
-				}
-			}
-			catch
-			{
-				// Exception here means piracy
-				MessageBox.Show(PIRACY_MSG, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-				return;
-			}
-			#endregion
 
 			#region Item
 			{
@@ -195,23 +128,6 @@ namespace Raptor
 			#endregion
 			#region Main
 			{
-				foreach (KeyValuePair<string, string> kvp in drawHooks)
-				{
-					var method = asm.GetMethod("Main", kvp.Key);
-					method.InsertStart(
-						Instruction.Create(OpCodes.Ldarg_0),
-						Instruction.Create(OpCodes.Ldfld, asm.GetField("Main", "spriteBatch")),
-						Instruction.Create(OpCodes.Ldstr, kvp.Value),
-						Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeDraw", FLAGS))),
-						Instruction.Create(OpCodes.Brfalse_S, method.Body.Instructions[0]),
-						Instruction.Create(OpCodes.Ret));
-					method.InsertEnd(
-						Instruction.Create(OpCodes.Ldarg_0),
-						Instruction.Create(OpCodes.Ldfld, asm.GetField("Main", "spriteBatch")),
-						Instruction.Create(OpCodes.Ldstr, kvp.Value),
-						Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeDrawn", FLAGS))));
-				}
-
 				// GameHooks.InvokeInitialized();
 				asm.GetMethod("Main", "Initialize").InsertEnd(
 					Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeInitialized", FLAGS))));
@@ -227,15 +143,6 @@ namespace Raptor
 					Instruction.Create(OpCodes.Ldarg_0),
 					Instruction.Create(OpCodes.Callvirt, mod.Import(typeof(Game).GetMethod("get_Content"))),
 					Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeLoadedContent", FLAGS))));
-
-				// GameHooks.InvokeNewText(text, r, g, b); return;
-				asm.GetMethod("Main", "NewText").InsertStart(
-					Instruction.Create(OpCodes.Ldarg_0),
-					Instruction.Create(OpCodes.Ldarg_1),
-					Instruction.Create(OpCodes.Ldarg_2),
-					Instruction.Create(OpCodes.Ldarg_3),
-					Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeNewText", FLAGS))),
-					Instruction.Create(OpCodes.Ret));
 
 				// I know this is weird, but FindWaterfalls() is called in the perfectly...
 				// ... right spot to manipulate Main.screenPosition.
@@ -410,7 +317,7 @@ namespace Raptor
 					}
 				}
 
-				var update = asm.GetMethod("Player", "UpdatePlayer");
+				var update = asm.GetMethod("Player", "Update");
 				// PlayerHooks.InvokeUpdate(this);
 				update.InsertStart(
 					Instruction.Create(OpCodes.Ldarg_0),
@@ -447,11 +354,15 @@ namespace Raptor
 					Instruction.Create(OpCodes.Call, mod.Import(typeof(ProjectileHooks).GetMethod("InvokeSetDefaults", FLAGS))));
 			}
 			#endregion
-			#region Steam
+			#region SocialAPI
 			{
 				// return;
-				asm.GetMethod("Steam", "Kill").InsertStart(
+                asm.GetMethod("SocialAPI", "Initialize").InsertStart(
 					Instruction.Create(OpCodes.Ret));
+
+                // return;
+                asm.GetMethod("SocialAPI", "Shutdown").InsertStart(
+                    Instruction.Create(OpCodes.Ret));
 			}
 			#endregion
 

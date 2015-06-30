@@ -34,7 +34,6 @@ namespace Raptor.Api.Commands
 	public static class Commands
 	{
 		static List<Command> ChatCommands = new List<Command>();
-		static List<Command> LuaCommands = new List<Command>();
 
 		/// <summary>
 		/// Deregisters a command.
@@ -50,10 +49,13 @@ namespace Raptor.Api.Commands
 		/// <param name="text">The command text.</param>
 		public static void Execute(string text)
 		{
+		    if (String.IsNullOrEmpty(text))
+		        return;
+
 			var args = new CommandEventArgs(ParseParameters(text));
 
 			string commandName = args[-1].ToLowerInvariant();
-			Command command = ChatCommands.Concat(LuaCommands).FirstOrDefault(c => c.Names.Contains(commandName));
+			Command command = ChatCommands.FirstOrDefault(c => c.Names.Contains(commandName));
 			if (command != null)
 				command.Invoke(args);
 			else
@@ -192,7 +194,7 @@ namespace Raptor.Api.Commands
 			}
 
 			string commandName = e[0].ToLowerInvariant();
-			Command command = ChatCommands.Concat(LuaCommands).FirstOrDefault(c => c.Names.Contains(commandName));
+			Command command = ChatCommands.FirstOrDefault(c => c.Names.Contains(commandName));
 
 			if (command != null)
 			{
@@ -207,12 +209,12 @@ namespace Raptor.Api.Commands
 			if (e.Length == 0)
 			{
 				Utils.SuccessMessage("Raptor commands: ");
-				Utils.InfoMessage(String.Join(", ", ChatCommands.Concat(LuaCommands).Select(c => "/" + c.Name)));
+				Utils.InfoMessage(String.Join(", ", ChatCommands.Select(c => "/" + c.Name)));
 				return;
 			}
 
 			string commandName = e[0].ToLowerInvariant();
-			Command command = ChatCommands.Concat(LuaCommands).FirstOrDefault(c => c.Names.Contains(commandName));
+			Command command = ChatCommands.FirstOrDefault(c => c.Names.Contains(commandName));
 
 			if (command != null)
 			{
