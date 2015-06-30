@@ -104,7 +104,7 @@ namespace Raptor
 		        {
 		            if (Main.chatText.StartsWith("."))
 		                Commands.Execute(Main.chatText.Substring(1));
-		            else
+		            else if (!String.IsNullOrEmpty(Main.chatText))
 		            {
 		                if (Main.netMode == 0)
 		                    Main.NewText(String.Format("<{0}> {1}", Utils.LocalPlayer.name, Main.chatText));
