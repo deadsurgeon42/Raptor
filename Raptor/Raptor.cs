@@ -32,6 +32,7 @@ using Raptor.Extensions;
 using Terraria;
 
 using Form = System.Windows.Forms.Form;
+using Terraria.GameInput;
 
 namespace Raptor
 {
@@ -65,7 +66,7 @@ namespace Raptor
 
 			Main.showSplash = Config.ShowSplashScreen;
 			
-			Form form = (Form)Form.FromHandle(ClientApi.Main.Window.Handle);
+			Form form = (Form)Form.FromHandle(Main.instance.Window.Handle);
 			form.KeyPress += Input.Form_KeyPress;
 
 			var state = form.WindowState;
@@ -76,21 +77,30 @@ namespace Raptor
 		internal static void LoadedContent(ContentManager content)
 		{
 			string dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Content", "Raptor");
+			Main.fontItemStack = Main.fontMouseText = Main.instance.OurLoad<SpriteFont>("Raptor\\Fonts\\Regular");
+			Main.fontDeathText = Main.instance.OurLoad<SpriteFont>("Raptor\\Fonts\\Title");
 
-			Main.fontItemStack = Main.fontMouseText = content.Load<SpriteFont>(Path.Combine(dir, "Fonts", "Regular"));
-			Main.fontDeathText = content.Load<SpriteFont>(Path.Combine(dir, "Fonts", "Title"));
-
-			var invBack = content.Load<Texture2D>(Path.Combine(dir, "UI", "InvBack"));
+			var invBack = content.Load<Texture2D>("Raptor\\UI\\InvBack");
 			Main.inventoryBackTexture = invBack;
 			for (int i = 2; i <= 14; i++)
 				typeof(Main).GetField("inventoryBack" + i + "Texture").SetValue(null, invBack);
-			Main.chatBackTexture = content.Load<Texture2D>(Path.Combine(dir, "UI", "NpcChatBack"));
-			rectBackTexture = content.Load<Texture2D>(Path.Combine(dir, "UI", "RectBack"));
+			Main.chatBackTexture = content.Load<Texture2D>("Raptor\\UI\\NpcChatBack");
+			rectBackTexture = content.Load<Texture2D>("Raptor\\UI\\RectBack");
 		}
+
+		private static bool LoadedEverything = false;
+
 		internal static void Update()
 		{
 			if (!Main.hasFocus)
 				return;
+
+			if (!LoadedEverything && Terraria.Program.LoadedEverything)
+			{
+				//Form form = (Form)Form.FromHandle(ClientApi.Main.Window.Handle);
+				//form.KeyPress += Input.Form_KeyPress;
+				LoadedEverything = true;
+			}
 
 			Input.DisabledMouse = false;
 			Input.DisabledKeyboard = false;
@@ -100,7 +110,7 @@ namespace Raptor
 
 		    if (Input.IsKeyTapped(Keys.Enter) && !Input.Alt)
 		    {
-		        if (Main.chatMode)
+		        if (Main.drawingPlayerChat)
 		        {
 		            if (Main.chatText.StartsWith("."))
 		                Commands.Execute(Main.chatText.Substring(1));
@@ -112,24 +122,24 @@ namespace Raptor
 		                    NetMessage.SendData((int)PacketTypes.Chat, -1, -1, Main.chatText);
 		            }
 
-		            Main.chatMode = false;
+		            Main.drawingPlayerChat = false;
 		            Main.chatText = "";
 		            Main.PlaySound(11);
 		        }
 		        else
 		        {
-		            Main.chatMode = true;
+		            Main.drawingPlayerChat = true;
 		            Main.PlaySound(10);
 		        }
 		    }
-		    if (Input.IsKeyTapped(Keys.Escape) && Main.chatMode)
+		    if (Input.IsKeyTapped(Keys.Escape) && Main.drawingPlayerChat)
 		    {
 		        Main.chatText = "";
 		        Main.PlaySound(11);
 		    }
 
 			#region Keybinds
-			if (!Main.chatMode && !Main.editSign && !Main.gameMenu && !Input.DisabledKeyboard)
+			if (!Main.drawingPlayerChat && !Main.editSign && !Main.gameMenu && !Input.DisabledKeyboard)
 			{
 				foreach (var kvp in Config.Keybinds)
 				{
@@ -163,7 +173,7 @@ namespace Raptor
 			#endregion
 
 			if (Input.DisabledMouse)
-				Main.mouseState = Main.oldMouseState = new MouseState(-100, -100, Input.MouseScroll, 0, 0, 0, 0, 0);
+				PlayerInput.MouseInfo = PlayerInput.MouseInfoOld = new MouseState(-100, -100, Input.MouseScroll, 0, 0, 0, 0, 0);
 			if (Input.DisabledKeyboard)
 				Main.keyState = Main.inputText = Main.oldInputText = new KeyboardState(null);
 		}

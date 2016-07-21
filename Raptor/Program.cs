@@ -441,7 +441,8 @@ namespace Raptor
 				{
 					ClientApi.Main.Content.RootDirectory = Path.Combine(path, "Content");
 					Directory.SetCurrentDirectory(path);
-					ClientApi.Main.Run();
+					string[] args = new string[] { };
+					WindowsLaunch.Main(args);
 				}
 				catch (Exception e)
 				{
