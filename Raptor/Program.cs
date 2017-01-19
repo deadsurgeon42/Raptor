@@ -17,38 +17,41 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
 using Microsoft.Win32;
 using Microsoft.Xna.Framework;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
-using Terraria;
 using Raptor.Api;
 using Raptor.Api.Hooks;
 using Raptor.Extensions;
+using Terraria;
 
 namespace Raptor
 {
-	class Program
+	internal class Program
 	{
-		const BindingFlags FLAGS = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static;
-		static Assembly terraria;
-		const string PIRACY_MSG = "You do not appear to have a legitimate copy of Terraria. If this is not the case, then try re-installing it and then running it";
-		const string REGISTRY = @"SOFTWARE\Re-Logic\Terraria";
-		
+		private const BindingFlags FLAGS =
+			BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static;
+
+		private const string PIRACY_MSG =
+			"You do not appear to have a legitimate copy of Terraria. If this is not the case, then try re-installing it and then running it";
+
+		private const string REGISTRY = @"SOFTWARE\Re-Logic\Terraria";
+		private static Assembly terraria;
+
 		[STAThread]
-		static void Main()
+		private static void Main()
 		{
-			RegistryKey rk = Registry.LocalMachine.OpenSubKey(REGISTRY);
+			var rk = Registry.LocalMachine.OpenSubKey(REGISTRY);
 			if (rk == null)
 			{
 				MessageBox.Show(PIRACY_MSG, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 				return;
 			}
 
-			string path = (string)rk.GetValue("Install_Path", null);
+			var path = (string) rk.GetValue("Install_Path", null);
 
 			if (path == null || !File.Exists(Path.Combine(path, "Terraria.exe")))
 			{
@@ -58,7 +61,8 @@ namespace Raptor
 
 			if (File.Exists("Terraria.exe"))
 			{
-				MessageBox.Show("Do not run this program in the same folder as Terraria.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				MessageBox.Show("Do not run this program in the same folder as Terraria.", "Error", MessageBoxButtons.OK,
+					MessageBoxIcon.Error);
 				return;
 			}
 
@@ -66,15 +70,19 @@ namespace Raptor
 			var mod = asm.MainModule;
 
 			#region Item
+
 			{
-				var itemSetDefaults = asm.GetMethod("Item", "SetDefaults", new[] { "Int32", "Boolean" });
+				var itemSetDefaults = asm.GetMethod("Item", "SetDefaults", new[] {"Int32", "Boolean"});
 				// ItemHooks.InvokeSetDefaults(this);
 				itemSetDefaults.InsertEnd(
 					Instruction.Create(OpCodes.Ldarg_0),
 					Instruction.Create(OpCodes.Call, mod.Import(typeof(ItemHooks).GetMethod("InvokeSetDefaults", FLAGS))));
 			}
+
 			#endregion
+
 			#region keyBoardInput
+
 			{
 				// Input.FilterMessage(m); return false;
 				var filterMessage = asm.GetType("keyBoardInput").NestedTypes[0].Methods[0];
@@ -84,20 +92,23 @@ namespace Raptor
 					Instruction.Create(OpCodes.Ldc_I4_0),
 					Instruction.Create(OpCodes.Ret));
 			}
+
 			#endregion
+
 			#region Lighting
+
 			{
 				// Single core lighting
 				var doColors = asm.GetMethod("Lighting", "doColors");
 				for (int i = doColors.Body.Instructions.Count - 1; i >= 0; i--)
 				{
 					var instr = doColors.Body.Instructions[i];
-					if (instr.OpCode == OpCodes.Callvirt && ((MethodReference)instr.Operand).Name == "Invoke")
+					if (instr.OpCode == OpCodes.Callvirt && ((MethodReference) instr.Operand).Name == "Invoke")
 					{
 						var target = instr;
-						while (target.OpCode != OpCodes.Ldfld || ((FieldReference)target.Operand).Name != "function")
+						while (target.OpCode != OpCodes.Ldfld || ((FieldReference) target.Operand).Name != "function")
 							target = target.Previous;
-						
+
 						// LightingHooks.InvokeColor(Lighting.swipe);
 						doColors.InsertBefore(target,
 							Instruction.Create(OpCodes.Dup),
@@ -111,10 +122,10 @@ namespace Raptor
 				for (int i = callback.Body.Instructions.Count - 1; i >= 0; i--)
 				{
 					var instr = callback.Body.Instructions[i];
-					if (instr.OpCode == OpCodes.Callvirt && ((MethodReference)instr.Operand).Name == "Invoke")
+					if (instr.OpCode == OpCodes.Callvirt && ((MethodReference) instr.Operand).Name == "Invoke")
 					{
 						var target = instr;
-						while (target.OpCode != OpCodes.Ldfld || ((FieldReference)target.Operand).Name != "function")
+						while (target.OpCode != OpCodes.Ldfld || ((FieldReference) target.Operand).Name != "function")
 							target = target.Previous;
 
 						// LightingHooks.InvokeColor(Lighting.swipe);
@@ -125,8 +136,11 @@ namespace Raptor
 					}
 				}
 			}
+
 			#endregion
+
 			#region Main
+
 			{
 				// GameHooks.InvokeInitialized();
 				asm.GetMethod("Main", "Initialize").InsertEnd(
@@ -147,7 +161,7 @@ namespace Raptor
 				// I know this is weird, but FindWaterfalls() is called in the perfectly...
 				// ... right spot to manipulate Main.screenPosition.
 				// Simon311.
-				asm.GetMethod("WaterfallManager", "FindWaterfalls").InsertStart( 
+				asm.GetMethod("WaterfallManager", "FindWaterfalls").InsertStart(
 					Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeCamera", FLAGS)))
 				);
 
@@ -168,18 +182,14 @@ namespace Raptor
 				for (int i = update.Body.Instructions.Count - 1; i >= 0; i--)
 				{
 					var instr = update.Body.Instructions[i];
-					if (instr.OpCode == OpCodes.Call && ((MethodReference)instr.Operand).ReturnType.Name == "MouseState")
-					{
+					if (instr.OpCode == OpCodes.Call && ((MethodReference) instr.Operand).ReturnType.Name == "MouseState")
 						update.InsertBefore(instr,
 							Instruction.Create(OpCodes.Ldsfld, disabledMouse),
 							Instruction.Create(OpCodes.Brtrue_S, instr.Next.Next));
-					}
-					else if (instr.OpCode == OpCodes.Call && ((MethodReference)instr.Operand).ReturnType.Name == "KeyboardState")
-					{
+					else if (instr.OpCode == OpCodes.Call && ((MethodReference) instr.Operand).ReturnType.Name == "KeyboardState")
 						update.InsertBefore(instr,
 							Instruction.Create(OpCodes.Ldsfld, disabledKeyboard),
 							Instruction.Create(OpCodes.Brtrue_S, instr.Next.Next));
-					}
 				}
 
 				// GameHooks.InvokeUpdated();
@@ -187,8 +197,11 @@ namespace Raptor
 					Instruction.Create(OpCodes.Ldarg_1),
 					Instruction.Create(OpCodes.Call, mod.Import(typeof(GameHooks).GetMethod("InvokeUpdated", FLAGS))));
 			}
+
 			#endregion
+
 			#region MessageBuffer
+
 			{
 				var getData = asm.GetMethod("MessageBuffer", "GetData");
 				// if (NetHooks.InvokeGetData(start, length)) return;
@@ -205,8 +218,11 @@ namespace Raptor
 					Instruction.Create(OpCodes.Ldarg_2),
 					Instruction.Create(OpCodes.Call, mod.Import(typeof(NetHooks).GetMethod("InvokeGotData", FLAGS))));
 			}
+
 			#endregion
+
 			#region NetMessage
+
 			{
 				var sendData = asm.GetMethod("NetMessage", "SendData");
 				// if (NetHooks.InvokeSendData(msgType, text, number, number2, number3, number4, number5)) return;
@@ -233,8 +249,11 @@ namespace Raptor
 					Instruction.Create(OpCodes.Ldarg_S, sendData.Parameters[8]),
 					Instruction.Create(OpCodes.Call, mod.Import(typeof(NetHooks).GetMethod("InvokeSentData", FLAGS))));
 			}
+
 			#endregion
+
 			#region NPC
+
 			{
 				var ai = asm.GetMethod("NPC", "AI");
 				// if (NPCHooks.InvokeProcessAI(this)) return;
@@ -250,14 +269,17 @@ namespace Raptor
 					Instruction.Create(OpCodes.Call, mod.Import(typeof(NpcHooks).GetMethod("InvokeDropLoot", FLAGS))),
 					Instruction.Create(OpCodes.Brfalse_S, npcLoot.Body.Instructions[0]),
 					Instruction.Create(OpCodes.Ret));
-				var setDefaults = asm.GetMethod("NPC", "SetDefaults", new[] { "Int32", "Single" });
+				var setDefaults = asm.GetMethod("NPC", "SetDefaults", new[] {"Int32", "Single"});
 				// NpcHooks.InvokeSetDefaults(this);
 				setDefaults.InsertEnd(
 					Instruction.Create(OpCodes.Ldarg_0),
 					Instruction.Create(OpCodes.Call, mod.Import(typeof(NpcHooks).GetMethod("InvokeSetDefaults", FLAGS))));
 			}
+
 			#endregion
+
 			#region Player
+
 			{
 				var hurt = asm.GetMethod("Player", "Hurt");
 				hurt.InsertStart(
@@ -281,10 +303,10 @@ namespace Raptor
 					Instruction.Create(OpCodes.Ret));
 
 				var load = asm.GetMethod("Player", "LoadPlayer");
-				for (int i = 0; i < load.Body.Instructions.Count; i++)
+				for (var i = 0; i < load.Body.Instructions.Count; i++)
 				{
 					var instr = load.Body.Instructions[i];
-					if (instr.OpCode == OpCodes.Callvirt && ((MethodReference)instr.Operand).Name == "Close")
+					if (instr.OpCode == OpCodes.Callvirt && ((MethodReference) instr.Operand).Name == "Close")
 					{
 						// PlayerHooks.InvokeLoaded(binaryReader);
 						load.InsertBefore(instr,
@@ -304,10 +326,10 @@ namespace Raptor
 				// PlayerHooks.InvokeSave();
 				save.InsertStart(
 					Instruction.Create(OpCodes.Call, mod.Import(typeof(PlayerHooks).GetMethod("InvokeSave", FLAGS))));
-				for (int i = 0; i < save.Body.Instructions.Count; i++)
+				for (var i = 0; i < save.Body.Instructions.Count; i++)
 				{
 					var instr = save.Body.Instructions[i];
-					if (instr.OpCode == OpCodes.Callvirt && ((MethodReference)instr.Operand).Name == "Close")
+					if (instr.OpCode == OpCodes.Callvirt && ((MethodReference) instr.Operand).Name == "Close")
 					{
 						// PlayerHooks.InvokeSaved(binaryWriter);
 						save.InsertBefore(instr,
@@ -332,8 +354,11 @@ namespace Raptor
 					Instruction.Create(OpCodes.Ldarg_0),
 					Instruction.Create(OpCodes.Call, mod.Import(typeof(PlayerHooks).GetMethod("InvokeUpdatedVars", FLAGS))));
 			}
+
 			#endregion
+
 			#region Projectile
+
 			{
 				var ai = asm.GetMethod("Projectile", "AI");
 				// if (ProjectileHooks.InvokeProcessAI(this)) return;
@@ -353,17 +378,21 @@ namespace Raptor
 					Instruction.Create(OpCodes.Ldarg_0),
 					Instruction.Create(OpCodes.Call, mod.Import(typeof(ProjectileHooks).GetMethod("InvokeSetDefaults", FLAGS))));
 			}
+
 			#endregion
+
 			#region SocialAPI
+
 			{
 				// return;
-                asm.GetMethod("SocialAPI", "Initialize").InsertStart(
+				asm.GetMethod("SocialAPI", "Initialize").InsertStart(
 					Instruction.Create(OpCodes.Ret));
 
-                // return;
-                asm.GetMethod("SocialAPI", "Shutdown").InsertStart(
-                    Instruction.Create(OpCodes.Ret));
+				// return;
+				asm.GetMethod("SocialAPI", "Shutdown").InsertStart(
+					Instruction.Create(OpCodes.Ret));
 			}
+
 			#endregion
 
 			ILExtensions.FixShortBranches();
@@ -408,7 +437,6 @@ namespace Raptor
 					return terraria;
 
 				foreach (string dll in Directory.EnumerateFiles("Plugins", "*.dll"))
-				{
 					try
 					{
 						if (AssemblyName.GetAssemblyName(dll).FullName == args.Name)
@@ -417,7 +445,6 @@ namespace Raptor
 					catch (BadImageFormatException)
 					{
 					}
-				}
 				return null;
 			};
 
@@ -433,7 +460,8 @@ namespace Raptor
 			Log.LogInfo("Raptor v{0} stopped.\n", ClientApi.ApiVersion);
 			Log.DeInitialize();
 		}
-		static void Run(string path)
+
+		private static void Run(string path)
 		{
 			using (ClientApi.Main = new Main())
 			{
@@ -441,7 +469,7 @@ namespace Raptor
 				{
 					ClientApi.Main.Content.RootDirectory = Path.Combine(path, "Content");
 					Directory.SetCurrentDirectory(path);
-					string[] args = new string[] { };
+					string[] args = {};
 					WindowsLaunch.Main(args);
 				}
 				catch (Exception e)

@@ -25,22 +25,24 @@ using Terraria;
 namespace Raptor.Api
 {
 	/// <summary>
-	/// The Raptor API.
+	///   The Raptor API.
 	/// </summary>
 	public static class ClientApi
 	{
 		/// <summary>
-		/// The Raptor version.
+		///   The Raptor version.
 		/// </summary>
 		public static readonly Version ApiVersion = new Version(1, 0);
-		/// <summary>
-		/// Gets the Terraria.Main instance.
-		/// </summary>
-		public static Main Main { get; internal set; }
+
 		internal static List<TerrariaPlugin> plugins = new List<TerrariaPlugin>();
 
 		/// <summary>
-		/// Gets the list of loaded plugins.
+		///   Gets the Terraria.Main instance.
+		/// </summary>
+		public static Main Main { get; internal set; }
+
+		/// <summary>
+		///   Gets the list of loaded plugins.
 		/// </summary>
 		public static ReadOnlyCollection<TerrariaPlugin> Plugins
 		{
@@ -49,8 +51,7 @@ namespace Raptor.Api
 
 		internal static void DeInitialize()
 		{
-			foreach (TerrariaPlugin plugin in plugins)
-			{
+			foreach (var plugin in plugins)
 				try
 				{
 					plugin.Dispose();
@@ -60,11 +61,12 @@ namespace Raptor.Api
 					Log.LogError("Plugin \"{0}\" failed to dispose:", plugin.Name, ex);
 					Log.LogError(ex.ToString());
 				}
-			}
 		}
+
 		internal static void Initialize()
 		{
 			#region Load plugins
+
 			var loadedAssemblies = new Dictionary<string, Assembly>();
 			foreach (string path in Directory.EnumerateFiles("Plugins", "*.dll"))
 			{
@@ -79,19 +81,19 @@ namespace Raptor.Api
 						loadedAssemblies.Add(fileName, assembly);
 					}
 
-					foreach (Type type in assembly.GetExportedTypes())
+					foreach (var type in assembly.GetExportedTypes())
 					{
 						if (!type.IsSubclassOf(typeof(TerrariaPlugin)) || !type.IsPublic || type.IsAbstract)
 							continue;
 
-						object[] customAttributes = type.GetCustomAttributes(typeof(ApiVersionAttribute), false);
+						var customAttributes = type.GetCustomAttributes(typeof(ApiVersionAttribute), false);
 						if (customAttributes.Length == 0)
 						{
 							Log.LogError("Plugin \"{0}\" has no API version and was ignored.", type.FullName);
 							continue;
 						}
 
-						Version apiVersion = ((ApiVersionAttribute)customAttributes[0]).ApiVersion;
+						var apiVersion = ((ApiVersionAttribute) customAttributes[0]).ApiVersion;
 						if (apiVersion.Major != ApiVersion.Major || apiVersion.Minor != ApiVersion.Minor)
 						{
 							Log.LogError("Plugin \"{0}\" is designed for a different API version ({1}) and was ignored.",
@@ -101,7 +103,7 @@ namespace Raptor.Api
 
 						try
 						{
-							plugins.Add((TerrariaPlugin)Activator.CreateInstance(type));
+							plugins.Add((TerrariaPlugin) Activator.CreateInstance(type));
 						}
 						catch (Exception ex)
 						{
@@ -116,14 +118,16 @@ namespace Raptor.Api
 					Log.LogError(ex.ToString());
 				}
 			}
-			#endregion
-			#region Initialize plugins
-			var orderPlugins = from p in Plugins
-							   orderby p.Order, p.Name
-							   select p;
 
-			foreach (TerrariaPlugin plugin in orderPlugins)
-			{
+			#endregion
+
+			#region Initialize plugins
+
+			var orderPlugins = from p in Plugins
+				orderby p.Order, p.Name
+				select p;
+
+			foreach (var plugin in orderPlugins)
 				try
 				{
 					plugin.Initialize();
@@ -134,7 +138,7 @@ namespace Raptor.Api
 					Log.LogError("Plugin \"{0}\" failed to initialize:", plugin.Name);
 					Log.LogError(ex.ToString());
 				}
-			}
+
 			#endregion
 		}
 	}

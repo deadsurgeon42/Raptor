@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace Raptor.Api
+﻿namespace Raptor.Api
 {
 	public enum TileTypes : ushort
 	{
@@ -346,6 +341,6 @@ namespace Raptor.Api
 		LivingFire = 336,
 		AlphabetStatues = 337,
 		FireworkFountain = 338,
-		GrasshopperCage = 339,
+		GrasshopperCage = 339
 	}
 }

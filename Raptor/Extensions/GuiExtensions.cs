@@ -15,9 +15,6 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
@@ -25,14 +22,14 @@ using Terraria;
 namespace Raptor.Extensions
 {
 	/// <summary>
-	/// Terraria GUI-related sprite batch extensions.
+	///   Terraria GUI-related sprite batch extensions.
 	/// </summary>
 	public static class GuiExtensions
 	{
 		internal static Texture2D solidTexture;
 
 		/// <summary>
-		/// Draws outlined text at the mouse.
+		///   Draws outlined text at the mouse.
 		/// </summary>
 		/// <param name="sb">The spritebatch.</param>
 		/// <param name="str">The text.</param>
@@ -45,18 +42,19 @@ namespace Raptor.Extensions
 
 			float x = MathHelper.Clamp(Input.MouseX + 10f, 4f, Main.screenWidth - xLength - 4f);
 			float y = MathHelper.Clamp(Input.MouseY + 10f, 4f, Main.screenHeight - yLength - 4f);
-			
-			Vector2 position = new Vector2(x, y);
 
-			SpriteFont drawFont = font ?? Main.fontMouseText;
+			var position = new Vector2(x, y);
+
+			var drawFont = font ?? Main.fontMouseText;
 			sb.DrawString(drawFont, str, position + new Vector2(1.5f, 0), Color.Black);
 			sb.DrawString(drawFont, str, position + new Vector2(-1.5f, 0), Color.Black);
 			sb.DrawString(drawFont, str, position + new Vector2(0, 1.5f), Color.Black);
 			sb.DrawString(drawFont, str, position + new Vector2(0, -1.5f), Color.Black);
 			sb.DrawString(drawFont, str, position, color);
 		}
+
 		/// <summary>
-		/// Draws a Terraria GUI rectangle.
+		///   Draws a Terraria GUI rectangle.
 		/// </summary>
 		/// <param name="sb">The spritebatch.</param>
 		/// <param name="rect">The rectangle.</param>
@@ -66,7 +64,7 @@ namespace Raptor.Extensions
 		{
 			// If there's anything better, please tell >.<
 
-			Texture2D backTexture = texture ?? Raptor.rectBackTexture;
+			var backTexture = texture ?? Raptor.rectBackTexture;
 
 			sb.Draw(backTexture,
 				new Rectangle(rect.X, rect.Y, 8, 8),
@@ -105,8 +103,9 @@ namespace Raptor.Extensions
 				new Rectangle(8, 8, 36, 36),
 				color);
 		}
+
 		/// <summary>
-		/// Draws outlined text.
+		///   Draws outlined text.
 		/// </summary>
 		/// <param name="sb">The spritebatch.</param>
 		/// <param name="str">The text.</param>
@@ -115,15 +114,16 @@ namespace Raptor.Extensions
 		/// <param name="font">The font.</param>
 		public static void DrawGuiText(this SpriteBatch sb, string str, Vector2 position, Color color, SpriteFont font = null)
 		{
-			SpriteFont drawFont = font ?? Main.fontMouseText;
+			var drawFont = font ?? Main.fontMouseText;
 			sb.DrawString(drawFont, str, position + new Vector2(1.5f, 0), Color.Black);
 			sb.DrawString(drawFont, str, position + new Vector2(-1.5f, 0), Color.Black);
 			sb.DrawString(drawFont, str, position + new Vector2(0, 1.5f), Color.Black);
 			sb.DrawString(drawFont, str, position + new Vector2(0, -1.5f), Color.Black);
 			sb.DrawString(drawFont, str, position, color);
 		}
+
 		/// <summary>
-		/// Draws a line.
+		///   Draws a line.
 		/// </summary>
 		/// <param name="sb">The spritebatch.</param>
 		/// <param name="p1">The first point.</param>
@@ -134,14 +134,16 @@ namespace Raptor.Extensions
 			if (solidTexture == null)
 			{
 				solidTexture = new Texture2D(sb.GraphicsDevice, 1, 1);
-				solidTexture.SetData<Color>(new[] { Color.White });
+				solidTexture.SetData(new[] {Color.White});
 			}
 
-			sb.Draw(solidTexture, new Vector2(p1.X, p1.Y), null, color, (float)Math.Atan2(p2.Y - p1.Y, p2.X - p1.X), Vector2.Zero,
+			sb.Draw(solidTexture, new Vector2(p1.X, p1.Y), null, color, (float) Math.Atan2(p2.Y - p1.Y, p2.X - p1.X),
+				Vector2.Zero,
 				new Vector2(new Vector2(p1.X - p2.X, p1.Y - p2.Y).Length(), 1), SpriteEffects.None, 0);
 		}
+
 		/// <summary>
-		/// Fills a rectangle with a solid color.
+		///   Fills a rectangle with a solid color.
 		/// </summary>
 		/// <param name="sb">The spritebatch.</param>
 		/// <param name="rectangle">The rectangle.</param>
@@ -151,7 +153,7 @@ namespace Raptor.Extensions
 			if (solidTexture == null)
 			{
 				solidTexture = new Texture2D(sb.GraphicsDevice, 1, 1);
-				solidTexture.SetData<Color>(new[] { Color.White });
+				solidTexture.SetData(new[] {Color.White});
 			}
 
 			sb.Draw(solidTexture, rectangle, color);

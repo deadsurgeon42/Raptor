@@ -14,7 +14,6 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Mono.Cecil;
@@ -23,31 +22,32 @@ using Mono.Cecil.Cil;
 namespace Raptor.Extensions
 {
 	/// <summary>
-	/// Contains IL extensions.
+	///   Contains IL extensions.
 	/// </summary>
 	public static class ILExtensions
 	{
-		static readonly Dictionary<OpCode, OpCode> shortToLong = new Dictionary<OpCode, OpCode>
+		private static readonly Dictionary<OpCode, OpCode> shortToLong = new Dictionary<OpCode, OpCode>
 		{
-			{ OpCodes.Beq_S, OpCodes.Beq },
-			{ OpCodes.Bge_S, OpCodes.Bge },
-			{ OpCodes.Bge_Un_S, OpCodes.Bge_Un },
-			{ OpCodes.Bgt_S, OpCodes.Bgt },
-			{ OpCodes.Bgt_Un_S, OpCodes.Bgt_Un },
-			{ OpCodes.Ble_S, OpCodes.Ble },
-			{ OpCodes.Ble_Un_S, OpCodes.Ble_Un },
-			{ OpCodes.Blt_S, OpCodes.Blt },
-			{ OpCodes.Blt_Un_S, OpCodes.Blt_Un },
-			{ OpCodes.Bne_Un_S, OpCodes.Bne_Un },
-			{ OpCodes.Br_S, OpCodes.Br },
-			{ OpCodes.Brfalse_S, OpCodes.Brfalse },
-			{ OpCodes.Brtrue_S, OpCodes.Brtrue },
-			{ OpCodes.Leave_S, OpCodes.Leave }
+			{OpCodes.Beq_S, OpCodes.Beq},
+			{OpCodes.Bge_S, OpCodes.Bge},
+			{OpCodes.Bge_Un_S, OpCodes.Bge_Un},
+			{OpCodes.Bgt_S, OpCodes.Bgt},
+			{OpCodes.Bgt_Un_S, OpCodes.Bgt_Un},
+			{OpCodes.Ble_S, OpCodes.Ble},
+			{OpCodes.Ble_Un_S, OpCodes.Ble_Un},
+			{OpCodes.Blt_S, OpCodes.Blt},
+			{OpCodes.Blt_Un_S, OpCodes.Blt_Un},
+			{OpCodes.Bne_Un_S, OpCodes.Bne_Un},
+			{OpCodes.Br_S, OpCodes.Br},
+			{OpCodes.Brfalse_S, OpCodes.Brfalse},
+			{OpCodes.Brtrue_S, OpCodes.Brtrue},
+			{OpCodes.Leave_S, OpCodes.Leave}
 		};
+
 		internal static List<MethodDefinition> shortToLongMethods = new List<MethodDefinition>();
 
 		/// <summary>
-		/// Creates a shallow copy of an instruction.
+		///   Creates a shallow copy of an instruction.
 		/// </summary>
 		/// <param name="instr">The instruction.</param>
 		public static Instruction Copy(this Instruction instr)
@@ -56,68 +56,69 @@ namespace Raptor.Extensions
 			{
 				case OperandType.InlineArg:
 				case OperandType.ShortInlineArg:
-					return Instruction.Create(instr.OpCode, (ParameterDefinition)instr.Operand);
+					return Instruction.Create(instr.OpCode, (ParameterDefinition) instr.Operand);
 				case OperandType.InlineBrTarget:
 				case OperandType.ShortInlineBrTarget:
-					return Instruction.Create(instr.OpCode, (Instruction)instr.Operand);
+					return Instruction.Create(instr.OpCode, (Instruction) instr.Operand);
 				case OperandType.InlineField:
-					return Instruction.Create(instr.OpCode, (FieldReference)instr.Operand);
+					return Instruction.Create(instr.OpCode, (FieldReference) instr.Operand);
 				case OperandType.InlineI:
-					return Instruction.Create(instr.OpCode, (int)instr.Operand);
+					return Instruction.Create(instr.OpCode, (int) instr.Operand);
 				case OperandType.InlineI8:
-					return Instruction.Create(instr.OpCode, (long)instr.Operand);
+					return Instruction.Create(instr.OpCode, (long) instr.Operand);
 				case OperandType.InlineMethod:
-					return Instruction.Create(instr.OpCode, (MethodReference)instr.Operand);
+					return Instruction.Create(instr.OpCode, (MethodReference) instr.Operand);
 				case OperandType.InlineNone:
 					return Instruction.Create(instr.OpCode);
 				case OperandType.InlineR:
-					return Instruction.Create(instr.OpCode, (double)instr.Operand);
+					return Instruction.Create(instr.OpCode, (double) instr.Operand);
 				case OperandType.InlineString:
-					return Instruction.Create(instr.OpCode, (string)instr.Operand);
+					return Instruction.Create(instr.OpCode, (string) instr.Operand);
 				case OperandType.InlineSwitch:
-					return Instruction.Create(instr.OpCode, (Instruction[])instr.Operand);
+					return Instruction.Create(instr.OpCode, (Instruction[]) instr.Operand);
 				case OperandType.InlineType:
-					return Instruction.Create(instr.OpCode, (TypeDefinition)instr.Operand);
+					return Instruction.Create(instr.OpCode, (TypeDefinition) instr.Operand);
 				case OperandType.InlineVar:
 				case OperandType.ShortInlineVar:
-					return Instruction.Create(instr.OpCode, (VariableDefinition)instr.Operand);
+					return Instruction.Create(instr.OpCode, (VariableDefinition) instr.Operand);
 
 				case OperandType.ShortInlineI:
-					return Instruction.Create(instr.OpCode, (sbyte)instr.Operand);
+					return Instruction.Create(instr.OpCode, (sbyte) instr.Operand);
 				case OperandType.ShortInlineR:
-					return Instruction.Create(instr.OpCode, (float)instr.Operand);
+					return Instruction.Create(instr.OpCode, (float) instr.Operand);
 
 				case OperandType.InlineTok:
 					if (instr.Operand is FieldDefinition)
-						return Instruction.Create(instr.OpCode, (FieldReference)instr.Operand);
+						return Instruction.Create(instr.OpCode, (FieldReference) instr.Operand);
 					if (instr.Operand is MethodDefinition)
-						return Instruction.Create(instr.OpCode, (MethodReference)instr.Operand);
-					return Instruction.Create(instr.OpCode, (TypeReference)instr.Operand);
+						return Instruction.Create(instr.OpCode, (MethodReference) instr.Operand);
+					return Instruction.Create(instr.OpCode, (TypeReference) instr.Operand);
 			}
 			return null;
 		}
+
 		/// <summary>
-		/// Fixes all short branches.
+		///   Fixes all short branches.
 		/// </summary>
 		public static void FixShortBranches()
 		{
-			foreach (MethodDefinition md in shortToLongMethods)
+			foreach (var md in shortToLongMethods)
 				md.FixShortBranches();
 		}
+
 		/// <summary>
-		/// Fixes short branches in a method.
+		///   Fixes short branches in a method.
 		/// </summary>
 		/// <param name="md">The method.</param>
 		public static void FixShortBranches(this MethodDefinition md)
 		{
-			foreach (Instruction instr in md.Body.Instructions)
-			{
+			foreach (var instr in md.Body.Instructions)
 				if (instr.OpCode.OperandType == OperandType.ShortInlineBrTarget)
 					instr.OpCode = shortToLong[instr.OpCode];
-			}
 		}
+
 		/// <summary>
-		/// Gets a field from the assembly.
+		///   Gets a field from the assembly.
 		/// </summary>
 		/// <param name="asm">The assembly to get a field from.</param>
 		/// <param name="type">The type name that the field is in.</param>
@@ -126,20 +127,23 @@ namespace Raptor.Extensions
 		{
 			return asm.MainModule.Types.First(td => td.Name == type).Fields.First(fd => fd.Name == field);
 		}
+
 		/// <summary>
-		/// Gets a method from the assembly.
+		///   Gets a method from the assembly.
 		/// </summary>
 		/// <param name="asm">The assembly to get a method from.</param>
 		/// <param name="type">The type name.</param>
 		/// <param name="method">The method name.</param>
 		/// <param name="param">The parameters' types.</param>
-		public static MethodDefinition GetMethod(this AssemblyDefinition asm, string type, string method, string[] param = null)
+		public static MethodDefinition GetMethod(this AssemblyDefinition asm, string type, string method,
+			string[] param = null)
 		{
 			return asm.MainModule.Types.First(td => td.Name == type).Methods.First
 				(md => md.Name == method && (param == null || md.Parameters.Select(p => p.ParameterType.Name).SequenceEqual(param)));
 		}
+
 		/// <summary>
-		/// Gets a type from the assembly.
+		///   Gets a type from the assembly.
 		/// </summary>
 		/// <param name="asm">The assembly to get a method from.</param>
 		/// <param name="type">The type name.</param>
@@ -147,8 +151,9 @@ namespace Raptor.Extensions
 		{
 			return asm.MainModule.Types.First(td => td.Name == type);
 		}
+
 		/// <summary>
-		/// Checks if a method has the same instructions as the ones supplied.
+		///   Checks if a method has the same instructions as the ones supplied.
 		/// </summary>
 		/// <param name="md">The method.</param>
 		/// <param name="index">The index.</param>
@@ -159,16 +164,15 @@ namespace Raptor.Extensions
 			{
 				var instr = md.Body.Instructions[i];
 				if (instr.OpCode != instructions[i - index].OpCode ||
-					(instr.Operand != instructions[i - index].Operand &&
-					instr.Operand.ToString() != instructions[i - index].Operand.ToString()))
-				{
+				    instr.Operand != instructions[i - index].Operand &&
+				    instr.Operand.ToString() != instructions[i - index].Operand.ToString())
 					return false;
-				}
 			}
 			return true;
 		}
+
 		/// <summary>
-		/// Inserts instructions after a target in a method.
+		///   Inserts instructions after a target in a method.
 		/// </summary>
 		/// <param name="md">The method.</param>
 		/// <param name="target">The instruction target.</param>
@@ -182,8 +186,9 @@ namespace Raptor.Extensions
 			if (!shortToLongMethods.Contains(md))
 				shortToLongMethods.Add(md);
 		}
+
 		/// <summary>
-		/// Inserts instructions before a target in a method.
+		///   Inserts instructions before a target in a method.
 		/// </summary>
 		/// <param name="md">The method.</param>
 		/// <param name="target">The instruction target.</param>
@@ -201,8 +206,9 @@ namespace Raptor.Extensions
 			if (!shortToLongMethods.Contains(md))
 				shortToLongMethods.Add(md);
 		}
+
 		/// <summary>
-		/// Inserts instructions at the end(s) of a method.
+		///   Inserts instructions at the end(s) of a method.
 		/// </summary>
 		/// <param name="md">The method.</param>
 		/// <param name="instructions">The instructions.</param>
@@ -224,16 +230,17 @@ namespace Raptor.Extensions
 			if (!shortToLongMethods.Contains(md))
 				shortToLongMethods.Add(md);
 		}
+
 		/// <summary>
-		/// Inserts instructions at the start of a method.
+		///   Inserts instructions at the start of a method.
 		/// </summary>
 		/// <param name="md">The method.</param>
 		/// <param name="instructions">The instructions.</param>
 		public static void InsertStart(this MethodDefinition md, params Instruction[] instructions)
 		{
-			Instruction instr = md.Body.Instructions[0];
+			var instr = md.Body.Instructions[0];
 			var ilp = md.Body.GetILProcessor();
-			foreach (Instruction i in instructions)
+			foreach (var i in instructions)
 				ilp.InsertBefore(instr, i);
 		}
 	}

@@ -15,48 +15,44 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.IO;
-using System.Windows.Forms;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content;
-using Microsoft.Xna.Framework.Graphics;
-using Mono.Cecil;
 using Terraria;
 
 namespace Raptor.Api.Hooks
 {
 	/// <summary>
-	/// The API's lighting hooks.
+	///   The API's lighting hooks.
 	/// </summary>
 	public static class LightingHooks
 	{
 		#region Colored
+
 		/// <summary>
-		/// Event arguments for Color hooks.
+		///   Event arguments for Color hooks.
 		/// </summary>
 		public class ColorEventArgs : EventArgs
 		{
-			/// <summary>
-			/// Gets the lighting state for the adjacent block.
-			/// </summary>
-			public Lighting.LightingSwipeData SwipeData { get; private set; }
-
 			internal ColorEventArgs(Lighting.LightingSwipeData swipeData)
 			{
 				SwipeData = swipeData;
 			}
+
+			/// <summary>
+			///   Gets the lighting state for the adjacent block.
+			/// </summary>
+			public Lighting.LightingSwipeData SwipeData { get; private set; }
 		}
+
 		/// <summary>
-		/// The event that runs before colors are calculated.
+		///   The event that runs before colors are calculated.
 		/// </summary>
 		public static event EventHandler<ColorEventArgs> Color;
+
 		internal static void InvokeColor(object swipeData)
 		{
 			if (Color != null)
-				Color(null, new ColorEventArgs((Lighting.LightingSwipeData)swipeData));
+				Color(null, new ColorEventArgs((Lighting.LightingSwipeData) swipeData));
 		}
+
 		#endregion
 	}
 }

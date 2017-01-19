@@ -14,32 +14,30 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using Microsoft.Xna.Framework.Input;
 
 namespace Raptor
 {
 	/// <summary>
-	/// The Raptor configuration file.
+	///   The Raptor configuration file.
 	/// </summary>
 	public class Config
 	{
 		/// <summary>
-		/// The keybinds.
+		///   The keybinds.
 		/// </summary>
-		[Description("The keybinds.")]
-		public Dictionary<string, List<string>> Keybinds = new Dictionary<string, List<string>>();
+		[Description("The keybinds.")] public Dictionary<string, List<string>> Keybinds =
+			new Dictionary<string, List<string>>();
+
 		/// <summary>
-		/// Whether to log chat.
+		///   Whether to log chat.
 		/// </summary>
-		[Description("Whether to log chat.")]
-		public bool LogChat = true;
+		[Description("Whether to log chat.")] public bool LogChat = true;
+
 		/// <summary>
-		/// Whether to show the Terraria splash screen.
+		///   Whether to show the Terraria splash screen.
 		/// </summary>
-		[Description("Whether to show the Terraria splash screen.")]
-		public bool ShowSplashScreen = false;
+		[Description("Whether to show the Terraria splash screen.")] public bool ShowSplashScreen = false;
 	}
 }

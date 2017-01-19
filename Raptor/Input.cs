@@ -16,61 +16,22 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
+using System.Windows.Forms;
 using Microsoft.Xna.Framework.Input;
 using Terraria;
-
-using Clipboard = System.Windows.Forms.Clipboard;
+using ButtonState = Microsoft.Xna.Framework.Input.ButtonState;
+using Keys = Microsoft.Xna.Framework.Input.Keys;
 
 namespace Raptor
 {
 	/// <summary>
-	/// Manages input.
+	///   Manages input.
 	/// </summary>
 	public static class Input
 	{
 		/// <summary>
-		/// A key combination.
-		/// </summary>
-		public struct Keybind
-		{
-			/// <summary>
-			/// Whether the Alt key must be held.
-			/// </summary>
-			public bool Alt;
-			/// <summary>
-			/// Whether the Ctrl key must be held.
-			/// </summary>
-			public bool Control;
-			/// <summary>
-			/// The key.
-			/// </summary>
-			public Keys Key;
-			/// <summary>
-			/// Whether the Shift key must be held.
-			/// </summary>
-			public bool Shift;
-
-			public override bool Equals(object obj)
-			{
-				return obj is Keybind && (Keybind)obj == this;
-			}
-			public override int GetHashCode()
-			{
-				return (int)Key;
-			}
-			public static bool operator ==(Keybind kb1, Keybind kb2)
-			{
-				return kb1.Key == kb2.Key && kb1.Alt == kb2.Alt && kb1.Control == kb2.Control && kb1.Shift == kb2.Shift;
-			}
-			public static bool operator !=(Keybind kb1, Keybind kb2)
-			{
-				return kb1.Key != kb2.Key || kb1.Alt != kb2.Alt || kb1.Control != kb2.Control || kb1.Shift != kb2.Shift;
-			}
-		}
-		/// <summary>
-		/// Represents special keys.
+		///   Represents special keys.
 		/// </summary>
 		[Flags]
 		public enum SpecialKeys
@@ -79,213 +40,237 @@ namespace Raptor
 			Down = 0x02,
 			Backspace = 0x04,
 			V = 0x08,
-			Enter = 0x10,
+			Enter = 0x10
 		}
 
-		static List<char> charCodes = new List<char>();
-		static List<byte> keyCodes = new List<byte>();
-		
-		static KeyboardState lastKeyboard = Microsoft.Xna.Framework.Input.Keyboard.GetState();
-		static MouseState lastMouse = Microsoft.Xna.Framework.Input.Mouse.GetState();
-		static KeyboardState keyboard = Microsoft.Xna.Framework.Input.Keyboard.GetState();
-		static MouseState mouse = Microsoft.Xna.Framework.Input.Mouse.GetState();
+		private static readonly List<char> charCodes = new List<char>();
+		private static readonly List<byte> keyCodes = new List<byte>();
+
+		private static KeyboardState lastKeyboard = Keyboard.GetState();
+		private static MouseState lastMouse = Mouse.GetState();
+		private static KeyboardState keyboard = Keyboard.GetState();
+		private static MouseState mouse = Mouse.GetState();
 
 		/// <summary>
-		/// Gets the active special keys.
+		///   Whether or not the keyboard for Terraria should be disabled.
+		/// </summary>
+		public static bool DisabledKeyboard;
+
+		/// <summary>
+		///   Whether or not the mouse for Terraria should be disabled.
+		/// </summary>
+		public static bool DisabledMouse;
+
+		/// <summary>
+		///   Gets the active special keys.
 		/// </summary>
 		public static SpecialKeys ActiveSpecialKeys { get; private set; }
+
 		/// <summary>
-		/// Gets whether an alt key is down.
+		///   Gets whether an alt key is down.
 		/// </summary>
 		public static bool Alt
 		{
 			get { return keyboard.IsKeyDown(Keys.LeftAlt) || keyboard.IsKeyDown(Keys.RightAlt); }
 		}
+
 		/// <summary>
-		/// Gets whether a control key is down.
+		///   Gets whether a control key is down.
 		/// </summary>
 		public static bool Control
 		{
 			get { return keyboard.IsKeyDown(Keys.LeftControl) || keyboard.IsKeyDown(Keys.RightControl); }
 		}
+
 		/// <summary>
-		/// Whether or not the keyboard for Terraria should be disabled.
-		/// </summary>
-		public static bool DisabledKeyboard;
-		/// <summary>
-		/// Whether or not the mouse for Terraria should be disabled.
-		/// </summary>
-		public static bool DisabledMouse;
-		/// <summary>
-		/// Gets the mouse delta scroll wheel value.
+		///   Gets the mouse delta scroll wheel value.
 		/// </summary>
 		public static int MouseDScroll
 		{
 			get { return mouse.ScrollWheelValue - lastMouse.ScrollWheelValue; }
 		}
+
 		/// <summary>
-		/// Gets the mouse delta X position.
+		///   Gets the mouse delta X position.
 		/// </summary>
 		public static int MouseDX
 		{
 			get { return mouse.X - lastMouse.X; }
 		}
+
 		/// <summary>
-		/// Gets the mouse delta Y position.
+		///   Gets the mouse delta Y position.
 		/// </summary>
 		public static int MouseDY
 		{
 			get { return mouse.Y - lastMouse.Y; }
 		}
+
 		/// <summary>
-		/// Gets if the LMB is clicked.
+		///   Gets if the LMB is clicked.
 		/// </summary>
 		public static bool MouseLeftClick
 		{
 			get { return mouse.LeftButton == ButtonState.Pressed && lastMouse.LeftButton == ButtonState.Released; }
 		}
+
 		/// <summary>
-		/// Gets if the LMB is pressed.
+		///   Gets if the LMB is pressed.
 		/// </summary>
 		public static bool MouseLeftDown
 		{
 			get { return mouse.LeftButton == ButtonState.Pressed; }
 		}
+
 		/// <summary>
-		/// Gets if the LMB is released.
+		///   Gets if the LMB is released.
 		/// </summary>
 		public static bool MouseLeftRelease
 		{
 			get { return mouse.LeftButton != ButtonState.Pressed && lastMouse.LeftButton == ButtonState.Pressed; }
 		}
+
 		/// <summary>
-		/// Gets if the RMB is clicked.
+		///   Gets if the RMB is clicked.
 		/// </summary>
 		public static bool MouseRightClick
 		{
 			get { return mouse.RightButton == ButtonState.Pressed && lastMouse.RightButton == ButtonState.Released; }
 		}
+
 		/// <summary>
-		/// Gets if the RMB is pressed.
+		///   Gets if the RMB is pressed.
 		/// </summary>
 		public static bool MouseRightDown
 		{
 			get { return mouse.RightButton == ButtonState.Pressed; }
 		}
+
 		/// <summary>
-		/// Gets if the RMB is released.
+		///   Gets if the RMB is released.
 		/// </summary>
 		public static bool MouseRightRelease
 		{
 			get { return mouse.RightButton != ButtonState.Pressed && lastMouse.RightButton == ButtonState.Pressed; }
 		}
+
 		/// <summary>
-		/// Gets the mouse scroll wheel value.
+		///   Gets the mouse scroll wheel value.
 		/// </summary>
 		public static int MouseScroll
 		{
 			get { return mouse.ScrollWheelValue; }
 		}
+
 		/// <summary>
-		/// Gets the mouse X position.
+		///   Gets the mouse X position.
 		/// </summary>
 		public static int MouseX
 		{
 			get { return mouse.X; }
 		}
+
 		/// <summary>
-		/// Gets the mouse Y position.
+		///   Gets the mouse Y position.
 		/// </summary>
 		public static int MouseY
 		{
 			get { return mouse.Y; }
 		}
+
 		/// <summary>
-		/// Gets if a shift key is down.
+		///   Gets if a shift key is down.
 		/// </summary>
 		public static bool Shift
 		{
 			get { return keyboard.IsKeyDown(Keys.LeftShift) || keyboard.IsKeyDown(Keys.RightShift); }
 		}
+
 		/// <summary>
-		/// Gets the string formed from the most recent WM_CHAR messages.
+		///   Gets the string formed from the most recent WM_CHAR messages.
 		/// </summary>
 		public static string TypedString { get; private set; }
 
-		internal static void FilterMessage(ref System.Windows.Forms.Message m)
+		internal static void FilterMessage(ref Message m)
 		{
 			// WM_KEYDOWN
 			if (m.Msg == 0x100)
 			{
-				keyCodes.Add((byte)m.WParam);
+				keyCodes.Add((byte) m.WParam);
 
 				// Translate message
-				IntPtr ptr = Marshal.AllocHGlobal(Marshal.SizeOf(m));
+				var ptr = Marshal.AllocHGlobal(Marshal.SizeOf(m));
 				Marshal.StructureToPtr(m, ptr, true);
 				keyBoardInput.TranslateMessage(ptr);
 			}
 		}
-		internal static void Form_KeyPress(object o, System.Windows.Forms.KeyPressEventArgs e)
+
+		internal static void Form_KeyPress(object o, KeyPressEventArgs e)
 		{
 			if (!e.Handled && e.KeyChar >= 32 && e.KeyChar != 127)
 				charCodes.Add(e.KeyChar);
 		}
+
 		internal static string GetInputText(string text)
 		{
 			if (!Main.hasFocus)
 				return text;
 
 			Main.inputTextEnter = ActiveSpecialKeys.HasFlag(SpecialKeys.Enter);
-			
+
 			if (ActiveSpecialKeys.HasFlag(SpecialKeys.Backspace) && text.Length != 0)
-			{
 				if (Control)
 				{
-					string[] words = text.Split(' ');
-					return String.Join(" ", words, 0, words.Length - 1);
+					var words = text.Split(' ');
+					return string.Join(" ", words, 0, words.Length - 1);
 				}
 				else
+				{
 					return text.Substring(0, text.Length - 1);
-			}
-			else if (Control && ActiveSpecialKeys.HasFlag(SpecialKeys.V) && Clipboard.ContainsText())
+				}
+			if (Control && ActiveSpecialKeys.HasFlag(SpecialKeys.V) && Clipboard.ContainsText())
 				return text + Clipboard.GetText();
-			else
-				return text + TypedString;
+			return text + TypedString;
 		}
+
 		/// <summary>
-		/// Gets if a key is down.
+		///   Gets if a key is down.
 		/// </summary>
 		public static bool IsKeyDown(Keys key)
 		{
 			return keyboard.IsKeyDown(key);
 		}
+
 		/// <summary>
-		/// Gets if a key was released; that is, if the key is currently depressed but was pressed before.
+		///   Gets if a key was released; that is, if the key is currently depressed but was pressed before.
 		/// </summary>
 		public static bool IsKeyReleased(Keys key)
 		{
 			return keyboard.IsKeyUp(key) && lastKeyboard.IsKeyDown(key);
 		}
+
 		/// <summary>
-		/// Gets if a key was tapped; that is, if the key is currently pressed but was depressed before.
+		///   Gets if a key was tapped; that is, if the key is currently pressed but was depressed before.
 		/// </summary>
 		public static bool IsKeyTapped(Keys key)
 		{
 			return keyboard.IsKeyDown(key) && lastKeyboard.IsKeyUp(key);
 		}
-        /// <summary>
-        /// Gets all keys that are currently pressed down on the keyboard.
-        /// </summary>
-	    public static Keys[] GetPressedKeys()
-	    {
-	        return keyboard.GetPressedKeys();
-	    }
+
+		/// <summary>
+		///   Gets all keys that are currently pressed down on the keyboard.
+		/// </summary>
+		public static Keys[] GetPressedKeys()
+		{
+			return keyboard.GetPressedKeys();
+		}
+
 		internal static void Update()
 		{
 			lastKeyboard = keyboard;
-			keyboard = Microsoft.Xna.Framework.Input.Keyboard.GetState();
+			keyboard = Keyboard.GetState();
 			lastMouse = mouse;
-			mouse = Microsoft.Xna.Framework.Input.Mouse.GetState();
+			mouse = Mouse.GetState();
 
 			TypedString = "";
 			foreach (char c in charCodes)
@@ -293,8 +278,7 @@ namespace Raptor
 			charCodes.Clear();
 
 			ActiveSpecialKeys = 0;
-			for (int i = 0; i < keyCodes.Count; i++)
-			{
+			for (var i = 0; i < keyCodes.Count; i++)
 				switch (keyCodes[i])
 				{
 					case 0x08:
@@ -313,8 +297,53 @@ namespace Raptor
 						ActiveSpecialKeys |= SpecialKeys.V;
 						break;
 				}
-			}
 			keyCodes.Clear();
+		}
+
+		/// <summary>
+		///   A key combination.
+		/// </summary>
+		public struct Keybind
+		{
+			/// <summary>
+			///   Whether the Alt key must be held.
+			/// </summary>
+			public bool Alt;
+
+			/// <summary>
+			///   Whether the Ctrl key must be held.
+			/// </summary>
+			public bool Control;
+
+			/// <summary>
+			///   The key.
+			/// </summary>
+			public Keys Key;
+
+			/// <summary>
+			///   Whether the Shift key must be held.
+			/// </summary>
+			public bool Shift;
+
+			public override bool Equals(object obj)
+			{
+				return obj is Keybind && (Keybind) obj == this;
+			}
+
+			public override int GetHashCode()
+			{
+				return (int) Key;
+			}
+
+			public static bool operator ==(Keybind kb1, Keybind kb2)
+			{
+				return kb1.Key == kb2.Key && kb1.Alt == kb2.Alt && kb1.Control == kb2.Control && kb1.Shift == kb2.Shift;
+			}
+
+			public static bool operator !=(Keybind kb1, Keybind kb2)
+			{
+				return kb1.Key != kb2.Key || kb1.Alt != kb2.Alt || kb1.Control != kb2.Control || kb1.Shift != kb2.Shift;
+			}
 		}
 	}
 }

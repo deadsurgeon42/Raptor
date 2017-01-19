@@ -15,42 +15,39 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
+using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Xna.Framework;
+using System.Windows.Forms;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Newtonsoft.Json;
 using Raptor.Api;
 using Raptor.Api.Commands;
-using Raptor.Extensions;
 using Terraria;
-
-using Form = System.Windows.Forms.Form;
 using Terraria.GameInput;
+using Keys = Microsoft.Xna.Framework.Input.Keys;
 
 namespace Raptor
 {
 	/// <summary>
-	/// The Raptor client.
+	///   The Raptor client.
 	/// </summary>
 	public static class Raptor
 	{
 		internal static Texture2D rectBackTexture;
 
+		private static bool LoadedEverything;
+
 		/// <summary>
-		/// Gets the configuration file.
+		///   Gets the configuration file.
 		/// </summary>
 		public static Config Config { get; internal set; }
 
 		internal static void DeInitialize()
 		{
 		}
+
 		internal static void Initialize()
 		{
 			Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
@@ -58,19 +55,19 @@ namespace Raptor
 
 			Commands.Initialize();
 			Utils.Initialize();
-			string configPath = "raptor.config";
+			var configPath = "raptor.config";
 			if (!File.Exists(configPath))
 				File.WriteAllText(configPath, JsonConvert.SerializeObject(Config = new Config(), Formatting.Indented));
 			else
 				Config = JsonConvert.DeserializeObject<Config>(File.ReadAllText(configPath));
 
 			Main.showSplash = Config.ShowSplashScreen;
-			
-			Form form = (Form)Form.FromHandle(Main.instance.Window.Handle);
+
+			var form = (Form) Control.FromHandle(Main.instance.Window.Handle);
 			form.KeyPress += Input.Form_KeyPress;
 
 			var state = form.WindowState;
-			form.MinimumSize = new System.Drawing.Size(816, 638); 
+			form.MinimumSize = new Size(816, 638);
 			form.WindowState = state;
 		}
 
@@ -82,13 +79,11 @@ namespace Raptor
 
 			var invBack = content.Load<Texture2D>("Raptor\\UI\\InvBack");
 			Main.inventoryBackTexture = invBack;
-			for (int i = 2; i <= 14; i++)
+			for (var i = 2; i <= 14; i++)
 				typeof(Main).GetField("inventoryBack" + i + "Texture").SetValue(null, invBack);
 			Main.chatBackTexture = content.Load<Texture2D>("Raptor\\UI\\NpcChatBack");
 			rectBackTexture = content.Load<Texture2D>("Raptor\\UI\\RectBack");
 		}
-
-		private static bool LoadedEverything = false;
 
 		internal static void Update()
 		{
@@ -96,51 +91,43 @@ namespace Raptor
 				return;
 
 			if (!LoadedEverything && Terraria.Program.LoadedEverything)
-			{
-				//Form form = (Form)Form.FromHandle(ClientApi.Main.Window.Handle);
-				//form.KeyPress += Input.Form_KeyPress;
 				LoadedEverything = true;
-			}
 
 			Input.DisabledMouse = false;
 			Input.DisabledKeyboard = false;
 			Input.Update();
 
-		    Main.chatRelease = false;
+			Main.chatRelease = false;
 
-		    if (Input.IsKeyTapped(Keys.Enter) && !Input.Alt)
-		    {
-		        if (Main.drawingPlayerChat)
-		        {
-		            if (Main.chatText.StartsWith("."))
-		                Commands.Execute(Main.chatText.Substring(1));
-		            else if (!String.IsNullOrEmpty(Main.chatText))
-		            {
-		                if (Main.netMode == 0)
-		                    Main.NewText(String.Format("<{0}> {1}", Utils.LocalPlayer.name, Main.chatText));
-		                else
-		                    NetMessage.SendData((int)PacketTypes.Chat, -1, -1, Main.chatText);
-		            }
+			if (Input.IsKeyTapped(Keys.Enter) && !Input.Alt)
+				if (Main.drawingPlayerChat)
+				{
+					if (Main.chatText.StartsWith("."))
+						Commands.Execute(Main.chatText.Substring(1));
+					else if (!string.IsNullOrEmpty(Main.chatText))
+						if (Main.netMode == 0)
+							Main.NewText(string.Format("<{0}> {1}", Utils.LocalPlayer.name, Main.chatText));
+						else
+							NetMessage.SendData((int) PacketTypes.Chat, -1, -1, Main.chatText);
 
-		            Main.drawingPlayerChat = false;
-		            Main.chatText = "";
-		            Main.PlaySound(11);
-		        }
-		        else
-		        {
-		            Main.drawingPlayerChat = true;
-		            Main.PlaySound(10);
-		        }
-		    }
-		    if (Input.IsKeyTapped(Keys.Escape) && Main.drawingPlayerChat)
-		    {
-		        Main.chatText = "";
-		        Main.PlaySound(11);
-		    }
+					Main.drawingPlayerChat = false;
+					Main.chatText = "";
+					Main.PlaySound(11);
+				}
+				else
+				{
+					Main.drawingPlayerChat = true;
+					Main.PlaySound(10);
+				}
+			if (Input.IsKeyTapped(Keys.Escape) && Main.drawingPlayerChat)
+			{
+				Main.chatText = "";
+				Main.PlaySound(11);
+			}
 
 			#region Keybinds
+
 			if (!Main.drawingPlayerChat && !Main.editSign && !Main.gameMenu && !Input.DisabledKeyboard)
-			{
 				foreach (var kvp in Config.Keybinds)
 				{
 					string key = kvp.Key;
@@ -163,13 +150,11 @@ namespace Raptor
 					}
 
 					if (Input.IsKeyTapped(keybind.Key) &&
-						Input.Alt == keybind.Alt && Input.Control == keybind.Control && Input.Shift == keybind.Shift)
-					{
-						foreach (var command in kvp.Value)
+					    Input.Alt == keybind.Alt && Input.Control == keybind.Control && Input.Shift == keybind.Shift)
+						foreach (string command in kvp.Value)
 							Commands.Execute(command);
-					}
 				}
-			}
+
 			#endregion
 
 			if (Input.DisabledMouse)

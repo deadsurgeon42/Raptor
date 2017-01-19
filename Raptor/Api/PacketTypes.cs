@@ -17,280 +17,347 @@
 namespace Raptor.Api
 {
 	/// <summary>
-	/// Represents the different packet types.
+	///   Represents the different packet types.
 	/// </summary>
 	public enum PacketTypes : byte
 	{
 		/// <summary>
-		/// The connection request packet.
+		///   The connection request packet.
 		/// </summary>
 		ConnectRequest = 1,
+
 		/// <summary>
-		/// The disconnect packet.
+		///   The disconnect packet.
 		/// </summary>
 		Disconnect,
+
 		/// <summary>
-		/// The continue connecting packet.
+		///   The continue connecting packet.
 		/// </summary>
 		ContinueConnecting,
+
 		/// <summary>
-		/// The player info packet. Contains name, colors, difficulty setting, etc.
+		///   The player info packet. Contains name, colors, difficulty setting, etc.
 		/// </summary>
 		PlayerInfo,
+
 		/// <summary>
-		/// The player inventory packet. Contains item slot and prefix.
+		///   The player inventory packet. Contains item slot and prefix.
 		/// </summary>
 		PlayerInvSlot,
+
 		/// <summary>
-		/// The second continue connecting packet.
+		///   The second continue connecting packet.
 		/// </summary>
 		ContinueConnecting2,
+
 		/// <summary>
-		/// The world info packet. Contains the bosses that have been defeated, serversidecharacter status, etc.
+		///   The world info packet. Contains the bosses that have been defeated, serversidecharacter status, etc.
 		/// </summary>
 		WorldInfo,
+
 		/// <summary>
-		/// The world section request packet.
+		///   The world section request packet.
 		/// </summary>
 		GetWorldSection,
+
 		/// <summary>
-		/// The client status packet.
+		///   The client status packet.
 		/// </summary>
 		Status,
+
 		/// <summary>
-		/// The send world section packet.
+		///   The send world section packet.
 		/// </summary>
 		SendWorldSection,
+
 		/// <summary>
-		/// The world section frame packet.
+		///   The world section frame packet.
 		/// </summary>
 		WorldSectionFrame,
+
 		/// <summary>
-		/// The spawn player packet.
+		///   The spawn player packet.
 		/// </summary>
 		SpawnPlayer,
+
 		/// <summary>
-		/// The update player packet. Contains player movement flags, pulley status, etc.
+		///   The update player packet. Contains player movement flags, pulley status, etc.
 		/// </summary>
 		UpdatePlayer,
+
 		/// <summary>
-		/// The active player packet. Sets a player as active.
+		///   The active player packet. Sets a player as active.
 		/// </summary>
 		SetActivePlayer,
+
 		/// <summary>
-		/// The sync players packet.
+		///   The sync players packet.
 		/// </summary>
 		SyncPlayers,
+
 		/// <summary>
-		/// The player hp packet. Contains hp and max hp.
+		///   The player hp packet. Contains hp and max hp.
 		/// </summary>
 		SetPlayerHp,
+
 		/// <summary>
-		/// The modify tile packet.
+		///   The modify tile packet.
 		/// </summary>
 		ModifyTile,
+
 		/// <summary>
-		/// The set time packet.
+		///   The set time packet.
 		/// </summary>
 		SetTime,
+
 		/// <summary>
-		/// The use door packet.
+		///   The use door packet.
 		/// </summary>
 		UseDoor,
+
 		/// <summary>
-		/// The send tile square packet.
+		///   The send tile square packet.
 		/// </summary>
 		SendTileSquare,
+
 		/// <summary>
-		/// The item drop update packet.
+		///   The item drop update packet.
 		/// </summary>
 		UpdateItem,
+
 		/// <summary>
-		/// The item owner update packet.
+		///   The item owner update packet.
 		/// </summary>
 		SetItemOwner,
+
 		/// <summary>
-		/// The npc update packet.
+		///   The npc update packet.
 		/// </summary>
 		UpdateNpc,
+
 		/// <summary>
-		/// The strike npc with item packet.
+		///   The strike npc with item packet.
 		/// </summary>
 		StrikeNpcItem,
+
 		/// <summary>
-		/// The chat packet.
+		///   The chat packet.
 		/// </summary>
 		Chat,
+
 		/// <summary>
-		/// The damage player packet.
+		///   The damage player packet.
 		/// </summary>
 		DamagePlayer,
+
 		/// <summary>
-		/// The update projectile packet.
+		///   The update projectile packet.
 		/// </summary>
 		UpdateProjectile,
+
 		/// <summary>
-		/// The strike npc packet.
+		///   The strike npc packet.
 		/// </summary>
 		StrikeNpc,
+
 		/// <summary>
-		/// The destroy projectile packet.
+		///   The destroy projectile packet.
 		/// </summary>
 		DestroyProjectile,
+
 		/// <summary>
-		/// The player pvp status packet.
+		///   The player pvp status packet.
 		/// </summary>
 		SetPlayerPvp,
+
 		/// <summary>
-		/// The get chest packet.
+		///   The get chest packet.
 		/// </summary>
 		GetChest,
+
 		/// <summary>
-		/// The set chest item slot packet.
+		///   The set chest item slot packet.
 		/// </summary>
 		SetChestItem,
+
 		/// <summary>
-		/// The set current chest packet.
+		///   The set current chest packet.
 		/// </summary>
 		SetCurrentChest,
+
 		/// <summary>
-		/// The remove chest packet.
+		///   The remove chest packet.
 		/// </summary>
 		RemoveChest,
+
 		/// <summary>
-		/// The player healing effect packet.
+		///   The player healing effect packet.
 		/// </summary>
 		PlayerHealEffect,
+
 		/// <summary>
-		/// The player biome zone packet.
+		///   The player biome zone packet.
 		/// </summary>
 		SetPlayerZone,
+
 		/// <summary>
-		/// The request password packet.
+		///   The request password packet.
 		/// </summary>
 		RequestPassword,
+
 		/// <summary>
-		/// The send password packet.
+		///   The send password packet.
 		/// </summary>
 		SendPassword,
+
 		/// <summary>
-		/// The disown item packet.
+		///   The disown item packet.
 		/// </summary>
 		DisownItem,
+
 		/// <summary>
-		/// The set talking npc packet.
+		///   The set talking npc packet.
 		/// </summary>
 		SetTalkNpc,
+
 		/// <summary>
-		/// The player animation packet.
+		///   The player animation packet.
 		/// </summary>
 		AnimatePlayer,
+
 		/// <summary>
-		/// The player mana packet. Contains mana and max mana.
+		///   The player mana packet. Contains mana and max mana.
 		/// </summary>
 		SetPlayerMana,
+
 		/// <summary>
-		/// The player mana effect packet.
+		///   The player mana effect packet.
 		/// </summary>
 		PlayerManaEffect,
+
 		/// <summary>
-		/// The kill player packet.
+		///   The kill player packet.
 		/// </summary>
 		KillPlayer,
+
 		/// <summary>
-		/// The player team packet.
+		///   The player team packet.
 		/// </summary>
 		SetPlayerTeam,
+
 		/// <summary>
-		/// The get sign packet.
+		///   The get sign packet.
 		/// </summary>
 		GetSign,
+
 		/// <summary>
-		/// The sign update packet.
+		///   The sign update packet.
 		/// </summary>
 		UpdateSign,
+
 		/// <summary>
-		/// The modify liquit packet.
+		///   The modify liquit packet.
 		/// </summary>
 		ModifyLiquid,
+
 		/// <summary>
-		/// The first-spawn packet.
+		///   The first-spawn packet.
 		/// </summary>
 		FirstSpawn,
+
 		/// <summary>
-		/// The update player buffs packet.
+		///   The update player buffs packet.
 		/// </summary>
 		UpdatePlayerBuffs,
+
 		/// <summary>
-		/// The npc special packet.
+		///   The npc special packet.
 		/// </summary>
 		SpecialNpc,
+
 		/// <summary>
-		/// The unlock chest packet.
+		///   The unlock chest packet.
 		/// </summary>
 		UnlockChest,
+
 		/// <summary>
-		/// The add npc buff packet.
+		///   The add npc buff packet.
 		/// </summary>
 		AddNpcBuff,
+
 		/// <summary>
-		/// The update npc buffs packet.
+		///   The update npc buffs packet.
 		/// </summary>
 		UpdateNpcBuffs,
+
 		/// <summary>
-		/// The add player buff packet.
+		///   The add player buff packet.
 		/// </summary>
 		AddPlayerBuff,
+
 		/// <summary>
-		/// The npc name packet.
+		///   The npc name packet.
 		/// </summary>
 		SetNpcName,
+
 		/// <summary>
-		/// The good vs. evil percentage packet.
+		///   The good vs. evil percentage packet.
 		/// </summary>
 		SetGoodEvilPercent,
+
 		/// <summary>
-		/// The musical instrument packet.
+		///   The musical instrument packet.
 		/// </summary>
 		PlayMusic,
+
 		/// <summary>
-		/// The activate wire packet.
+		///   The activate wire packet.
 		/// </summary>
 		ActivateWire,
+
 		/// <summary>
-		/// The npc home packet.
+		///   The npc home packet.
 		/// </summary>
 		SetNpcHome,
+
 		/// <summary>
-		/// The boss or invasion spawn packet.
+		///   The boss or invasion spawn packet.
 		/// </summary>
 		SpawnBossInvasion,
+
 		/// <summary>
-		/// The player dodge packet.
+		///   The player dodge packet.
 		/// </summary>
 		PlayerDodge,
+
 		/// <summary>
-		/// The paint tile packet.
+		///   The paint tile packet.
 		/// </summary>
 		PaintTile,
+
 		/// <summary>
-		/// The paint wall packet.
+		///   The paint wall packet.
 		/// </summary>
 		PaintWall,
+
 		/// <summary>
-		/// The teleport packet.
+		///   The teleport packet.
 		/// </summary>
 		Teleport,
+
 		/// <summary>
-		/// The heal player packet.
+		///   The heal player packet.
 		/// </summary>
 		HealPlayer,
+
 		/// <summary>
-		/// The raptor packet (formerly the placeholder packet).
+		///   The raptor packet (formerly the placeholder packet).
 		/// </summary>
 		Raptor,
+
 		/// <summary>
-		/// The uuid packet.
+		///   The uuid packet.
 		/// </summary>
 		Uuid
 	}

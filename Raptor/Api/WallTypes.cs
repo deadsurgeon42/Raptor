@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace Raptor.Api
+﻿namespace Raptor.Api
 {
 	public enum WallTypes : byte
 	{
@@ -178,6 +173,6 @@ namespace Raptor.Api
 		Confetti = 168,
 		ConfettiBlack = 169,
 		CaveWall = 170,
-		CaveWall2 = 171,
+		CaveWall2 = 171
 	}
 }
