@@ -61,10 +61,7 @@ namespace Raptor
 		/// <summary>
 		///   Gets the local player.
 		/// </summary>
-		public static Player LocalPlayer
-		{
-			get { return Main.player[Main.myPlayer]; }
-		}
+		public static Player LocalPlayer => Main.player[Main.myPlayer];
 
 		internal static void Initialize()
 		{
@@ -89,11 +86,7 @@ namespace Raptor
 		/// <param name="key">The XNA key to convert.</param>
 		/// <returns>The resultant string.</returns>
 		public static string ConvertToString(Keys key)
-		{
-			if (xnaKeytoString.ContainsKey(key))
-				return xnaKeytoString[key];
-			return key.ToString();
-		}
+			=> xnaKeytoString.ContainsKey(key) ? xnaKeytoString[key] : key.ToString();
 
 		/// <summary>
 		///   Prints an error message.

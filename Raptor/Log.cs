@@ -43,7 +43,7 @@ namespace Raptor
 		/// <param name="args">The arguments.</param>
 		public static void LogError(string format, params object[] args)
 		{
-			Writer.WriteLine("[{0}] ERROR: {1}", DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss"), string.Format(format, args));
+			Writer.WriteLine("[{0:yyyy-MM-dd hh:mm:ss}] ERROR: {1}", DateTime.Now, string.Format(format, args));
 		}
 
 		/// <summary>
@@ -53,7 +53,7 @@ namespace Raptor
 		/// <param name="args">The arguments.</param>
 		public static void LogFatal(string format, params object[] args)
 		{
-			Writer.WriteLine("[{0}] FATAL: {1}", DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss"), string.Format(format, args));
+			Writer.WriteLine("[{0:yyyy-MM-dd hh:mm:ss}] FATAL: {1}", DateTime.Now, string.Format(format, args));
 		}
 
 		/// <summary>
@@ -63,7 +63,7 @@ namespace Raptor
 		/// <param name="args">The arguments.</param>
 		public static void LogInfo(string format, params object[] args)
 		{
-			Writer.WriteLine("[{0}]  INFO: {1}", DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss"), string.Format(format, args));
+			Writer.WriteLine("[{0:yyyy-MM-dd hh:mm:ss}]  INFO: {1}", DateTime.Now, string.Format(format, args));
 		}
 	}
 }

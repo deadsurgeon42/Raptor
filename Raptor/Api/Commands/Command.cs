@@ -31,9 +31,9 @@ namespace Raptor.Api.Commands
 		public Command(EventHandler<CommandEventArgs> callback, params string[] names)
 		{
 			if (callback == null)
-				throw new ArgumentNullException("callback");
+				throw new ArgumentNullException(nameof(callback));
 			if (names == null)
-				throw new ArgumentNullException("names");
+				throw new ArgumentNullException(nameof(names));
 
 			Callback = callback;
 			HelpText = new[] {"Sorry, no help is available."};
@@ -53,10 +53,7 @@ namespace Raptor.Api.Commands
 		/// <summary>
 		///   Gets the command's primary name.
 		/// </summary>
-		public string Name
-		{
-			get { return Names[0]; }
-		}
+		public string Name => Names[0];
 
 		/// <summary>
 		///   Gets all of the command's name.

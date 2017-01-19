@@ -36,8 +36,7 @@ namespace Raptor.Api.Hooks
 
 		internal static void InvokeCamera()
 		{
-			if (Camera != null)
-				Camera(null, new EventArgs());
+			Camera?.Invoke(null, new EventArgs());
 		}
 
 		#endregion
@@ -53,8 +52,7 @@ namespace Raptor.Api.Hooks
 		{
 			Raptor.Initialize();
 
-			if (Initialized != null)
-				Initialized(null, EventArgs.Empty);
+			Initialized?.Invoke(null, EventArgs.Empty);
 		}
 
 		#endregion
@@ -86,8 +84,7 @@ namespace Raptor.Api.Hooks
 		{
 			Raptor.LoadedContent(cm);
 
-			if (LoadedContent != null)
-				LoadedContent(null, new LoadedContentEventArgs(cm));
+			LoadedContent?.Invoke(null, new LoadedContentEventArgs(cm));
 		}
 
 		#endregion
@@ -155,8 +152,7 @@ namespace Raptor.Api.Hooks
 
 		internal static void InvokeUpdated(GameTime gt)
 		{
-			if (Updated != null)
-				Updated(null, new UpdatedEventArgs(gt));
+			Updated?.Invoke(null, new UpdatedEventArgs(gt));
 		}
 
 		#endregion

@@ -86,8 +86,7 @@ namespace Raptor.Api.Hooks
 
 		internal static void InvokeKill(object projectile)
 		{
-			if (Kill != null)
-				Kill(null, new KillEventArgs((Projectile) projectile));
+			Kill?.Invoke(null, new KillEventArgs((Projectile) projectile));
 		}
 
 		#endregion
@@ -117,8 +116,7 @@ namespace Raptor.Api.Hooks
 
 		internal static void InvokeSetDefaults(object projectile)
 		{
-			if (SetDefaults != null)
-				SetDefaults(null, new SetDefaultsEventArgs((Projectile) projectile));
+			SetDefaults?.Invoke(null, new SetDefaultsEventArgs((Projectile) projectile));
 		}
 
 		#endregion

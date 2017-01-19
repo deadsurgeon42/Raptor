@@ -54,10 +54,7 @@ namespace Raptor.Api.Hooks
 			/// <summary>
 			///   Gets whether the player is the local player.
 			/// </summary>
-			public bool IsLocal
-			{
-				get { return Main.myPlayer == Player.whoAmI; }
-			}
+			public bool IsLocal => Main.myPlayer == Player.whoAmI;
 
 			/// <summary>
 			///   Gets whether the damage was dealt via PvP.
@@ -116,10 +113,7 @@ namespace Raptor.Api.Hooks
 			/// <summary>
 			///   Gets whether the player is the local player.
 			/// </summary>
-			public bool IsLocal
-			{
-				get { return Main.myPlayer == Player.whoAmI; }
-			}
+			public bool IsLocal => Main.myPlayer == Player.whoAmI;
 
 			/// <summary>
 			///   Gets whether the kill was dealt via PvP.
@@ -175,8 +169,7 @@ namespace Raptor.Api.Hooks
 
 		internal static void InvokeLoaded(BinaryReader reader)
 		{
-			if (Loaded != null)
-				Loaded(null, new LoadedEventArgs(reader));
+			Loaded?.Invoke(null, new LoadedEventArgs(reader));
 		}
 
 		#endregion
@@ -190,8 +183,7 @@ namespace Raptor.Api.Hooks
 
 		internal static void InvokeSave()
 		{
-			if (Save != null)
-				Save(null, EventArgs.Empty);
+			Save?.Invoke(null, EventArgs.Empty);
 		}
 
 		#endregion
@@ -221,8 +213,7 @@ namespace Raptor.Api.Hooks
 
 		internal static void InvokeSaved(BinaryWriter writer)
 		{
-			if (Saved != null)
-				Saved(null, new SavedEventArgs(writer));
+			Saved?.Invoke(null, new SavedEventArgs(writer));
 		}
 
 		#endregion
@@ -242,10 +233,7 @@ namespace Raptor.Api.Hooks
 			/// <summary>
 			///   Gets whether the player is the local player.
 			/// </summary>
-			public bool IsLocal
-			{
-				get { return Main.myPlayer == Player.whoAmI; }
-			}
+			public bool IsLocal => Main.myPlayer == Player.whoAmI;
 
 			/// <summary>
 			///   Gets the player.
@@ -260,8 +248,7 @@ namespace Raptor.Api.Hooks
 
 		internal static void InvokeUpdate(object player)
 		{
-			if (Update != null)
-				Update(null, new UpdateEventArgs((Player) player));
+			Update?.Invoke(null, new UpdateEventArgs((Player) player));
 		}
 
 		#endregion
@@ -275,8 +262,7 @@ namespace Raptor.Api.Hooks
 
 		internal static void InvokeUpdateVars(object player)
 		{
-			if (UpdateVars != null)
-				UpdateVars(null, new UpdateEventArgs((Player) player));
+			UpdateVars?.Invoke(null, new UpdateEventArgs((Player) player));
 		}
 
 		#endregion
@@ -290,8 +276,7 @@ namespace Raptor.Api.Hooks
 
 		internal static void InvokeUpdatedVars(object player)
 		{
-			if (UpdatedVars != null)
-				UpdatedVars(null, new UpdateEventArgs((Player) player));
+			UpdatedVars?.Invoke(null, new UpdateEventArgs((Player) player));
 		}
 
 		#endregion
@@ -305,8 +290,7 @@ namespace Raptor.Api.Hooks
 
 		internal static void InvokeUpdated(object player)
 		{
-			if (Updated != null)
-				Updated(null, new UpdateEventArgs((Player) player));
+			Updated?.Invoke(null, new UpdateEventArgs((Player) player));
 		}
 
 		#endregion

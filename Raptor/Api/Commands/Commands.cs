@@ -183,7 +183,7 @@ namespace Raptor.Api.Commands
 		public static void Register(Command command)
 		{
 			if (command == null)
-				throw new ArgumentNullException("command");
+				throw new ArgumentNullException(nameof(command));
 			if (ChatCommands.Any(c => string.Equals(c.Name, command.Name, StringComparison.OrdinalIgnoreCase)))
 				throw new ArgumentException("Can't register another command with the same name.");
 
@@ -337,7 +337,6 @@ namespace Raptor.Api.Commands
 							Utils.InfoMessage("  {0}", command);
 					}
 					return;
-				case "help":
 				default:
 					Utils.SuccessMessage(".{0} help:", e[-1]);
 					Utils.InfoMessage(".{0} add <key combination> <command> - Adds to a keybind.", e[-1]);

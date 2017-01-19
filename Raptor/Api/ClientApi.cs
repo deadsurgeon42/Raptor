@@ -44,10 +44,7 @@ namespace Raptor.Api
 		/// <summary>
 		///   Gets the list of loaded plugins.
 		/// </summary>
-		public static ReadOnlyCollection<TerrariaPlugin> Plugins
-		{
-			get { return new ReadOnlyCollection<TerrariaPlugin>(plugins); }
-		}
+		public static ReadOnlyCollection<TerrariaPlugin> Plugins => new ReadOnlyCollection<TerrariaPlugin>(plugins);
 
 		internal static void DeInitialize()
 		{

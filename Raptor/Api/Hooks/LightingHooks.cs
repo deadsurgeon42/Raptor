@@ -49,8 +49,7 @@ namespace Raptor.Api.Hooks
 
 		internal static void InvokeColor(object swipeData)
 		{
-			if (Color != null)
-				Color(null, new ColorEventArgs((Lighting.LightingSwipeData) swipeData));
+			Color?.Invoke(null, new ColorEventArgs((Lighting.LightingSwipeData) swipeData));
 		}
 
 		#endregion

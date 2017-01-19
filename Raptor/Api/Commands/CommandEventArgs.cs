@@ -54,10 +54,7 @@ namespace Raptor.Api.Commands
 		/// <summary>
 		///   Gets the number of the parameters, not including the command itself.
 		/// </summary>
-		public int Length
-		{
-			get { return parameters.Count - 1; }
-		}
+		public int Length => parameters.Count - 1;
 
 		/// <summary>
 		///   Gets the combined parameters after a certain index. Note that quotes are included!

@@ -303,9 +303,7 @@ namespace Raptor
 					Instruction.Create(OpCodes.Ret));
 
 				var load = asm.GetMethod("Player", "LoadPlayer");
-				for (var i = 0; i < load.Body.Instructions.Count; i++)
-				{
-					var instr = load.Body.Instructions[i];
+				foreach (var instr in load.Body.Instructions)
 					if (instr.OpCode == OpCodes.Callvirt && ((MethodReference) instr.Operand).Name == "Close")
 					{
 						// PlayerHooks.InvokeLoaded(binaryReader);
@@ -314,7 +312,6 @@ namespace Raptor
 							Instruction.Create(OpCodes.Call, mod.Import(typeof(PlayerHooks).GetMethod("InvokeLoaded", FLAGS))));
 						break;
 					}
-				}
 
 				var resetEffects = asm.GetMethod("Player", "ResetEffects");
 				// PlayerHooks.InvokeUpdateVars();
@@ -326,9 +323,8 @@ namespace Raptor
 				// PlayerHooks.InvokeSave();
 				save.InsertStart(
 					Instruction.Create(OpCodes.Call, mod.Import(typeof(PlayerHooks).GetMethod("InvokeSave", FLAGS))));
-				for (var i = 0; i < save.Body.Instructions.Count; i++)
-				{
-					var instr = save.Body.Instructions[i];
+
+				foreach (var instr in save.Body.Instructions)
 					if (instr.OpCode == OpCodes.Callvirt && ((MethodReference) instr.Operand).Name == "Close")
 					{
 						// PlayerHooks.InvokeSaved(binaryWriter);
@@ -337,7 +333,6 @@ namespace Raptor
 							Instruction.Create(OpCodes.Call, mod.Import(typeof(PlayerHooks).GetMethod("InvokeSaved", FLAGS))));
 						break;
 					}
-				}
 
 				var update = asm.GetMethod("Player", "Update");
 				// PlayerHooks.InvokeUpdate(this);

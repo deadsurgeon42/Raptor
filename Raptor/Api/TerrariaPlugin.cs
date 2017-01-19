@@ -34,26 +34,17 @@ namespace Raptor.Api
 		/// <summary>
 		///   Gets the plugin's author.
 		/// </summary>
-		public virtual string Author
-		{
-			get { return ""; }
-		}
+		public virtual string Author => "";
 
 		/// <summary>
 		///   Gets the plugin's description.
 		/// </summary>
-		public virtual string Description
-		{
-			get { return ""; }
-		}
+		public virtual string Description => "";
 
 		/// <summary>
 		///   Gets the plugin's name.
 		/// </summary>
-		public virtual string Name
-		{
-			get { return ""; }
-		}
+		public virtual string Name => "";
 
 		/// <summary>
 		///   Gets or sets the plugin's order.
@@ -63,10 +54,7 @@ namespace Raptor.Api
 		/// <summary>
 		///   Gets the plugin's version.
 		/// </summary>
-		public virtual Version Version
-		{
-			get { return new Version(1, 0); }
-		}
+		public virtual Version Version => new Version(1, 0);
 
 		/// <summary>
 		///   Disposes the plugin.

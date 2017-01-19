@@ -49,8 +49,7 @@ namespace Raptor.Api.Hooks
 
 		internal static void InvokeSetDefaults(object item)
 		{
-			if (SetDefaults != null)
-				SetDefaults(null, new SetDefaultsEventArgs((Item) item));
+			SetDefaults?.Invoke(null, new SetDefaultsEventArgs((Item) item));
 		}
 
 		#endregion

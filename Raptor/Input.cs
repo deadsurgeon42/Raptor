@@ -69,122 +69,81 @@ namespace Raptor
 		/// <summary>
 		///   Gets whether an alt key is down.
 		/// </summary>
-		public static bool Alt
-		{
-			get { return keyboard.IsKeyDown(Keys.LeftAlt) || keyboard.IsKeyDown(Keys.RightAlt); }
-		}
+		public static bool Alt => keyboard.IsKeyDown(Keys.LeftAlt) || keyboard.IsKeyDown(Keys.RightAlt);
 
 		/// <summary>
 		///   Gets whether a control key is down.
 		/// </summary>
-		public static bool Control
-		{
-			get { return keyboard.IsKeyDown(Keys.LeftControl) || keyboard.IsKeyDown(Keys.RightControl); }
-		}
+		public static bool Control => keyboard.IsKeyDown(Keys.LeftControl) || keyboard.IsKeyDown(Keys.RightControl);
 
 		/// <summary>
 		///   Gets the mouse delta scroll wheel value.
 		/// </summary>
-		public static int MouseDScroll
-		{
-			get { return mouse.ScrollWheelValue - lastMouse.ScrollWheelValue; }
-		}
+		public static int MouseDScroll => mouse.ScrollWheelValue - lastMouse.ScrollWheelValue;
 
 		/// <summary>
 		///   Gets the mouse delta X position.
 		/// </summary>
-		public static int MouseDX
-		{
-			get { return mouse.X - lastMouse.X; }
-		}
+		public static int MouseDX => mouse.X - lastMouse.X;
 
 		/// <summary>
 		///   Gets the mouse delta Y position.
 		/// </summary>
-		public static int MouseDY
-		{
-			get { return mouse.Y - lastMouse.Y; }
-		}
+		public static int MouseDY => mouse.Y - lastMouse.Y;
 
 		/// <summary>
 		///   Gets if the LMB is clicked.
 		/// </summary>
 		public static bool MouseLeftClick
-		{
-			get { return mouse.LeftButton == ButtonState.Pressed && lastMouse.LeftButton == ButtonState.Released; }
-		}
+			=> mouse.LeftButton == ButtonState.Pressed && lastMouse.LeftButton == ButtonState.Released;
 
 		/// <summary>
 		///   Gets if the LMB is pressed.
 		/// </summary>
-		public static bool MouseLeftDown
-		{
-			get { return mouse.LeftButton == ButtonState.Pressed; }
-		}
+		public static bool MouseLeftDown => mouse.LeftButton == ButtonState.Pressed;
 
 		/// <summary>
 		///   Gets if the LMB is released.
 		/// </summary>
 		public static bool MouseLeftRelease
-		{
-			get { return mouse.LeftButton != ButtonState.Pressed && lastMouse.LeftButton == ButtonState.Pressed; }
-		}
+			=> mouse.LeftButton != ButtonState.Pressed && lastMouse.LeftButton == ButtonState.Pressed;
 
 		/// <summary>
 		///   Gets if the RMB is clicked.
 		/// </summary>
 		public static bool MouseRightClick
-		{
-			get { return mouse.RightButton == ButtonState.Pressed && lastMouse.RightButton == ButtonState.Released; }
-		}
+			=> mouse.RightButton == ButtonState.Pressed && lastMouse.RightButton == ButtonState.Released;
 
 		/// <summary>
 		///   Gets if the RMB is pressed.
 		/// </summary>
-		public static bool MouseRightDown
-		{
-			get { return mouse.RightButton == ButtonState.Pressed; }
-		}
+		public static bool MouseRightDown => mouse.RightButton == ButtonState.Pressed;
 
 		/// <summary>
 		///   Gets if the RMB is released.
 		/// </summary>
 		public static bool MouseRightRelease
-		{
-			get { return mouse.RightButton != ButtonState.Pressed && lastMouse.RightButton == ButtonState.Pressed; }
-		}
+			=> mouse.RightButton != ButtonState.Pressed && lastMouse.RightButton == ButtonState.Pressed;
 
 		/// <summary>
 		///   Gets the mouse scroll wheel value.
 		/// </summary>
-		public static int MouseScroll
-		{
-			get { return mouse.ScrollWheelValue; }
-		}
+		public static int MouseScroll => mouse.ScrollWheelValue;
 
 		/// <summary>
 		///   Gets the mouse X position.
 		/// </summary>
-		public static int MouseX
-		{
-			get { return mouse.X; }
-		}
+		public static int MouseX => mouse.X;
 
 		/// <summary>
 		///   Gets the mouse Y position.
 		/// </summary>
-		public static int MouseY
-		{
-			get { return mouse.Y; }
-		}
+		public static int MouseY => mouse.Y;
 
 		/// <summary>
 		///   Gets if a shift key is down.
 		/// </summary>
-		public static bool Shift
-		{
-			get { return keyboard.IsKeyDown(Keys.LeftShift) || keyboard.IsKeyDown(Keys.RightShift); }
-		}
+		public static bool Shift => keyboard.IsKeyDown(Keys.LeftShift) || keyboard.IsKeyDown(Keys.RightShift);
 
 		/// <summary>
 		///   Gets the string formed from the most recent WM_CHAR messages.
@@ -278,8 +237,9 @@ namespace Raptor
 			charCodes.Clear();
 
 			ActiveSpecialKeys = 0;
-			for (var i = 0; i < keyCodes.Count; i++)
-				switch (keyCodes[i])
+
+			foreach (byte t in keyCodes)
+				switch (t)
 				{
 					case 0x08:
 						ActiveSpecialKeys |= SpecialKeys.Backspace;
