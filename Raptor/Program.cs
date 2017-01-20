@@ -42,9 +42,13 @@ namespace Raptor
 		private const string REGISTRY = @"SOFTWARE\Re-Logic\Terraria";
 		private static Assembly terraria;
 
+		internal static string[] ProgramArgs;
+
 		[STAThread]
-		private static void Main()
+		private static void Main(string[] _args)
 		{
+			ProgramArgs = _args ?? new string[]{};
+
 			var rk = Registry.LocalMachine.OpenSubKey(REGISTRY);
 			if (rk == null)
 			{
@@ -516,8 +520,7 @@ namespace Raptor
 				{
 					ClientApi.Main.Content.RootDirectory = Path.Combine(path, "Content");
 					Directory.SetCurrentDirectory(path);
-					string[] args = {};
-					WindowsLaunch.Main(args);
+					WindowsLaunch.Main(ProgramArgs);
 				}
 				catch (Exception e)
 				{
