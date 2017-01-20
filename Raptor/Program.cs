@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Windows.Forms;
@@ -445,6 +446,57 @@ namespace Raptor
 
 			Directory.CreateDirectory("Logs");
 			Directory.CreateDirectory("Plugins");
+
+			var contentinfo = new DirectoryInfo(Path.Combine(path, "Content"));
+			var contentdirs = contentinfo.EnumerateDirectories();
+			var contentfiles = contentinfo.EnumerateFiles();
+
+			foreach (var dir in contentdirs)
+			{
+				var name = Path.Combine("Content\\", dir.Name);
+				if (!Directory.Exists(name))
+					try
+					{
+						JunctionPoint.Create(name, dir.FullName);
+					}
+					catch (IOException e)
+					{
+						MessageBox.Show("Couldn't create junction points from Terraria Content folders.\n" +
+						                e.InnerException?.Message +
+						                "\nPlease try copying the missing folders manually from your Content directory.", "Error",
+							MessageBoxButtons.OK,
+							MessageBoxIcon.Error);
+
+						Process.Start("explorer.exe", path);
+
+						Environment.Exit(1);
+					}
+			}
+
+			if (!Directory.Exists(Path.Combine(path, "Plugins\\")))
+				JunctionPoint.Create(Path.Combine(path, "Plugins\\"), "Plugins\\");
+
+			foreach (var file in contentfiles)
+			{
+				var name = Path.Combine("Content\\", file.Name);
+				if (!File.Exists(name))
+					try
+					{
+						JunctionPoint.CreateHardLink(name, file.FullName);
+					}
+					catch (IOException e)
+					{
+						MessageBox.Show("Couldn't create hardlinks from Terraria Content files.\n" +
+						                e.InnerException?.Message +
+						                "\nPlease try copying the missing files manually from your Content directory.", "Error",
+							MessageBoxButtons.OK,
+							MessageBoxIcon.Error);
+
+						Process.Start("explorer.exe", path);
+
+						Environment.Exit(1);
+					}
+			}
 
 			Log.Initialize();
 			Log.LogInfo("Raptor v{0} stopped.\n", ClientApi.ApiVersion);
